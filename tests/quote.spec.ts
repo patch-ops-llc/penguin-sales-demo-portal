@@ -149,3 +149,45 @@ test("the quote document takes its heading and total label from the vertical", a
   await expect(page.getByTestId("quote-document")).toContainText("Total of payments and fees");
   await expect(page.getByTestId("quote-document")).not.toContainText("Total contract value");
 });
+
+test("buyer e-signature: Sign now, Get started, Click to sign, Insert, Continue, I agree, Close", async ({ page }) => {
+  await openDemo(page, "guided-quote");
+  for (let i = 0; i < 5; i += 1) await page.getByTestId("demo-next").click();
+  await page.getByTestId("share-close").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  await expect(page.getByTestId("buyer-banner")).toHaveText("Waiting for acceptance");
+
+  await page.getByTestId("buyer-accept").click();
+  await expect(page.getByTestId("buyer-banner")).toHaveCount(0);
+  await page.getByTestId("sign-get-started").click();
+  await expect(page.getByTestId("sign-continue")).toBeDisabled();
+  await expect(page.getByTestId("sign-field")).toHaveText(/Click to sign/);
+
+  await page.getByTestId("sign-field").click();
+  await page.getByTestId("sign-tab-draw").click();
+  await expect(page.getByTestId("buyer-sign-insert")).toBeDisabled();
+  const pad = await page.getByTestId("sign-pad").boundingBox();
+  if (!pad) throw new Error("no signature pad");
+  await page.mouse.move(pad.x + 40, pad.y + 60);
+  await page.mouse.down();
+  await page.mouse.move(pad.x + 120, pad.y + 30, { steps: 4 });
+  await page.mouse.move(pad.x + 200, pad.y + 70, { steps: 4 });
+  await page.mouse.up();
+  await page.getByTestId("buyer-sign-insert").click();
+  await expect(page.getByTestId("sign-field")).toHaveAttribute("data-signed", "true");
+
+  await page.getByTestId("sign-continue").click();
+  await page.getByTestId("sign-edit").click();
+  await page.getByTestId("sign-tab-type").click();
+  await page.getByTestId("buyer-sign-insert").click();
+  await expect(page.getByTestId("sign-field")).toHaveText("Hannah Weiss");
+  await page.getByTestId("sign-continue").click();
+  await page.getByTestId("sign-agree").click();
+  await page.getByTestId("sign-close").click();
+
+  await expect(page.getByTestId("buyer-banner")).toHaveText("Accepted");
+  await expect(page.getByTestId("buyer-accepted")).toContainText("Hannah Weiss");
+  await expect(page.getByTestId("buyer-accepted")).toContainText("Signed");
+  await page.getByTestId("buyer-back").click();
+  await expect(page.getByTestId("quote-page")).toContainText("Accepted");
+});

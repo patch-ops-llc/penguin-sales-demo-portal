@@ -237,7 +237,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
                   <dd className="tabular-nums">-{money2(totals.discount)}</dd>
                 </div>
               ) : null}
-              <div className="flex justify-between border-t border-line pt-2 text-[15px] font-bold">
+              <div className="flex justify-between gap-4 border-t border-line pt-2 text-[15px] font-bold">
                 <dt>{labels.quoteTotal}</dt>
                 <dd className="tabular-nums" data-testid="document-total">
                   {money2(totals.total)}
@@ -297,8 +297,30 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
   );
 }
 
-/** The signer's card under Acceptance. In the editor and the preview the action is shown but cannot be used. */
-export function AcceptanceCard({ quote, onSign }: { quote: Quote; onSign?: () => void }) {
+/** A signature as the signing dialog stores it: "t:" typed name, "d:" drawn path on a 320 by 96 pad, "u:" uploaded image. */
+export function SignatureMark({ value, name, className }: { value: string; name: string; className?: string }) {
+  const body = value.slice(2);
+  if (value.startsWith("d:")) {
+    return (
+      <svg viewBox="0 0 320 96" className={cx("h-11 w-auto", className)} role="img" aria-label={`Signature of ${name}`}>
+        <path d={body} fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (value.startsWith("u:")) {
+    // eslint-disable-next-line @next/next/no-img-element -- a data URL made in the browser; there is nothing for the image optimizer to fetch.
+    return <img src={body} alt={`Signature of ${name}`} className={cx("h-11 w-auto", className)} />;
+  }
+  return <span className={cx("text-[26px] leading-tight [font-family:'Brush_Script_MT','Segoe_Script',cursive]", className)}>{value.startsWith("t:") ? body : name}</span>;
+}
+
+export type SignField = { signature: string; onClick: () => void };
+
+/**
+ * The signer's card under Acceptance. In the editor and the preview the action is shown but cannot be used.
+ * While the buyer is signing, `field` swaps the button for the signature field.
+ */
+export function AcceptanceCard({ quote, onSign, field }: { quote: Quote; onSign?: () => void; field?: SignField }) {
   const { world } = useShell();
   const s = useQuoteSettings(quote);
   const contact = world.contacts.find((c) => c.id === quote.contactId);
@@ -309,7 +331,11 @@ export function AcceptanceCard({ quote, onSign }: { quote: Quote; onSign?: () =>
     <>
       {accepted ? (
         <div data-testid="buyer-accepted">
-          {method === "esign" ? <p className="border-b border-ink pb-1 text-[26px] leading-tight [font-family:'Brush_Script_MT','Segoe_Script',cursive]">{contactName(contact)}</p> : null}
+          {method === "esign" ? (
+            <p className="border-b border-ink pb-1">
+              <SignatureMark value={s.get("sig")} name={contactName(contact)} />
+            </p>
+          ) : null}
           <p className="mt-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-[#0b5b2b]">
             <Icon name="check" size={14} /> {method === "esign" ? "Signed" : "Accepted"} {date(quote.acceptedAt ?? quote.createdAt)}
           </p>
@@ -321,13 +347,32 @@ export function AcceptanceCard({ quote, onSign }: { quote: Quote; onSign?: () =>
           <p className="mt-4 h-6 border-b border-ink" />
           <p className="mt-1 text-[12px] text-ink-muted">Date</p>
         </div>
+      ) : field ? (
+        <button
+          type="button"
+          onClick={field.onClick}
+          data-testid="sign-field"
+          data-signed={Boolean(field.signature)}
+          className="relative flex h-[52px] w-[230px] max-w-full items-center justify-center border-2 border-[#1d4d3a] bg-white text-[15px] hover:bg-[#f4f8f6]"
+        >
+          {field.signature ? (
+            <SignatureMark value={field.signature} name={contactName(contact)} />
+          ) : (
+            <>
+              Click to sign
+              <span className="absolute right-3 top-0.5 text-[20px] leading-none text-[#d0021b]" aria-hidden="true">
+                *
+              </span>
+            </>
+          )}
+        </button>
       ) : (
         <button type="button" className={action} disabled={!onSign} onClick={onSign} data-testid={onSign ? "buyer-accept" : undefined}>
           {method === "esign" ? "Sign now" : "Accept"}
         </button>
       )}
       <p className="mt-3 font-bold">{contactName(contact)}</p>
-      <p>{contact?.email}</p>
+      <p className="[overflow-wrap:anywhere]">{contact?.email}</p>
     </>
   );
 }
