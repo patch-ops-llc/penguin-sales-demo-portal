@@ -10,9 +10,12 @@ import { SitePage } from "./pages/site";
 import { WorkflowPage } from "./pages/workflow";
 import { A, Card, Empty } from "./ui";
 
-/** Screens that sit outside the simulated HubSpot frame: the buyer's quote page and the public website. */
+/**
+ * Screens that fill the window instead of sitting inside HubSpot's navigation: the quote editor,
+ * which HubSpot opens full screen, the buyer's quote page, and the public website.
+ */
 export function isOutsideHubSpot(segments: string[]): boolean {
-  return (segments[0] === "quotes" && segments[2] === "buyer") || segments[0] === "site";
+  return ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) || segments[0] === "site";
 }
 
 export function Routes() {

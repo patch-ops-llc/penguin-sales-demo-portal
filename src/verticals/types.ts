@@ -82,6 +82,8 @@ export type LineItem = {
   timing?: string;
   /** Marks a line that repeats every year, so quote totals can show annual recurring revenue. */
   recurring?: boolean;
+  /** Unit discount on this line, in percent. When unset, the quote's `discountPct` applies to the line. */
+  discountPct?: number;
 };
 
 export type Deal = {
@@ -114,16 +116,21 @@ export type Product = {
   recurring?: boolean;
 };
 
-export type QuoteStatus = "Draft" | "Pending approval" | "Approved" | "Sent" | "Accepted";
+/** "Sent" is a published quote: HubSpot shows it as "Published". Use `quoteStatusLabel` for display. */
+export type QuoteStatus = "Draft" | "Pending approval" | "Changes requested" | "Approved" | "Sent" | "Accepted";
 
 export type QuoteApproval = {
-  status: "pending" | "approved";
+  status: "pending" | "approved" | "changes_requested";
   requestedAt: string;
   requestedById: string;
   approverId: string;
   decidedAt?: string;
   reasons: string[];
   discountPct: number;
+  /** The requester's "Notes to approver". */
+  note?: string;
+  /** The approver's message on approval, or the changes they asked for. */
+  feedback?: string;
 };
 
 export type Quote = {
@@ -136,6 +143,7 @@ export type Quote = {
   ownerId: string;
   status: QuoteStatus;
   lineItems: LineItem[];
+  /** Total discount in percent. With no unit discounts set on the lines, it applies to every line. */
   discountPct: number;
   createdAt: string;
   validUntil: string;
@@ -560,7 +568,8 @@ export type StepNote = { title?: string; hint?: string };
 
 export type Pack = {
   vertical: { id: string; name: string };
-  portal: { company: string; domain: string; hubId: string; currency: string };
+  /** `address` is the seller address printed on quotes, one line per entry. */
+  portal: { company: string; domain: string; hubId: string; currency: string; address?: string[] };
   personas: Persona[];
   defaultPersonaId: string;
   /** `request` names the inbound document a buyer sends, for example RFQ. Defaults to "Request". */

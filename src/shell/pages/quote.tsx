@@ -1,137 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { nowMs } from "@/lib/format";
-import { useState } from "react";
-import { approvalReasons, floorPrice, isLocked, linesBelowFloor, quoteTerms, quoteTotals, recurringTotals } from "@/store/quote-math";
+import { approvalReasons, isLocked, reasonList } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
-import { fill, labelsOf, timingOf } from "@/verticals/labels";
+import { quoteName } from "@/store/world";
 import type { Quote } from "@/verticals/types";
-import { Ext } from "../ext";
-import { date, dateTime, money2, pct, relative } from "../format";
-import { Icon } from "../icons";
-import { A, Button, Card, cx, Empty, Modal, Prop, statusTone, Tag } from "../ui";
+import { date, dateTime, relative } from "../format";
+import { Icon, type IconName } from "../icons";
+import { ApprovalsPanel, RequestApprovalDialog } from "../quote/approvals";
+import { BuyerView } from "../quote/buyer";
+import { QuoteDocument } from "../quote/document";
+import { LineItemsEditor } from "../quote/line-items-editor";
+import type { ModuleId } from "../quote/settings";
+import { ShareDialog } from "../quote/share-dialog";
+import { QuoteStatus } from "../quote/status";
+import { EditorSidebar } from "../quote/sidebar";
+import { A, Card, cx, Empty, Menu, Prop, Toast } from "../ui";
 import { companyOf, contactName, ownerName } from "./lists";
 
-/** Under the total of a quote with recurring lines: what repeats every year and what is charged once. */
-function RecurringRows({ quote, className }: { quote: Quote; className?: string }) {
-  const { pack } = useShell();
-  const labels = labelsOf(pack).pack.recurring;
-  const split = recurringTotals(quote);
-  if (!split) return null;
-  return (
-    <>
-      <div className={className}>
-        <dt className="text-ink-muted">{labels.annual}</dt>
-        <dd className="tabular-nums" data-testid="quote-recurring">
-          {money2(split.annual)}
-        </dd>
-      </div>
-      {split.oneTime > 0 ? (
-        <div className={className}>
-          <dt className="text-ink-muted">{labels.oneTime}</dt>
-          <dd className="tabular-nums">{money2(split.oneTime)}</dd>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-/** The quote as the buyer sees it. Used in the preview and on the buyer page. */
-function QuoteDocument({ quote }: { quote: Quote }) {
-  const { world, pack } = useShell();
-  const labels = labelsOf(pack).pack;
-  const company = companyOf(world, quote.companyId);
-  const contact = world.contacts.find((c) => c.id === quote.contactId);
-  const owner = pack.personas.find((p) => p.id === quote.ownerId);
-  const totals = quoteTotals(quote);
-  return (
-    <article className="mx-auto max-w-[760px] bg-white px-10 py-9 text-[13.5px]" data-testid="quote-document">
-      <header className="flex items-start justify-between border-b-2 border-ink pb-5">
-        <div>
-          <p className="text-[20px] font-bold tracking-tight">{pack.portal.company}</p>
-          <p className="text-[12.5px] text-ink-muted">{pack.portal.domain}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-[18px] font-semibold">Quote {quote.number}</p>
-          <p className="text-[12.5px] text-ink-muted">Issued {date(quote.sentAt ?? quote.createdAt)}</p>
-          <p className="text-[12.5px] text-ink-muted">Valid until {date(quote.validUntil)}</p>
-        </div>
-      </header>
-      <div className="grid grid-cols-2 gap-6 py-5">
-        <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">Prepared for</p>
-          <p className="mt-1 font-semibold">{contactName(contact)}</p>
-          <p>{contact?.title}</p>
-          <p>{company?.name}</p>
-          <p className="text-ink-muted">{company ? `${company.city}, ${company.state}` : ""}</p>
-        </div>
-        <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">Prepared by</p>
-          <p className="mt-1 font-semibold">{owner?.name}</p>
-          <p>{owner?.title}</p>
-          <p className="text-ink-muted">{owner?.email}</p>
-        </div>
-      </div>
-      <h2 className="text-[15px] font-semibold">{quote.title}</h2>
-      <table className="mt-3 w-full">
-        <thead>
-          <tr className="border-y border-line text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
-            <th className="py-2 font-semibold">Item</th>
-            <th className="py-2 text-right font-semibold">Qty</th>
-            <th className="py-2 text-right font-semibold">Unit price</th>
-            <th className="py-2 text-right font-semibold">{labels.timing}</th>
-            <th className="py-2 text-right font-semibold">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {quote.lineItems.map((l) => (
-            <tr key={l.sku} className="border-b border-line-soft align-top">
-              <td className="py-2.5 pr-3">
-                <p className="font-semibold">{l.name}</p>
-                <p className="font-mono text-[12px] text-ink-muted">{l.sku}</p>
-              </td>
-              <td className="py-2.5 text-right tabular-nums">{l.qty}</td>
-              <td className="py-2.5 text-right tabular-nums">{money2(l.unitPrice)}</td>
-              <td className="py-2.5 text-right tabular-nums">{timingOf(l)}</td>
-              <td className="py-2.5 text-right tabular-nums">{money2(l.qty * l.unitPrice)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <dl className="ml-auto mt-4 w-[280px] space-y-1.5">
-        <div className="flex justify-between">
-          <dt className="text-ink-muted">Subtotal</dt>
-          <dd className="tabular-nums">{money2(totals.subtotal)}</dd>
-        </div>
-        {quote.discountPct > 0 ? (
-          <div className="flex justify-between">
-            <dt className="text-ink-muted">Discount ({pct(quote.discountPct)})</dt>
-            <dd className="tabular-nums">-{money2(totals.discount)}</dd>
-          </div>
-        ) : null}
-        <div className="flex justify-between border-t border-ink pt-2 text-[16px] font-semibold">
-          <dt>{labels.quoteTotal}</dt>
-          <dd className="tabular-nums" data-testid="document-total">
-            {money2(totals.total)}
-          </dd>
-        </div>
-        <RecurringRows quote={quote} className="flex justify-between text-[12.5px]" />
-      </dl>
-      <section className="mt-7 border-t border-line-soft pt-4">
-        <h3 className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Terms</h3>
-        <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[12.5px] text-ink-muted">
-          {pack.quoteTerms.map((term) => (
-            <li key={term}>{term}</li>
-          ))}
-        </ul>
-      </section>
-    </article>
-  );
-}
+export { BuyerPage } from "../quote/buyer";
 
 function NotFound() {
   return (
-    <div className="p-10">
+    <div className="flex-1 bg-hs-bg p-10">
       <Card>
         <Empty title="This quote is not in the demo">
           It may belong to a step that has not happened yet, or the demo was reset.{" "}
@@ -144,551 +36,299 @@ function NotFound() {
   );
 }
 
-function DiscountInput({ quote, disabled }: { quote: Quote; disabled: boolean }) {
-  const { dispatch } = useShell();
-  const [text, setText] = useState(quote.discountPct ? String(quote.discountPct) : "");
-  const [seen, setSeen] = useState(quote.discountPct);
-  // A scripted step or a step back changes the discount from outside; follow it.
-  if (seen !== quote.discountPct) {
-    setSeen(quote.discountPct);
-    if ((Number(text) || 0) !== quote.discountPct) setText(quote.discountPct ? String(quote.discountPct) : "");
-  }
+const barButton = "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[4px] px-3.5 text-[13px] font-semibold transition-colors";
+const barSecondary = cx(barButton, "border border-white/70 text-white hover:bg-white/10");
+const barPrimary = cx(barButton, "bg-white text-ink hover:bg-[#e9e9e9]");
+
+function RailButton({ icon, label, active, onClick, testId, dot }: { icon: IconName; label: string; active?: boolean; onClick?: () => void; testId?: string; dot?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1">
-      <input
-        value={text}
-        disabled={disabled}
-        inputMode="decimal"
-        aria-label="Discount percent"
-        data-testid="quote-discount"
-        placeholder="0"
-        onChange={(e) => {
-          const value = e.target.value.replace(/[^0-9.]/g, "").slice(0, 4);
-          setText(value);
-          dispatch({ t: "quote.discount", id: quote.id, pct: Number(value) || 0 });
-        }}
-        className="h-8 w-16 rounded-[6px] border border-line px-2 text-right text-[13.5px] tabular-nums focus:border-ink focus:outline-none disabled:bg-[#f3f3f3] disabled:text-ink-muted"
-      />
-      %
-    </span>
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={active}
+      onClick={onClick}
+      data-testid={testId}
+      className={cx("relative inline-flex h-9 w-9 items-center justify-center rounded-[6px]", active ? "bg-[#e5f5f8] text-[#007a8c]" : "text-ink hover:bg-[#f0f0f0]")}
+    >
+      <Icon name={icon} size={18} />
+      {dot ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#f5c26b] ring-2 ring-white" /> : null}
+    </button>
   );
 }
 
-export function QuotePage({ id }: { id: string }) {
-  const { world, pack, persona, dispatch, navigate } = useShell();
-  const [preview, setPreview] = useState(false);
-  const quote = world.quotes.find((q) => q.id === id);
-  if (!quote) return <NotFound />;
+function Banner({ tone, icon, testId, children }: { tone: "amber" | "green" | "red" | "plain"; icon: IconName; testId: string; children: React.ReactNode }) {
+  const tones = { amber: "border-[#f5c26b] bg-[#fef8f0]", green: "border-[#7fded2] bg-[#e5f8f6]", red: "border-[#f2545b] bg-[#fdedee]", plain: "border-line bg-white" };
+  return (
+    <div className={cx("hs-pop mx-auto mb-4 flex w-full max-w-[880px] items-start gap-2.5 rounded-[4px] border px-4 py-2.5 text-[13.5px]", tones[tone])} data-testid={testId}>
+      <Icon name={icon} size={16} className="mt-0.5 shrink-0" />
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
 
+/**
+ * The quote editor, as HubSpot lays it out: its own full-screen page with Preview and Share at the
+ * top, the document on a canvas, the modules in the left sidebar, and approvals on the right.
+ */
+export function QuotePage({ id, approvals = false }: { id: string; approvals?: boolean }) {
+  const { world } = useShell();
+  const quote = world.quotes.find((q) => q.id === id);
+  return quote ? <QuoteEditor quote={quote} approvals={approvals} /> : <NotFound />;
+}
+
+/** The older address of an approval request. It opens the quote with the Approvals panel showing. */
+export function ApprovalPage({ id }: { id: string }) {
+  return <QuotePage id={id} approvals />;
+}
+
+function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean }) {
+  const { world, pack, persona, dispatch, navigate } = useShell();
   const rule = pack.demos.discountApproval;
-  const totals = quoteTotals(quote);
   const reasons = approvalReasons(quote, rule);
   const locked = isLocked(quote, rule);
   const final = quote.status === "Sent" || quote.status === "Accepted";
   const pending = quote.status === "Pending approval";
-  const canSend = !final && !locked;
+  const changes = quote.status === "Changes requested";
+  const isApprover = persona.id === rule.approverId;
+  const isRuleQuote = quote.id === rule.quoteId;
   const company = companyOf(world, quote.companyId);
   const contact = world.contacts.find((c) => c.id === quote.contactId);
   const deal = world.deals.find((d) => d.id === quote.dealId);
   const approver = pack.personas.find((p) => p.id === rule.approverId);
-  const listMargin = quoteTotals({ lineItems: quote.lineItems, discountPct: 0 }).marginPct;
-  const labels = labelsOf(pack);
-  const terms = quoteTerms(quote, rule);
-  const send = () => {
-    dispatch({ t: "quote.send", id: quote.id, at: nowMs() });
-    setPreview(false);
+
+  const [view, setView] = useState<"edit" | "lines" | "preview">("edit");
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [sidebar, setSidebar] = useState(false);
+  const [module, setModule] = useState<ModuleId | null>(null);
+  const [panel, setPanel] = useState(approvals || (isApprover && pending));
+  const [requesting, setRequesting] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [resumed, setResumed] = useState(false);
+  const [toast, setToast] = useState("");
+
+  // A scripted step, the approver, or a step back changes the status from outside; the screen follows it.
+  const [status, setStatus] = useState(quote.status);
+  if (status !== quote.status) {
+    setStatus(quote.status);
+    setSharing(quote.status === "Sent");
+    setRequesting(false);
+    setResumed(false);
+    setToast("");
+    if (quote.status === "Pending approval") setPanel(true);
+    if (quote.status !== "Draft") setView((v) => (v === "lines" ? "edit" : v));
+  }
+
+  // Someone who switches to the approver while a request waits starts from HubSpot, where the bell shows it.
+  const [viewer, setViewer] = useState(persona.id);
+  const leaveForBell = viewer !== persona.id && isApprover && pending && isRuleQuote && world.flags["da.requestOpened"] !== true;
+  if (viewer !== persona.id && !leaveForBell) {
+    setViewer(persona.id);
+    if (isApprover && pending) setPanel(true);
+  }
+  useEffect(() => {
+    if (leaveForBell) navigate("/quotes");
+  }, [leaveForBell, navigate]);
+  useSeen("da.requestOpened", isApprover && isRuleQuote && Boolean(quote.approval) && !leaveForBell);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(""), 2600);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const editable = quote.status === "Draft" || quote.status === "Approved" || (changes && resumed);
+  const share = () => dispatch({ t: "quote.send", id: quote.id, at: nowMs() });
+  const select = (next: ModuleId | null) => {
+    setModule(next);
+    if (next) setSidebar(true);
   };
+  const exitTo = deal ? `/deals/${deal.id}` : "/quotes";
 
   return (
-    <div className="min-h-full" data-testid="quote-page">
-      <header className="flex items-center justify-between gap-4 border-b border-line bg-white px-6 py-3.5">
-        <div className="min-w-0">
-          <A to="/quotes" className="inline-flex items-center gap-1 text-[13px] font-semibold text-link hover:underline">
-            <Icon name="chevronLeft" size={14} /> Quotes
-          </A>
-          <div className="mt-1 flex items-center gap-3">
-            <h1 className="truncate text-[19px] font-semibold">
-              {quote.number}: {quote.title}
-            </h1>
-            <Tag tone={statusTone(quote.status)} className="shrink-0">
-              <span data-testid="quote-status">{quote.status}</span>
-            </Tag>
-            {locked ? (
-              <span className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#754c00]" data-testid="quote-locked">
-                <Icon name="lock" size={14} /> Locked until approved
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button icon="eye" onClick={() => setPreview(true)} data-testid="quote-preview">
-            Preview
-          </Button>
-          {final ? (
-            <Button variant="primary" icon="external" onClick={() => navigate(`/quotes/${quote.id}/buyer`)} data-testid="quote-view-as-buyer">
-              View as buyer
-            </Button>
-          ) : pending ? (
-            persona.id === rule.approverId ? (
-              <Button variant="primary" onClick={() => navigate(`/approvals/${quote.id}`)} data-testid="quote-review-approval">
-                Review approval request
-              </Button>
-            ) : (
-              <Button variant="primary" disabled icon="lock">
-                Waiting for approval
-              </Button>
-            )
-          ) : locked ? (
-            <Button variant="primary" onClick={() => dispatch({ t: "quote.requestApproval", id: quote.id, at: nowMs() })} data-testid="quote-request-approval">
-              Request approval
-            </Button>
+    <div className="relative flex min-h-0 flex-1 flex-col bg-[#e1e8f0]" data-testid="quote-page">
+      <header className="flex h-[52px] shrink-0 items-center gap-4 bg-nav px-4 text-white">
+        <A to={exitTo} className="inline-flex h-8 items-center gap-1 rounded-[4px] pl-1.5 pr-3 text-[13px] font-semibold hover:bg-white/10" data-testid="quote-exit">
+          <Icon name="chevronLeft" size={15} /> Exit
+        </A>
+        <span className="h-6 w-px bg-white/25" aria-hidden="true" />
+        <h1 className="min-w-0 truncate text-[14.5px] font-semibold">{quoteName(quote)}</h1>
+        <QuoteStatus status={quote.status} className="shrink-0 text-[12.5px] text-white/85" testId="quote-status" />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {view === "lines" ? null : view === "preview" ? (
+            <button type="button" className={barSecondary} onClick={() => setView("edit")} data-testid="quote-preview-close">
+              Exit preview
+            </button>
           ) : (
-            <Button variant="primary" icon="send" onClick={send} data-testid="quote-send">
-              Send quote
-            </Button>
+            <button type="button" className={barSecondary} onClick={() => setView("preview")} data-testid="quote-preview">
+              Preview
+            </button>
+          )}
+          {view === "lines" ? null : final ? (
+            <>
+              <button type="button" className={barSecondary} onClick={() => setSharing(true)} data-testid="quote-share-again">
+                Share
+              </button>
+              <button type="button" className={barPrimary} onClick={() => navigate(`/quotes/${quote.id}/buyer`)} data-testid="quote-view-as-buyer">
+                View as buyer <Icon name="external" size={14} />
+              </button>
+            </>
+          ) : pending ? null : changes && !resumed ? (
+            <button type="button" className={barPrimary} onClick={() => setResumed(true)} data-testid="quote-edit">
+              Edit quote
+            </button>
+          ) : locked ? (
+            <button type="button" className={barPrimary} title="View approval conditions in the Approvals panel" onClick={() => setRequesting(true)} data-testid="quote-request-approval">
+              Request approval
+            </button>
+          ) : (
+            <button type="button" className={barPrimary} onClick={share} data-testid="quote-send">
+              Share
+            </button>
           )}
         </div>
       </header>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_300px] gap-4 px-6 py-4">
-        <div className="space-y-4">
-          {quote.status === "Approved" ? (
-            <p className="hs-pop flex items-center gap-2 rounded-[8px] border border-[#9fd8b0] bg-[#eefaf1] px-4 py-2.5 text-[13.5px]" data-testid="quote-approved-banner">
-              <Icon name="unlock" size={16} className="text-[#0b5b2b]" />
-              <span>
-                <span className="font-semibold">Approved by {approver?.name}</span> {quote.approval?.decidedAt ? relative(quote.approval.decidedAt).toLowerCase() : ""}. The quote is unlocked and ready to send.
-              </span>
-            </p>
-          ) : null}
-          {pending ? (
-            <p className="hs-pop flex items-center gap-2 rounded-[8px] border border-[#ecd28a] bg-[#fff8e1] px-4 py-2.5 text-[13.5px]" data-testid="quote-pending-banner">
-              <Icon name="lock" size={16} className="text-[#754c00]" />
-              <span>
-                <span className="font-semibold">Waiting for {approver?.name} to approve.</span> The quote cannot be sent until then. {approver?.name.split(" ")[0]} was notified {quote.approval ? relative(quote.approval.requestedAt).toLowerCase() : ""}.
-              </span>
-            </p>
-          ) : null}
-          {final ? (
-            <p className="flex items-center gap-2 rounded-[8px] border border-line bg-white px-4 py-2.5 text-[13.5px]" data-testid="quote-sent-banner">
-              <Icon name="check" size={16} className="text-[#0b5b2b]" />
-              <span>
-                <span className="font-semibold">
-                  {quote.status === "Accepted" ? `Accepted by ${contactName(contact)}` : `Sent to ${contactName(contact)}`} {relative(quote.acceptedAt ?? quote.sentAt ?? quote.createdAt).toLowerCase()}.
-                </span>{" "}
-                {deal ? (
-                  <>
-                    It is on the timeline of{" "}
-                    <A to={`/deals/${deal.id}`} className="hs-link" data-testid="quote-deal-link">
-                      {deal.name}
-                    </A>
-                    .
-                  </>
-                ) : null}
-              </span>
-            </p>
-          ) : null}
-
-          <Card title="Line items" pad={false}>
-            <table className="mt-2 w-full text-[13px]" data-testid="quote-lines">
-              <thead>
-                <tr className="border-y border-line-soft bg-[#fafafa] text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
-                  <th className="px-4 py-2 font-semibold">Name</th>
-                  <th className="px-4 py-2 text-right font-semibold">Quantity</th>
-                  <th className="px-4 py-2 text-right font-semibold">Unit price</th>
-                  <th className="px-4 py-2 text-right font-semibold">{labels.pack.timing}</th>
-                  <th className="px-4 py-2 text-right font-semibold">Net price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.lineItems.map((l) => (
-                  <tr key={l.sku} className="border-b border-line-soft last:border-b-0">
-                    <td className="px-4 py-2.5">
-                      <p className="font-semibold">{l.name}</p>
-                      <p className="text-[12px] text-ink-muted">
-                        <span className="font-mono">{l.sku}</span>
-                        {l.description ? ` · ${l.description}` : ""}
-                      </p>
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{l.qty}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{money2(l.unitPrice)}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{timingOf(l)}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{money2(l.qty * l.unitPrice)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <CostFeed className="mx-4 mb-3 mt-2" />
-          </Card>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Ext id="margin-rule">
-              <Card title="Approval rule" className={cx(reasons.length > 0 && !final && quote.status !== "Approved" && "border-[#d39b00]")} testId="approval-rule">
-                <p className="text-[13px] text-ink-muted">
-                  {fill(labels.approval.rule, { limit: rule.thresholdPct, approver: approver?.name ?? "", title: approver?.title ?? "" })}
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2">
-                    <p className="text-[11.5px] text-ink-muted">Discount</p>
-                    <p className={cx("text-[16px] font-semibold tabular-nums", quote.discountPct > rule.thresholdPct && "text-[#99201a]")}>{pct(quote.discountPct)}</p>
-                    <p className="text-[11.5px] text-ink-muted">Limit {rule.thresholdPct}%</p>
-                  </div>
-                  <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2">
-                    <p className="text-[11.5px] text-ink-muted">Quote margin %</p>
-                    <p className="text-[16px] font-semibold tabular-nums" data-testid="quote-margin">
-                      {pct(totals.marginPct)}
-                    </p>
-                    <p className="text-[11.5px] text-ink-muted">{pct(listMargin)} at list price</p>
-                  </div>
-                </div>
-                <p className="mt-3 flex flex-wrap items-center gap-1.5 text-[12.5px]" data-testid="approval-reasons">
-                  {reasons.length === 0 ? (
-                    <Tag tone="green">No approval needed</Tag>
-                  ) : (
-                    reasons.map((r) => (
-                      <Tag key={r} tone={quote.status === "Approved" || final ? "green" : "amber"}>
-                        {r}
-                        {quote.status === "Approved" || final ? ": approved" : ""}
-                      </Tag>
-                    ))
-                  )}
-                </p>
-                <FloorCheck quote={quote} />
-              </Card>
-            </Ext>
-
-            <Card title="Summary">
-              <dl className="space-y-2 text-[13.5px]">
-                <div className="flex items-center justify-between">
-                  <dt className="text-ink-muted">Subtotal</dt>
-                  <dd className="tabular-nums">{money2(totals.subtotal)}</dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-ink-muted">Discount</dt>
-                  <dd className="flex items-center gap-3">
-                    <DiscountInput quote={quote} disabled={final} />
-                    <span className="w-24 text-right tabular-nums">-{money2(totals.discount)}</span>
-                  </dd>
-                </div>
-                {rule.terms && terms ? (
-                  <div className="flex items-center justify-between">
-                    <dt className="text-ink-muted">{rule.terms.label}</dt>
-                    <dd>
-                      <select
-                        value={terms.id}
-                        disabled={final}
-                        aria-label={rule.terms.label}
-                        data-testid="quote-terms"
-                        onChange={(e) => dispatch({ t: "quote.terms", id: quote.id, termsId: e.target.value })}
-                        className="h-8 rounded-[6px] border border-line bg-white px-2 text-[13.5px] focus:border-ink focus:outline-none disabled:bg-[#f3f3f3] disabled:text-ink-muted"
-                      >
-                        {rule.terms.options.map((o) => (
-                          <option key={o.id} value={o.id}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </dd>
-                  </div>
-                ) : null}
-                <div className="flex items-center justify-between border-t border-line pt-2.5 text-[16px] font-semibold">
-                  <dt>{labels.pack.quoteTotal}</dt>
-                  <dd className="tabular-nums" data-testid="quote-total">
-                    {money2(totals.total)}
-                  </dd>
-                </div>
-                <RecurringRows quote={quote} className="flex items-center justify-between" />
-              </dl>
-              {!final && quote.status !== "Draft" ? <p className="mt-3 text-[12px] text-ink-muted">Changing the discount returns the quote to draft and clears the approval.</p> : null}
-            </Card>
-          </div>
-        </div>
-
-        <aside className="space-y-4">
-          <Card title="Quote details">
-            <dl>
-              <Prop label="Deal">
-                {deal ? (
-                  <A to={`/deals/${deal.id}`} className="hs-link" data-testid="quote-deal">
-                    {deal.name}
-                  </A>
-                ) : null}
-              </Prop>
-              <Prop label="Company">
-                {company ? (
-                  <A to={`/companies/${company.id}`} className="hs-link">
-                    {company.name}
-                  </A>
-                ) : null}
-              </Prop>
-              <Prop label="Buyer contact">{contactName(contact)}</Prop>
-              <Prop label="Quote owner">{ownerName(pack, quote.ownerId)}</Prop>
-              <Prop label="Created">{dateTime(quote.createdAt)}</Prop>
-              <Prop label="Expiration date">{date(quote.validUntil)}</Prop>
-              <Prop label="Source">{quote.origin}</Prop>
-            </dl>
-          </Card>
-          <Card title="Terms">
-            <ul className="list-disc space-y-1.5 pl-4 text-[12.5px] text-ink-muted">
-              {pack.quoteTerms.map((term) => (
-                <li key={term}>{term}</li>
-              ))}
-            </ul>
-          </Card>
-        </aside>
-      </div>
-
-      {preview ? (
-        <Modal
-          title={`Preview: what ${contact?.firstName ?? "the buyer"} sees`}
-          onClose={() => setPreview(false)}
-          width={860}
-          testId="quote-preview-modal"
-          footer={
-            <>
-              {locked ? (
-                <span className="mr-auto inline-flex items-center gap-1.5 text-[12.5px] text-[#754c00]">
-                  <Icon name="lock" size={14} /> Needs approval before it can be sent.
-                </span>
-              ) : null}
-              <Button onClick={() => setPreview(false)}>Close</Button>
-              {canSend ? (
-                <Button variant="primary" icon="send" onClick={send} data-testid="preview-send">
-                  Send quote
-                </Button>
-              ) : null}
-            </>
-          }
-        >
-          <div className="rounded-[8px] bg-[#ececec] p-4">
-            <QuoteDocument quote={quote} />
-          </div>
-        </Modal>
-      ) : null}
-    </div>
-  );
-}
-
-/** The buyer's side: the quote page outside HubSpot, in a browser frame, with a working Accept button. */
-export function BuyerPage({ id }: { id: string }) {
-  const { world, pack, dispatch } = useShell();
-  const quote = world.quotes.find((q) => q.id === id);
-  if (!quote || (quote.status !== "Sent" && quote.status !== "Accepted")) {
-    return (
-      <div className="flex-1 bg-hs-bg p-10">
-        <Card>
-          <Empty title="This quote has not been sent yet">
-            The buyer page exists once the quote is sent.{" "}
-            <A to={quote ? `/quotes/${quote.id}` : "/quotes"} className="hs-link">
-              Back to the quote
-            </A>
-          </Empty>
-        </Card>
-      </div>
-    );
-  }
-  const contact = world.contacts.find((c) => c.id === quote.contactId);
-  const accepted = quote.status === "Accepted";
-  return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#d9d9d9] p-4" data-testid="buyer-page">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-[#bdbdbd] bg-white shadow-lg">
-        <div className="flex items-center gap-3 border-b border-line bg-[#f1f1f1] px-4 py-2">
-          <span className="flex gap-1.5" aria-hidden="true">
-            <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-            <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
-            <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-          </span>
-          <span className="flex h-7 flex-1 items-center gap-2 rounded-full bg-white px-3 text-[12.5px] text-ink-muted ring-1 ring-line-soft">
-            <Icon name="lock" size={12} /> quotes.{pack.portal.domain}/{quote.number.toLowerCase()}
-          </span>
-          <span className="text-[12px] text-ink-muted">Viewing as {contactName(contact)}, the buyer</span>
-          <A to={`/quotes/${quote.id}`} className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-line bg-white px-2.5 text-[12px] font-semibold" data-testid="buyer-back">
-            <Icon name="arrowLeft" size={13} /> Back to HubSpot
-          </A>
-        </div>
-        <div className="hs-scroll min-h-0 flex-1 overflow-y-auto bg-[#ececec] py-6">
-          <QuoteDocument quote={quote} />
-          <div className="mx-auto mt-4 flex max-w-[760px] items-center justify-between rounded-[8px] bg-white px-10 py-5">
-            {accepted ? (
-              <p className="hs-pop flex items-center gap-2 text-[14px] font-semibold text-[#0b5b2b]" data-testid="buyer-accepted">
-                <Icon name="check" size={18} /> Quote accepted {relative(quote.acceptedAt ?? quote.createdAt).toLowerCase()}. {pack.portal.company} has been notified.
-              </p>
-            ) : (
-              <>
-                <p className="text-[13.5px] text-ink-muted">Ready to go ahead? Accepting notifies your account team.</p>
-                <Button variant="dark" onClick={() => dispatch({ t: "quote.accept", id: quote.id, at: nowMs() })} data-testid="buyer-accept">
-                  Accept quote
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Penguin piece 1 of the approval rule: the per-product floor-price check. */
-function FloorCheck({ quote }: { quote: Quote }) {
-  const { pack } = useShell();
-  const rule = pack.demos.discountApproval;
-  const below = linesBelowFloor(quote, rule);
-  return (
-    <div className="mt-3" data-testid="floor-check">
-      <Ext id="floor-price-rule" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
-        <p className="text-[12.5px] font-semibold">
-          Floor price check:{" "}
-          <span className={below.length > 0 ? "text-[#99201a]" : "text-[#0b5b2b]"} data-testid="floor-result">
-            {below.length === 0 ? "every line is at or above its floor price" : `${below.length} of ${quote.lineItems.length} lines below floor price`}
-          </span>
-        </p>
-        {below.length > 0 ? (
-          <ul className="mt-1 space-y-0.5 text-[12px] text-ink-muted">
-            {below.map((l) => (
-              <li key={l.sku} className="flex justify-between gap-3">
-                <span className="truncate">{l.name}</span>
-                <span className="shrink-0 tabular-nums">
-                  {money2(l.unitPrice * (1 - quote.discountPct / 100))} against a floor of {money2(floorPrice(l, rule))}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </Ext>
-    </div>
-  );
-}
-
-/** Penguin piece 2: where the unit cost behind the margin comes from. Kept apart from the floor check so the two callouts do not overlap. */
-function CostFeed({ className }: { className?: string }) {
-  const { pack } = useShell();
-  return (
-    <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9", className)} pinClass="!right-2 !top-1.5">
-      <p className="text-[12px] text-ink-muted" data-testid="cost-feed">
-        {fill(labelsOf(pack).approval.costFeed, { backOffice: pack.terms.backOffice, when: relative(pack.demos.backOffice.syncedAt).toLowerCase() })}
-      </p>
-    </Ext>
-  );
-}
-
-/** The approver's page: the request with everything needed to decide, and one button. */
-export function ApprovalPage({ id }: { id: string }) {
-  const { world, pack, persona, dispatch } = useShell();
-  const quote = world.quotes.find((q) => q.id === id);
-  const rule = pack.demos.discountApproval;
-  const isApprover = persona.id === rule.approverId;
-  useSeen("da.requestOpened", Boolean(quote?.approval && isApprover && id === rule.quoteId));
-  if (!quote) return <NotFound />;
-  const approval = quote.approval;
-  const totals = quoteTotals(quote);
-  const listMargin = quoteTotals({ lineItems: quote.lineItems, discountPct: 0 }).marginPct;
-  const company = companyOf(world, quote.companyId);
-  const requester = pack.personas.find((p) => p.id === approval?.requestedById);
-  const approver = pack.personas.find((p) => p.id === rule.approverId);
-
-  return (
-    <div className="mx-auto max-w-[900px] px-6 py-5" data-testid="approval-page">
-      <A to="/quotes" className="inline-flex items-center gap-1 text-[13px] font-semibold text-link hover:underline">
-        <Icon name="chevronLeft" size={14} /> Quotes
-      </A>
-      <h1 className="mt-1 text-[21px] font-semibold">Quote approval</h1>
-
-      {!approval ? (
-        <Card className="mt-4">
-          <Empty title="No approval request on this quote">
-            {quote.status === "Sent" || quote.status === "Accepted" ? "The quote was sent." : "The discount is inside the limits, or approval has not been requested yet."}{" "}
-            <A to={`/quotes/${quote.id}`} className="hs-link">
-              Open the quote
-            </A>
-          </Empty>
-        </Card>
+      {view === "lines" ? (
+        <LineItemsEditor quote={quote} onClose={() => setView("edit")} />
       ) : (
         <>
-          <section className="mt-4 rounded-[10px] border border-line bg-white" data-testid="approval-card">
-            <header className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4">
-              <div>
-                <h2 className="text-[16px] font-semibold">
-                  {requester?.name} asks for {approval.discountPct > 0 ? `${pct(approval.discountPct)} off` : "approval of"} {quote.number}
-                </h2>
-                <p className="mt-0.5 text-[13px] text-ink-muted">
-                  {quote.title} · requested {relative(approval.requestedAt).toLowerCase()} ·{" "}
-                  <A to={`/quotes/${quote.id}`} className="hs-link">
-                    Open quote
-                  </A>
-                </p>
-                <p className="mt-2 flex flex-wrap gap-1.5">
-                  {approval.reasons.map((r) => (
-                    <Tag key={r} tone="amber">
-                      {r}
-                    </Tag>
-                  ))}
-                </p>
-              </div>
-              <Tag tone={approval.status === "approved" ? "green" : "amber"} className="mr-8 shrink-0">
-                <span data-testid="approval-status">{approval.status === "approved" ? "Approved" : "Pending"}</span>
-              </Tag>
-            </header>
-
-            <div className="grid grid-cols-3 gap-3 px-5 py-4">
-              <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-3">
-                <p className="text-[12px] text-ink-muted">Discount</p>
-                <p className="mt-0.5 text-[20px] font-semibold tabular-nums">{pct(approval.discountPct)}</p>
-                <p className="text-[12px] text-ink-muted">
-                  {money2(totals.discount)} off {money2(totals.subtotal)}
-                </p>
-              </div>
-              <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-3">
-                <p className="text-[12px] text-ink-muted">Quote margin %</p>
-                <p className="mt-0.5 text-[20px] font-semibold tabular-nums" data-testid="approval-margin">
-                  {pct(totals.marginPct)}
-                </p>
-                <p className="text-[12px] text-ink-muted">
-                  Down from {pct(listMargin)} at list price
-                </p>
-              </div>
-              <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-3">
-                <p className="text-[12px] text-ink-muted">Quote total</p>
-                <p className="mt-0.5 text-[20px] font-semibold tabular-nums">{money2(totals.total)}</p>
-                <p className="text-[12px] text-ink-muted">{quote.lineItems.length} line items</p>
-              </div>
+          <div className="relative flex h-11 shrink-0 items-center border-b border-line bg-white px-4">
+            <div className="absolute left-1/2 flex -translate-x-1/2 gap-1" role="group" aria-label="Preview size">
+              <RailButton icon="desktop" label="Desktop" active={device === "desktop"} onClick={() => setDevice("desktop")} testId="device-desktop" />
+              <RailButton icon="mobile" label="Mobile" active={device === "mobile"} onClick={() => setDevice("mobile")} testId="device-mobile" />
             </div>
+            {view === "preview" ? (
+              <p className="text-[12.5px] text-ink-muted">Preview: what {contact?.firstName ?? "the buyer"} sees when the quote is shared</p>
+            ) : (
+              <div className="ml-auto flex items-center gap-4 text-[13px]">
+                <span className="inline-flex items-center gap-1.5 text-ink-muted" title="The closing agent answers the buyer's questions on the published quote">
+                  <Icon name="star4" size={14} /> Closing agent is on
+                </span>
+                <Menu
+                  align="right"
+                  width={300}
+                  button={({ toggle }) => (
+                    <button type="button" onClick={toggle} className="inline-flex h-8 items-center gap-1.5 rounded-[4px] px-2 font-semibold hover:bg-[#f0f0f0]" data-testid="quote-settings">
+                      <Icon name="settings" size={15} /> Settings
+                    </button>
+                  )}
+                >
+                  {() => (
+                    <dl className="px-4 py-2">
+                      <Prop label="Quote name">{quoteName(quote)}</Prop>
+                      <Prop label="Deal">
+                        {deal ? (
+                          <A to={`/deals/${deal.id}`} className="hs-link" data-testid="quote-deal">
+                            {deal.name}
+                          </A>
+                        ) : null}
+                      </Prop>
+                      <Prop label="Company">{company?.name}</Prop>
+                      <Prop label="Quote owner">{ownerName(pack, quote.ownerId)}</Prop>
+                      <Prop label="Created">{dateTime(quote.createdAt)}</Prop>
+                      <Prop label="Expiration date">{date(quote.validUntil)}</Prop>
+                      <Prop label="Source">{quote.origin}</Prop>
+                    </dl>
+                  )}
+                </Menu>
+              </div>
+            )}
+          </div>
 
-            <div className="px-5 pb-4">
-              <FloorCheck quote={quote} />
+          {view === "preview" ? (
+            <div className="hs-scroll min-h-0 flex-1 overflow-y-auto" data-testid="quote-preview-modal">
+              <BuyerView quote={quote} narrow={device === "mobile"} />
             </div>
+          ) : (
+            <div className="relative flex min-h-0 flex-1">
+              {editable ? (
+                <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-r border-line bg-white py-2" aria-label="Quote editor">
+                  <RailButton
+                    icon="plus"
+                    label="Add a section"
+                    onClick={() => {
+                      setModule(null);
+                      setSidebar(true);
+                    }}
+                  />
+                  <RailButton icon="siteTree" label="Quote sections" active={sidebar} onClick={() => setSidebar((open) => !open)} testId="quote-modules" />
+                </nav>
+              ) : null}
+              {editable && sidebar ? <EditorSidebar quote={quote} module={module} onSelect={setModule} onClose={() => setSidebar(false)} onEditLines={() => setView("lines")} /> : null}
 
-            <div className="border-t border-line-soft px-5 py-4">
-              <h3 className="text-[13.5px] font-semibold">
-                Customer:{" "}
-                {company ? (
-                  <A to={`/companies/${company.id}`} className="hs-link">
-                    {company.name}
-                  </A>
+              <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto px-6 py-6">
+                {final ? (
+                  <Banner tone="plain" icon="check" testId="quote-sent-banner">
+                    <span className="font-semibold">
+                      {quote.status === "Accepted" ? `Accepted by ${contactName(contact)}` : `Published and shared with ${contactName(contact)}`} {relative(quote.acceptedAt ?? quote.sentAt ?? quote.createdAt).toLowerCase()}.
+                    </span>{" "}
+                    {deal ? (
+                      <>
+                        It is on the timeline of{" "}
+                        <A to={`/deals/${deal.id}`} className="hs-link" data-testid="quote-deal-link">
+                          {deal.name}
+                        </A>
+                        .
+                      </>
+                    ) : null}
+                  </Banner>
+                ) : pending ? (
+                  <Banner tone="amber" icon="lock" testId="quote-pending-banner">
+                    <span className="font-semibold">Pending approval.</span> {isApprover ? "This quote is waiting for your approval." : `${approver?.name} was notified ${quote.approval ? relative(quote.approval.requestedAt).toLowerCase() : ""}. The quote cannot be shared until it is approved.`}{" "}
+                    <button type="button" className="hs-link" onClick={() => setPanel(true)}>
+                      View approval
+                    </button>
+                  </Banner>
+                ) : changes ? (
+                  <Banner tone="red" icon="warning" testId="quote-changes-banner">
+                    <span className="font-semibold">Changes requested by {approver?.name}.</span> {quote.approval?.feedback ? `"${quote.approval.feedback}" ` : ""}
+                    {resumed ? "Update the quote, then request approval again." : "Click Edit quote to update it."}
+                  </Banner>
+                ) : quote.status === "Approved" ? (
+                  <Banner tone="green" icon="unlock" testId="quote-approved-banner">
+                    <span className="font-semibold">Approved by {approver?.name}</span> {quote.approval?.decidedAt ? relative(quote.approval.decidedAt).toLowerCase() : ""}. The quote is ready to share.
+                  </Banner>
+                ) : locked ? (
+                  <Banner tone="amber" icon="lock" testId="quote-locked">
+                    <span className="font-semibold">This quote needs approval before it can be shared:</span> {reasonList(reasons)}.{" "}
+                    <button type="button" className="hs-link" onClick={() => setPanel(true)} data-testid="view-approval-conditions">
+                      View approval conditions
+                    </button>
+                  </Banner>
                 ) : null}
-              </h3>
-              <CostFeed className="mt-3" />
-            </div>
 
-            <footer className="flex items-center gap-3 border-t border-line-soft bg-[#fafafa] px-5 py-3.5">
-              {approval.status === "approved" ? (
-                <p className="hs-pop flex items-center gap-2 text-[13.5px] font-semibold text-[#0b5b2b]" data-testid="approval-done">
-                  <Icon name="check" size={16} /> Approved by {approver?.name} {approval.decidedAt ? relative(approval.decidedAt).toLowerCase() : ""}. {requester?.name.split(" ")[0]} was notified and the quote is unlocked.
-                </p>
-              ) : isApprover ? (
-                <>
-                  <Button variant="primary" icon="check" onClick={() => dispatch({ t: "quote.approve", id: quote.id, at: nowMs() })} data-testid="approve">
-                    Approve
-                  </Button>
-                  <p className="text-[12.5px] text-ink-muted">Approving unlocks the quote and notifies {requester?.name}.</p>
-                </>
+                <div className={cx("mx-auto transition-[max-width]", device === "mobile" ? "max-w-[430px]" : "max-w-[880px]")}>
+                  <QuoteDocument quote={quote} editing={editable ? { selected: module, onSelect: select, onEditLines: () => setView("lines") } : undefined} />
+                </div>
+              </main>
+
+              {panel ? (
+                <ApprovalsPanel quote={quote} onClose={() => setPanel(false)} />
               ) : (
-                <p className="flex items-center gap-2 text-[13px] text-ink-muted" data-testid="approval-not-approver">
-                  <Icon name="lock" size={14} /> Only {approver?.name} can approve this. In the demo bar, choose View as, {approver?.viewAs}.
-                </p>
+                <div className="pointer-events-none absolute right-4 top-4 z-10 flex flex-col gap-1 rounded-[8px] border border-line bg-white p-1 shadow-[0_2px_10px_rgba(20,20,20,0.12)] [&>*]:pointer-events-auto" aria-label="Collaboration">
+                  <RailButton icon="grid" label="Collaboration" />
+                  <RailButton icon="star4" label="Breeze" />
+                  <RailButton icon="approvals" label="Approvals" onClick={() => setPanel(true)} testId="approvals-toggle" dot={reasons.length > 0 && !final && quote.status !== "Approved"} />
+                </div>
               )}
-            </footer>
-          </section>
+            </div>
+          )}
         </>
       )}
+
+      {requesting && locked ? <RequestApprovalDialog quote={quote} onClose={() => setRequesting(false)} /> : null}
+      {sharing && final ? (
+        <ShareDialog
+          quote={quote}
+          onClose={() => setSharing(false)}
+          onSent={(message) => {
+            setSharing(false);
+            setToast(message);
+          }}
+        />
+      ) : null}
+      {toast ? <Toast>{toast}</Toast> : null}
     </div>
   );
 }

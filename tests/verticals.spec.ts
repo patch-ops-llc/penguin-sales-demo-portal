@@ -64,12 +64,14 @@ test("saas guided quote: packaging rules, volume tier, and recurring totals", as
 
 test("saas discount approval: non-standard payment terms alone need approval", async ({ page }) => {
   await openDemo(page, "discount-approval", "saas");
-  await expect(page.getByRole("button", { name: "Send quote" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Share", exact: true })).toBeVisible();
+  // Payment terms are set in the editor of the quote's Payments section.
+  await page.getByTestId("quote-module-payments").click();
   await page.getByTestId("quote-terms").selectOption("net60");
   await expect(page.getByText("Non-standard payment terms: Net 60")).toBeVisible();
   await expect(page.getByRole("button", { name: "Request approval" })).toBeVisible();
   await page.getByTestId("quote-terms").selectOption("net30");
-  await expect(page.getByRole("button", { name: "Send quote" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Share", exact: true })).toBeVisible();
 });
 
 test("the back-office card's third tab opens in every vertical", async ({ page }) => {

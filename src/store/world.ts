@@ -1,7 +1,7 @@
 import { generateLines, isComplete, pruneSelections } from "@/demos/guided-quote/rules";
 import { labelsOf } from "@/verticals/labels";
 import type { Activity, Company, Contact, Deal, InboxThread, LineItem, Notification, Pack, Quote, Task } from "@/verticals/types";
-import { approvalReasons, quoteTotals } from "./quote-math";
+import { approvalReasons, quoteTotals, unitDiscountPct } from "./quote-math";
 
 /**
  * The world is everything a rep can change during a session: the seeded records plus demo state.
@@ -44,8 +44,10 @@ export type Action =
   | { t: "gq.createQuote"; at: number }
   | { t: "quote.discount"; id: string; pct: number }
   | { t: "quote.terms"; id: string; termsId: string }
-  | { t: "quote.requestApproval"; id: string; at: number }
-  | { t: "quote.approve"; id: string; at: number }
+  | { t: "quote.editLines"; id: string; lines: Record<string, { qty?: number; unitPrice?: number; discountPct?: number }> }
+  | { t: "quote.requestApproval"; id: string; at: number; note?: string }
+  | { t: "quote.approve"; id: string; at: number; message?: string }
+  | { t: "quote.requestChanges"; id: string; at: number; feedback: string }
   | { t: "quote.send"; id: string; at: number }
   | { t: "quote.accept"; id: string; at: number }
   | { t: "bo.pick"; sku: string }
@@ -100,6 +102,11 @@ function touch(w: World, at: string, ids: { companyId?: string | null; contactId
   const deal = ids.dealId ? w.deals.find((d) => d.id === ids.dealId) : undefined;
   if (deal) deal.lastActivityAt = at;
 }
+
+const clampPct = (pct: number, steps = 10) => Math.min(60, Math.max(0, Math.round((Number(pct) || 0) * steps) / steps));
+
+/** A quote's name, as it reads in notifications and activities. */
+export const quoteName = (quote: Pick<Quote, "number" | "title">) => `${quote.number}: ${quote.title}`;
 
 function nextQuoteNumber(w: World): string {
   const max = w.quotes.reduce((m, q) => Math.max(m, Number(q.number.replace(/\D/g, "")) || 0), 0);
@@ -219,9 +226,10 @@ export function mutate(w: World, a: Action, pack: Pack): void {
     case "quote.discount": {
       const quote = w.quotes.find((q) => q.id === a.id);
       if (!quote || quote.status === "Sent" || quote.status === "Accepted") return;
-      const pct = Math.min(60, Math.max(0, Math.round(a.pct * 10) / 10));
-      if (pct === quote.discountPct) return;
+      const pct = clampPct(a.pct);
+      if (pct === quote.discountPct && quote.lineItems.every((l) => l.discountPct === undefined)) return;
       quote.discountPct = pct;
+      for (const l of quote.lineItems) delete l.discountPct;
       // Changing the discount after a request or an approval sends the quote back to draft.
       quote.status = "Draft";
       delete quote.approval;
@@ -237,35 +245,62 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       delete quote.approval;
       return;
     }
+    case "quote.editLines": {
+      const quote = w.quotes.find((q) => q.id === a.id);
+      if (!quote || quote.status === "Sent" || quote.status === "Accepted") return;
+      const next = quote.lineItems.map((l) => {
+        const edit = a.lines[l.sku] ?? {};
+        return {
+          ...l,
+          qty: edit.qty !== undefined ? Math.max(1, Math.round(Number(edit.qty) || 1)) : l.qty,
+          unitPrice: edit.unitPrice !== undefined ? Math.max(0, Math.round((Number(edit.unitPrice) || 0) * 100) / 100) : l.unitPrice,
+          discountPct: edit.discountPct !== undefined ? clampPct(edit.discountPct, 100) : unitDiscountPct(quote, l),
+        };
+      });
+      if (quote.lineItems.every((l, i) => l.qty === next[i].qty && l.unitPrice === next[i].unitPrice && unitDiscountPct(quote, l) === next[i].discountPct)) return;
+      quote.lineItems = next;
+      if (next.every((l) => l.discountPct === next[0].discountPct)) {
+        // One discount on every line reads as the quote's discount.
+        quote.discountPct = next[0]?.discountPct ?? 0;
+        for (const l of next) delete (l as LineItem).discountPct;
+      } else {
+        quote.discountPct = Math.round(quoteTotals(quote).discountPct * 10) / 10;
+      }
+      quote.status = "Draft";
+      delete quote.approval;
+      return;
+    }
     case "quote.requestApproval": {
       const quote = w.quotes.find((q) => q.id === a.id);
       const rule = pack.demos.discountApproval;
-      if (!quote || quote.status !== "Draft") return;
+      if (!quote || (quote.status !== "Draft" && quote.status !== "Changes requested")) return;
       const reasons = approvalReasons(quote, rule);
       if (reasons.length === 0) return;
       const at = iso(a.at);
-      const company = w.companies.find((c) => c.id === quote.companyId);
       const requester = pack.personas.find((p) => p.id === w.persona);
+      const who = requester?.name ?? "A rep";
+      const name = quoteName(quote);
+      const note = a.note?.trim() || undefined;
       quote.status = "Pending approval";
-      quote.approval = { status: "pending", requestedAt: at, requestedById: w.persona, approverId: rule.approverId, reasons, discountPct: quote.discountPct };
+      quote.approval = { status: "pending", requestedAt: at, requestedById: w.persona, approverId: rule.approverId, reasons, discountPct: quote.discountPct, ...(note ? { note } : {}) };
+      // A second request replaces what the first round left in the bell.
+      const stale = [`nt-approval-${quote.id}`, `nt-approved-${quote.id}`, `nt-changes-${quote.id}`];
+      w.notifications = w.notifications.filter((n) => !stale.includes(n.id));
       w.notifications.unshift({
         id: `nt-approval-${quote.id}`,
         personaId: rule.approverId,
         at,
         kind: "approval",
-        title: "Approval requested",
-        body:
-          quote.discountPct > 0
-            ? `${requester?.name ?? "A rep"} requested ${quote.discountPct}% off ${quote.number} for ${company?.name ?? "a customer"}.`
-            : `${requester?.name ?? "A rep"} requested approval of ${quote.number} for ${company?.name ?? "a customer"}.`,
-        path: `/approvals/${quote.id}`,
+        title: `${who} has requested your approval for "${name}"`,
+        body: `${who} has requested approval to publish the quote "${name}". Additional notes: ${note ?? `${reasons.join(". ")}.`}`,
+        path: `/quotes/${quote.id}`,
         read: false,
       });
       addActivity(w, {
         at,
         type: "quote",
-        title: `Approval requested: ${quote.number}`,
-        body: `${quote.discountPct > 0 ? `${quote.discountPct}% discount. ` : ""}${reasons.join(". ")}.`,
+        title: "Quote approval requested",
+        body: `Quote ${name} was submitted for approval by ${who}. ${reasons.join(". ")}.`,
         byId: w.persona,
         contactIds: [quote.contactId],
         companyIds: [quote.companyId],
@@ -280,8 +315,11 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       if (!quote || quote.status !== "Pending approval" || !quote.approval) return;
       const at = iso(a.at);
       const approver = pack.personas.find((p) => p.id === quote.approval!.approverId);
+      const who = approver?.name ?? "The approver";
+      const name = quoteName(quote);
+      const feedback = a.message?.trim() || undefined;
       quote.status = "Approved";
-      quote.approval = { ...quote.approval, status: "approved", decidedAt: at };
+      quote.approval = { ...quote.approval, status: "approved", decidedAt: at, ...(feedback ? { feedback } : {}) };
       const request = w.notifications.find((n) => n.id === `nt-approval-${quote.id}`);
       if (request) request.read = true;
       w.notifications.unshift({
@@ -289,16 +327,52 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         personaId: quote.approval.requestedById,
         at,
         kind: "approved",
-        title: quote.discountPct > 0 ? "Discount approved" : "Quote approved",
-        body: `${approver?.name ?? "The approver"} approved ${quote.discountPct > 0 ? `${quote.discountPct}% off ${quote.number}` : quote.number}. The quote is ready to send.`,
+        title: `${who} has approved "${name}"`,
+        body: `${who} has approved your request to publish the quote "${name}".${feedback ? ` ${feedback}` : ""}`,
         path: `/quotes/${quote.id}`,
         read: false,
       });
       addActivity(w, {
         at,
         type: "quote",
-        title: `Quote approved: ${quote.number}`,
-        body: quote.discountPct > 0 ? `${approver?.name ?? "The approver"} approved a ${quote.discountPct}% discount.` : `${approver?.name ?? "The approver"} approved the quote.`,
+        title: "Quote approved",
+        body: `Quote ${name} was approved by ${who}.`,
+        byId: quote.approval.approverId,
+        contactIds: [quote.contactId],
+        companyIds: [quote.companyId],
+        dealIds: [quote.dealId],
+        linkPath: `/quotes/${quote.id}`,
+        linkLabel: "View quote",
+      });
+      return;
+    }
+    case "quote.requestChanges": {
+      const quote = w.quotes.find((q) => q.id === a.id);
+      if (!quote || quote.status !== "Pending approval" || !quote.approval) return;
+      const at = iso(a.at);
+      const approver = pack.personas.find((p) => p.id === quote.approval!.approverId);
+      const who = approver?.name ?? "The approver";
+      const name = quoteName(quote);
+      const feedback = a.feedback.trim();
+      quote.status = "Changes requested";
+      quote.approval = { ...quote.approval, status: "changes_requested", decidedAt: at, ...(feedback ? { feedback } : {}) };
+      const request = w.notifications.find((n) => n.id === `nt-approval-${quote.id}`);
+      if (request) request.read = true;
+      w.notifications.unshift({
+        id: `nt-changes-${quote.id}`,
+        personaId: quote.approval.requestedById,
+        at,
+        kind: "approved",
+        title: `${who} has requested changes to "${name}"`,
+        body: `${who} has requested changes before the quote "${name}" can be published.${feedback ? ` Reason: ${feedback}` : ""}`,
+        path: `/quotes/${quote.id}`,
+        read: false,
+      });
+      addActivity(w, {
+        at,
+        type: "quote",
+        title: "Quote changes requested",
+        body: `Changes to quote ${name} were requested by ${who}.${feedback ? ` ${feedback}` : ""}`,
         byId: quote.approval.approverId,
         contactIds: [quote.contactId],
         companyIds: [quote.companyId],

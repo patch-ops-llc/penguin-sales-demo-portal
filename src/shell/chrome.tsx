@@ -194,6 +194,7 @@ function Bell() {
                     <span className="ml-auto shrink-0 text-[11.5px] text-ink-muted">{relative(n.at)}</span>
                   </span>
                   <span className="mt-0.5 block text-[13px] leading-snug text-ink-muted">{n.body}</span>
+                  {(n.kind === "approval" || n.kind === "approved") && n.path.startsWith("/quotes/") ? <span className="mt-2 inline-flex h-7 items-center rounded-[4px] border border-ink px-3 text-[12.5px] font-semibold text-ink">Go to quote</span> : null}
                 </button>
                 {n.slack ? <SlackAlert slack={n.slack} at={n.at} /> : null}
               </div>

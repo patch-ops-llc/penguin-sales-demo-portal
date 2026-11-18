@@ -309,7 +309,7 @@ contacts.forEach((c, i) => {
 
 export const manufacturingPack: Pack = {
   vertical: { id: "manufacturing", name: "Manufacturing" },
-  portal: { company: "Halvorsen Motion", domain: "halvorsenmotion.example", hubId: "48213307", currency: "USD" },
+  portal: { company: "Halvorsen Motion", domain: "halvorsenmotion.example", hubId: "48213307", currency: "USD", address: ["Minneapolis, MN 55401", "United States"] },
   personas: [
     { id: "alex", name: "Alex Morgan", title: "Account Executive", email: "alex.morgan@halvorsenmotion.example", viewAs: "Rep", color: "#0b6e6e" },
     { id: "priya", name: "Priya Nair", title: "Sales Director", email: "priya.nair@halvorsenmotion.example", viewAs: "Sales Director", color: "#8a3ffc" },

@@ -441,7 +441,7 @@ export const saasPack: Pack = {
       requirements: { hint: "Choose plan, add-ons, term, billing frequency, seats, and go-live date" },
     },
     "discount-approval": {
-      discount: { hint: "Type 18 in the Discount field. Optional: set Payment terms to Net 60" },
+      discount: { hint: "Line items: click Edit all line items, set Unit discount to 18% on each line, then Save. Optional: Payments section, set Payment terms to Net 60" },
     },
     "back-office": {
       company: { hint: "Companies: click Quarrystone Outfitters. Synced billing fields and the Billing and usage card are on the record" },

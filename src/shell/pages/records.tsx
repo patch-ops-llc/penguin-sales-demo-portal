@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ErpCard } from "@/demos/back-office/erp-card";
 import { GuidedSellingPanel } from "@/demos/guided-quote/panel";
 import { WhyThisScoreCard } from "@/demos/lead-capture/score-card";
-import { quoteTotals } from "@/store/quote-math";
+import { quoteStatusLabel, quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
 import { fill, labelsOf } from "@/verticals/labels";
 import type { Activity, ActivityType } from "@/verticals/types";
@@ -13,6 +13,7 @@ import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
+import { QuoteStatus } from "../quote/status";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
 const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync" };
@@ -420,7 +421,7 @@ export function CompanyRecord({ id }: { id: string }) {
           </Assoc>
           <Assoc title="Quotes" count={quotes.length}>
             {quotes.map((q) => (
-              <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[`${q.status} · ${money(quoteTotals(q).total)}`]} />
+              <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[`${quoteStatusLabel(q.status)} · ${money(quoteTotals(q).total)}`]} />
             ))}
           </Assoc>
         </>
@@ -533,7 +534,7 @@ export function DealRecord({ id }: { id: string }) {
             <div className="space-y-2.5">
               {quotes.length === 0 && !canQuoteFromEmail ? <p className="text-[12.5px] text-ink-muted">No quotes yet.</p> : null}
               {quotes.map((q) => (
-                <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[<Tag key="s" tone={statusTone(q.status)}>{q.status}</Tag>, money(quoteTotals(q).total)]} testId={`deal-quote-${q.id}`} />
+                <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[<QuoteStatus key="s" status={q.status} className="text-ink" />, money(quoteTotals(q).total)]} testId={`deal-quote-${q.id}`} />
               ))}
               {canQuoteFromEmail ? (
                 <Button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { quoteTotals } from "@/store/quote-math";
+import { quoteStatusLabel, quoteTotals } from "@/store/quote-math";
 import { useShell } from "@/store/store";
 import type { World } from "@/store/world";
 import { labelsOf, timingOf } from "@/verticals/labels";
@@ -9,6 +9,7 @@ import type { Company, Contact, Deal, Pack, Product, Quote, Task, Workflow } fro
 import { compactMoney, date, money, num, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, colorFor, cx, Prop, statusTone, Tag } from "../ui";
+import { QuoteStatus } from "../quote/status";
 import { IndexPage, PreviewShell, type Column, type Filter, type View } from "./index-table";
 
 const WEEK = 7 * 86_400_000;
@@ -282,7 +283,7 @@ export function QuotesIndex() {
         </span>
       ),
     },
-    { id: "status", label: "Status", cell: (q) => <Tag tone={statusTone(q.status)}>{q.status}</Tag>, sort: (q) => q.status },
+    { id: "status", label: "Status", cell: (q) => <QuoteStatus status={q.status} />, sort: (q) => quoteStatusLabel(q.status) },
     { id: "amount", label: "Quote amount", align: "right", cell: (q) => money(quoteTotals(q).total), sort: (q) => quoteTotals(q).total },
     { id: "company", label: "Company", cell: (q) => companyOf(world, q.companyId)?.name, sort: (q) => companyOf(world, q.companyId)?.name ?? "" },
     { id: "owner", label: "Quote owner", cell: (q) => ownerName(pack, q.ownerId), sort: (q) => ownerName(pack, q.ownerId) },
@@ -294,7 +295,7 @@ export function QuotesIndex() {
     { id: "mine", label: "My quotes", filter: (q) => q.ownerId === persona.id },
     { id: "approval", label: "Needs approval", filter: (q) => q.status === "Pending approval" },
   ];
-  const statuses = ["Draft", "Pending approval", "Approved", "Sent", "Accepted"];
+  const statuses: Quote["status"][] = ["Draft", "Pending approval", "Changes requested", "Approved", "Sent", "Accepted"];
   return (
     <IndexPage
       title="Quotes"
@@ -302,7 +303,7 @@ export function QuotesIndex() {
       rows={world.quotes}
       columns={columns}
       views={views}
-      filters={[ownerFilter<Quote>(pack, (q) => q.ownerId), { id: "status", label: "Status", options: statuses.map((v) => ({ value: v, label: v })), test: (q, v) => q.status === v }]}
+      filters={[ownerFilter<Quote>(pack, (q) => q.ownerId), { id: "status", label: "Status", options: statuses.map((v) => ({ value: v, label: quoteStatusLabel(v) })), test: (q, v) => q.status === v }]}
       searchText={(q) => `${q.number} ${q.title} ${companyOf(world, q.companyId)?.name ?? ""}`}
       rowKey={(q) => q.id}
       isNew={(q) => Boolean(q.isNew)}
