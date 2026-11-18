@@ -8,7 +8,9 @@ import { demoTile, getVertical } from "@/verticals/catalog";
 import { Icon } from "./icons";
 import { cx, Menu, MenuItem } from "./ui";
 
-const barButton = "inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2.5 text-[12.5px] font-semibold text-white/90 hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent";
+const barButton = "inline-flex h-10 shrink-0 items-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-white/90 hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent";
+/** Labels the secondary controls drop at laptop widths, so the step instruction keeps its room. Each keeps its icon and tooltip. */
+const wideOnly = "hidden min-[1340px]:inline";
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -48,18 +50,22 @@ export function DemoBar() {
   }
 
   return (
-    <div className="relative z-[60] flex h-12 shrink-0 items-center gap-1 bg-[#1c1340] px-3 text-white" style={{ fontFamily: "var(--font-penguin)" }} data-testid="demo-bar">
-      <span className="mr-1 inline-flex items-center gap-2 text-[12px] text-white/70">
-        <PenguinMark size={16} className="text-white" />
-        {pack.vertical.name}
+    <div
+      className="relative z-[60] flex h-[60px] shrink-0 items-center gap-1.5 border-t-2 border-[#6f55e8] bg-[#1c1340] px-4 text-white shadow-[0_-6px_18px_rgba(28,19,64,0.22)]"
+      style={{ fontFamily: "var(--font-penguin)" }}
+      data-testid="demo-bar"
+    >
+      <span className="mr-1.5 inline-flex shrink-0 items-center gap-2 text-[13px] text-white/75">
+        <PenguinMark size={20} className="text-white" />
+        <span className="hidden min-[1400px]:inline">{pack.vertical.name}</span>
       </span>
 
       <Menu
         up
         width={300}
         button={({ toggle }) => (
-          <button type="button" onClick={toggle} className={cx(barButton, "bg-white/10")} data-testid="demo-switcher">
-            {demoTile(vertical, demo).title} <Icon name="chevronDown" size={14} />
+          <button type="button" onClick={toggle} title="Switch demo" className={cx(barButton, "border border-white/30 bg-white/[0.14] !text-white hover:!bg-white/20")} data-testid="demo-switcher">
+            <span className="max-w-[210px] truncate">{demoTile(vertical, demo).title}</span> <Icon name="chevronDown" size={16} />
           </button>
         )}
       >
@@ -80,38 +86,50 @@ export function DemoBar() {
         }
       </Menu>
 
-      <div className="mx-2 flex min-w-0 flex-1 items-center gap-3" data-testid="demo-step">
-        <span className="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11.5px] font-semibold" data-testid="demo-step-count">
+      <div className="mx-2.5 flex min-w-0 flex-1 items-center gap-3" data-testid="demo-step">
+        <span className="shrink-0 rounded-full bg-[#6f55e8] px-3 py-1.5 text-[13px] font-semibold leading-none" data-testid="demo-step-count">
           {step ? `Step ${stepIndex + 1} of ${total}` : "Complete"}
         </span>
-        <p className="min-w-0 truncate text-[13px]">
+        {/* Two lines: what the step is, then what to click. Each line shortens with an ellipsis; the full text is in the tooltip. */}
+        <p className="min-w-0 leading-tight" title={step && text ? `${text.title}. ${text.hint}` : undefined}>
           {step && text ? (
             <>
-              <span className="font-semibold">{text.title}</span>
-              {step.optional ? <span className="text-white/60"> (optional)</span> : null}
-              <span className="text-white/65"> · {text.hint}</span>
+              <span className="block truncate text-[15px] font-semibold">
+                {text.title}
+                {step.optional ? <span className="font-normal text-white/65"> (optional)</span> : null}
+              </span>
+              <span className="mt-0.5 block truncate text-[13px] text-white/75">{text.hint}</span>
             </>
           ) : (
-            <span className="font-semibold">That is the whole story. Wrap up to see what was native and what Penguin built.</span>
+            <>
+              <span className="block truncate text-[15px] font-semibold">That is the whole story.</span>
+              <span className="mt-0.5 block truncate text-[13px] text-white/75">Wrap up: what was native, what Penguin built.</span>
+            </>
           )}
         </p>
       </div>
 
       <button type="button" className={barButton} onClick={back} disabled={stepIndex === 0} title="Back one step (Left arrow)" data-testid="demo-back">
-        <Icon name="arrowLeft" size={14} /> Back
+        <Icon name="arrowLeft" size={16} /> Back
       </button>
       {step ? (
-        <button type="button" className={cx(barButton, "bg-white !text-[#1c1340] hover:!bg-white/90")} onClick={next} title="Do this step for me (Right arrow)" data-testid="demo-next">
-          Next <Icon name="arrowRight" size={14} />
+        <button
+          type="button"
+          className={cx(barButton, "bg-white px-5 text-[15px] font-bold !text-[#1c1340] shadow-[0_0_0_3px_rgba(255,255,255,0.2)] hover:!bg-white/90")}
+          onClick={next}
+          title="Do this step for me (Right arrow)"
+          data-testid="demo-next"
+        >
+          Next <Icon name="arrowRight" size={17} strokeWidth={2.2} />
         </button>
       ) : null}
       {complete ? (
-        <button type="button" className={cx(barButton, "bg-hs-orange !text-white hover:!bg-hs-orange-strong")} onClick={() => setEndCardOpen(true)} data-testid="demo-wrap-up">
+        <button type="button" className={cx(barButton, "bg-hs-orange px-5 text-[15px] font-bold !text-white hover:!bg-hs-orange-strong")} onClick={() => setEndCardOpen(true)} data-testid="demo-wrap-up">
           Wrap up
         </button>
       ) : null}
 
-      <span className="mx-1 h-5 w-px bg-white/20" aria-hidden="true" />
+      <span className="mx-1.5 h-7 w-px bg-white/20" aria-hidden="true" />
 
       <Menu
         up
@@ -119,7 +137,11 @@ export function DemoBar() {
         width={250}
         button={({ toggle }) => (
           <button type="button" onClick={toggle} className={barButton} title="See the portal as another person" data-testid="view-as">
-            <Icon name="eye" size={14} /> View as: {persona.viewAs}
+            <Icon name="eye" size={16} />
+            <span className="max-w-[190px] truncate">
+              <span className={wideOnly}>View as: </span>
+              {persona.viewAs}
+            </span>
           </button>
         )}
       >
@@ -142,14 +164,14 @@ export function DemoBar() {
           ))
         }
       </Menu>
-      <button type="button" className={cx(barButton, highlight && "bg-penguin !text-white")} onClick={toggleHighlight} aria-pressed={highlight} title="Light up everything Penguin built on this screen (H)" data-testid="demo-highlight">
-        <Icon name="highlight" size={14} /> Extensions
+      <button type="button" className={cx(barButton, highlight && "bg-penguin !text-white")} onClick={toggleHighlight} aria-pressed={highlight} title="Light up everything Penguin built on this screen (H)" aria-label="Highlight Penguin extensions" data-testid="demo-highlight">
+        <Icon name="highlight" size={16} /> <span className={wideOnly}>Extensions</span>
       </button>
-      <button type="button" className={barButton} onClick={reset} title="Reset the demo to its starting state (R)" data-testid="demo-reset">
-        <Icon name="reset" size={14} /> Reset
+      <button type="button" className={barButton} onClick={reset} title="Reset the demo to its starting state (R)" aria-label="Reset the demo" data-testid="demo-reset">
+        <Icon name="reset" size={16} /> <span className={wideOnly}>Reset</span>
       </button>
-      <button type="button" className={barButton} onClick={toggleBar} title="Hide this bar (B)" aria-label="Hide the demo bar" data-testid="demo-bar-hide">
-        <Icon name="chevronDown" size={14} />
+      <button type="button" className={cx(barButton, "!px-2.5 text-white/60")} onClick={toggleBar} title="Hide this bar (B)" aria-label="Hide the demo bar" data-testid="demo-bar-hide">
+        <Icon name="chevronDown" size={16} />
       </button>
     </div>
   );
