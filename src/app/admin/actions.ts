@@ -25,7 +25,7 @@ async function issueInvite(user: Pick<User, "id" | "email">, actor: SessionUser)
     to: user.email,
     subject: "You are invited to the Penguin Sales Demo Portal",
     text: [
-      `${actor.name ?? actor.email} invited you to the Penguin Sales Demo Portal, the HubSpot and Penguin Strategies demo environment.`,
+      `${actor.name ?? actor.email} invited you to the Penguin Sales Demo Portal, the sales demo environment run by Penguin Strategies.`,
       "",
       "Use the link below to choose a password and sign in:",
       url,
@@ -37,7 +37,7 @@ async function issueInvite(user: Pick<User, "id" | "email">, actor: SessionUser)
 }
 
 function linkMessage(emailed: boolean, what: string): string {
-  return emailed ? `${what} sent by email.` : `${what} created. Email is not configured, so copy the link below and send it yourself.`;
+  return emailed ? `${what} sent by email. The same link is below as a backup.` : `${what} created, but not emailed. Copy the link below and send it yourself.`;
 }
 
 export async function inviteUsersAction(formData: FormData): Promise<ActionResult> {
@@ -66,7 +66,8 @@ export async function inviteUsersAction(formData: FormData): Promise<ActionResul
       (await db.user.create({ data: { email, role, organization, status: "INVITED", invitedById: actor.id, invitedAt: new Date() } }));
     const { url, emailed } = await issueInvite(user, actor);
     if (emailed) emailedCount += 1;
-    else links.push({ email, url, kind: "invite" });
+    // The link is always shown to the admin, as a backup to the email.
+    links.push({ email, url, kind: "invite" });
     await logAudit({ actor, action: existing ? "invite_resent" : "invite_sent", target: user, after: { role: user.role, organization: user.organization } });
   }
 
@@ -74,7 +75,8 @@ export async function inviteUsersAction(formData: FormData): Promise<ActionResul
   const invited = emails.length - skipped.length;
   const parts: string[] = [];
   if (invited > 0) parts.push(`${invited} ${invited === 1 ? "invite" : "invites"} created${emailedCount > 0 ? `, ${emailedCount} sent by email` : ""}.`);
-  if (links.length > 0) parts.push("Email is not configured for the rest: copy each link below and send it yourself.");
+  if (invited > emailedCount) parts.push(`${invited - emailedCount} not emailed: copy ${invited - emailedCount === 1 ? "the link" : "each link"} below and send it yourself.`);
+  else if (invited > 0) parts.push("The same links are below as a backup.");
   if (skipped.length > 0) parts.push(`Already has an account, skipped: ${skipped.join(", ")}.`);
   return { ok: invited > 0, message: parts.join(" "), links };
 }
@@ -98,7 +100,7 @@ export async function resendInviteAction(userId: string): Promise<ActionResult> 
   const { url, emailed } = await issueInvite(user, actor);
   await logAudit({ actor, action: "invite_resent", target: user });
   revalidatePath("/admin");
-  return { ok: true, message: linkMessage(emailed, "New invite"), links: emailed ? [] : [{ email: user.email, url, kind: "invite" }] };
+  return { ok: true, message: linkMessage(emailed, "New invite"), links: [{ email: user.email, url, kind: "invite" }] };
 }
 
 export async function revokeInviteAction(userId: string): Promise<ActionResult> {
@@ -163,7 +165,7 @@ export async function sendPasswordResetAction(userId: string): Promise<ActionRes
     text: ["Use the link below to choose a new password.", "", url, "", "The link is valid for 24 hours and can be used once."].join("\n"),
   });
   await logAudit({ actor, action: "password_reset_sent", target: user });
-  return { ok: true, message: linkMessage(emailed, "Password reset link"), links: emailed ? [] : [{ email: user.email, url, kind: "reset" }] };
+  return { ok: true, message: linkMessage(emailed, "Password reset link"), links: [{ email: user.email, url, kind: "reset" }] };
 }
 
 export async function removeUserAction(userId: string): Promise<ActionResult> {

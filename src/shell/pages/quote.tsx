@@ -2,11 +2,11 @@
 
 import { nowMs } from "@/lib/format";
 import { useState } from "react";
-import { approvalReasons, isLocked, quoteTotals } from "@/store/quote-math";
+import { approvalReasons, floorPrice, isLocked, linesBelowFloor, quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
 import type { Quote } from "@/verticals/types";
 import { Ext } from "../ext";
-import { date, dateTime, money, money2, pct, relative } from "../format";
+import { date, dateTime, money2, pct, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Button, Card, cx, Empty, Modal, Prop, statusTone, Tag } from "../ui";
 import { companyOf, contactName, ownerName } from "./lists";
@@ -294,7 +294,7 @@ export function QuotePage({ id }: { id: string }) {
             <Ext id="margin-rule">
               <Card title="Approval rule" className={cx(reasons.length > 0 && !final && quote.status !== "Approved" && "border-[#d39b00]")} testId="approval-rule">
                 <p className="text-[13px] text-ink-muted">
-                  A discount over {rule.thresholdPct}%, or a margin under {rule.marginFloorPct}%, needs approval from {approver?.name}, {approver?.title}.
+                  A discount over {rule.thresholdPct}%, or a line priced under its floor price, needs approval from {approver?.name}, {approver?.title}.
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2">
@@ -303,11 +303,11 @@ export function QuotePage({ id }: { id: string }) {
                     <p className="text-[11.5px] text-ink-muted">Limit {rule.thresholdPct}%</p>
                   </div>
                   <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2">
-                    <p className="text-[11.5px] text-ink-muted">Margin after discount</p>
-                    <p className={cx("text-[16px] font-semibold tabular-nums", totals.marginPct < rule.marginFloorPct && "text-[#99201a]")} data-testid="quote-margin">
+                    <p className="text-[11.5px] text-ink-muted">Quote margin %</p>
+                    <p className="text-[16px] font-semibold tabular-nums" data-testid="quote-margin">
                       {pct(totals.marginPct)}
                     </p>
-                    <p className="text-[11.5px] text-ink-muted">Floor {rule.marginFloorPct}%, list {pct(listMargin)}</p>
+                    <p className="text-[11.5px] text-ink-muted">{pct(listMargin)} at list price</p>
                   </div>
                 </div>
                 <p className="mt-3 flex flex-wrap items-center gap-1.5 text-[12.5px]" data-testid="approval-reasons">
@@ -322,6 +322,7 @@ export function QuotePage({ id }: { id: string }) {
                     ))
                   )}
                 </p>
+                <FloorCheck quote={quote} />
               </Card>
             </Ext>
 
@@ -474,6 +475,45 @@ export function BuyerPage({ id }: { id: string }) {
   );
 }
 
+/**
+ * The two Penguin pieces of the approval rule, as one compact block: the per-product floor-price
+ * check, and the unit cost it relies on, fed from the back office.
+ */
+function FloorCheck({ quote }: { quote: Quote }) {
+  const { pack } = useShell();
+  const rule = pack.demos.discountApproval;
+  const below = linesBelowFloor(quote, rule);
+  return (
+    <div className="mt-3 space-y-2" data-testid="floor-check">
+      <Ext id="floor-price-rule" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
+        <p className="text-[12.5px] font-semibold">
+          Floor price check:{" "}
+          <span className={below.length > 0 ? "text-[#99201a]" : "text-[#0b5b2b]"} data-testid="floor-result">
+            {below.length === 0 ? "every line is at or above its floor price" : `${below.length} of ${quote.lineItems.length} lines below floor price`}
+          </span>
+        </p>
+        {below.length > 0 ? (
+          <ul className="mt-1 space-y-0.5 text-[12px] text-ink-muted">
+            {below.map((l) => (
+              <li key={l.sku} className="flex justify-between gap-3">
+                <span className="truncate">{l.name}</span>
+                <span className="shrink-0 tabular-nums">
+                  {money2(l.unitPrice * (1 - quote.discountPct / 100))} against a floor of {money2(floorPrice(l, rule))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </Ext>
+      <Ext id="erp-cost-feed" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
+        <p className="text-[12px] text-ink-muted">
+          Unit cost on every line is synced from the {pack.terms.backOffice}. Last sync {relative(pack.demos.backOffice.syncedAt).toLowerCase()}.
+        </p>
+      </Ext>
+    </div>
+  );
+}
+
 /** The approver's page: the request with everything needed to decide, and one button. */
 export function ApprovalPage({ id }: { id: string }) {
   const { world, pack, persona, dispatch } = useShell();
@@ -488,8 +528,6 @@ export function ApprovalPage({ id }: { id: string }) {
   const company = companyOf(world, quote.companyId);
   const requester = pack.personas.find((p) => p.id === approval?.requestedById);
   const approver = pack.personas.find((p) => p.id === rule.approverId);
-  const erpOrders = company?.id === pack.demos.backOffice.companyId ? pack.demos.backOffice.orders : [];
-  const yearTotal = erpOrders.reduce((sum, o) => sum + o.total, 0);
 
   return (
     <div className="mx-auto max-w-[900px] px-6 py-5" data-testid="approval-page">
@@ -508,8 +546,8 @@ export function ApprovalPage({ id }: { id: string }) {
           </Empty>
         </Card>
       ) : (
-        <Ext id="approval-context" className="mt-4">
-          <section className="rounded-[10px] border border-line bg-white" data-testid="approval-card">
+        <>
+          <section className="mt-4 rounded-[10px] border border-line bg-white" data-testid="approval-card">
             <header className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4">
               <div>
                 <h2 className="text-[16px] font-semibold">
@@ -543,12 +581,12 @@ export function ApprovalPage({ id }: { id: string }) {
                 </p>
               </div>
               <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-3">
-                <p className="text-[12px] text-ink-muted">Margin after discount</p>
-                <p className={cx("mt-0.5 text-[20px] font-semibold tabular-nums", totals.marginPct < rule.marginFloorPct && "text-[#99201a]")} data-testid="approval-margin">
+                <p className="text-[12px] text-ink-muted">Quote margin %</p>
+                <p className="mt-0.5 text-[20px] font-semibold tabular-nums" data-testid="approval-margin">
                   {pct(totals.marginPct)}
                 </p>
                 <p className="text-[12px] text-ink-muted">
-                  Down from {pct(listMargin)}. Floor is {rule.marginFloorPct}%
+                  Down from {pct(listMargin)} at list price
                 </p>
               </div>
               <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-3">
@@ -556,6 +594,10 @@ export function ApprovalPage({ id }: { id: string }) {
                 <p className="mt-0.5 text-[20px] font-semibold tabular-nums">{money2(totals.total)}</p>
                 <p className="text-[12px] text-ink-muted">{quote.lineItems.length} line items</p>
               </div>
+            </div>
+
+            <div className="px-5 pb-4">
+              <FloorCheck quote={quote} />
             </div>
 
             <div className="border-t border-line-soft px-5 py-4">
@@ -567,12 +609,6 @@ export function ApprovalPage({ id }: { id: string }) {
                   </A>
                 ) : null}
               </h3>
-              <dl className="mt-1 grid grid-cols-4 gap-4">
-                <Prop label="Orders, last 12 months">{erpOrders.length > 0 ? `${erpOrders.length} orders, ${money(yearTotal)}` : ""}</Prop>
-                <Prop label="Last order">{company?.erp ? date(company.erp.lastOrderDate) : ""}</Prop>
-                <Prop label="Open balance">{company?.erp ? money(company.erp.openBalance) : ""}</Prop>
-                <Prop label="Credit status">{company?.erp ? <Tag tone={statusTone(company.erp.creditStatus)}>{company.erp.creditStatus}</Tag> : ""}</Prop>
-              </dl>
             </div>
 
             <footer className="flex items-center gap-3 border-t border-line-soft bg-[#fafafa] px-5 py-3.5">
@@ -594,7 +630,7 @@ export function ApprovalPage({ id }: { id: string }) {
               )}
             </footer>
           </section>
-        </Ext>
+        </>
       )}
     </div>
   );

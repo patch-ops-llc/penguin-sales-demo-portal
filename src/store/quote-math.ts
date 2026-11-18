@@ -18,12 +18,26 @@ export function quoteTotals(quote: Pick<Quote, "lineItems" | "discountPct">) {
   return { subtotal: sub, discount, total, cost, marginPct, maxLead };
 }
 
-/** The approval rule: real logic, so 8% sails through and 18% locks. Empty list means no approval needed. */
+/** A product's floor price: the lowest unit price allowed without approval, set from its unit cost and the minimum margin. */
+export function floorPrice(line: LineItem, rule: DiscountApprovalConfig): number {
+  return Math.ceil((line.unitCost / (1 - rule.marginFloorPct / 100)) * 100) / 100;
+}
+
+/** Lines whose unit price after the quote discount is under their floor price. */
+export function linesBelowFloor(quote: Pick<Quote, "lineItems" | "discountPct">, rule: DiscountApprovalConfig): LineItem[] {
+  if (quote.discountPct <= 0) return [];
+  return quote.lineItems.filter((l) => l.unitPrice * (1 - quote.discountPct / 100) < floorPrice(l, rule));
+}
+
+/**
+ * The approval rule: real logic, so 8% sails through and 18% locks. Empty list means no approval needed.
+ * The discount limit is HubSpot's own approval setting. The floor-price check is the Penguin rule.
+ */
 export function approvalReasons(quote: Pick<Quote, "lineItems" | "discountPct">, rule: DiscountApprovalConfig): string[] {
-  const { marginPct } = quoteTotals(quote);
   const reasons: string[] = [];
   if (quote.discountPct > rule.thresholdPct) reasons.push(`Discount over ${rule.thresholdPct}%`);
-  if (quote.discountPct > 0 && marginPct < rule.marginFloorPct) reasons.push(`Margin under the ${rule.marginFloorPct}% floor`);
+  const below = linesBelowFloor(quote, rule).length;
+  if (below > 0) reasons.push(`${below} ${below === 1 ? "line" : "lines"} below floor price`);
   return reasons;
 }
 

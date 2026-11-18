@@ -270,11 +270,11 @@ const activities: Activity[] = [
   { id: "ac-1", at: "@-1d", type: "call", title: "Call with Hannah Weiss", body: "Line 4 moves to washdown duty in the spring. Needs eight axes, 300 mm stroke, around 2 kN. Wants a quote this week.", byId: "alex", contactIds: ["ct-hannah"], companyIds: ["co-brightwater"], dealIds: ["dl-line4"] },
   { id: "ac-2", at: "@-2d", type: "email", title: "Email from Hannah Weiss: Line 4 requirements", body: "Attached is the duty cycle for the Line 4 infeed. Supply on that line is 48 VDC. We need parts on the dock within four weeks of the PO.", byId: null, contactIds: ["ct-hannah"], companyIds: ["co-brightwater"], dealIds: ["dl-line4"] },
   { id: "ac-3", at: "@-6d", type: "meeting", title: "Meeting: Line 4 retrofit kickoff", body: "Walked the line with Hannah and Luis. Existing pneumatic cylinders are being replaced axis for axis.", byId: "alex", contactIds: ["ct-hannah", "ct-luis"], companyIds: ["co-brightwater"], dealIds: ["dl-line4"] },
-  { id: "ac-4", at: "@-9d", type: "deal", title: "Deal created", body: "Brightwater Packaging: Line 4 retrofit was created in New RFQ.", byId: "alex", companyIds: ["co-brightwater"], dealIds: ["dl-line4"] },
+  { id: "ac-4", at: "@-9d", type: "deal", title: "Deal created", body: "Brightwater Packaging: Line 4 retrofit was created in Qualified.", byId: "alex", companyIds: ["co-brightwater"], dealIds: ["dl-line4"] },
   { id: "ac-5", at: "@-1d", type: "quote", title: "Quote Q-1042 created", body: "Draft quote for Line 2 spares.", byId: "alex", contactIds: ["ct-luis"], companyIds: ["co-brightwater"], dealIds: ["dl-line2"], linkPath: "/quotes/q-1042", linkLabel: "View quote" },
   { id: "ac-6", at: "@-4d", type: "email", title: "Email from Luis Ortega: spares for Line 2", body: "Can you quote six sets of the frame 60 actuators and drives we use on Line 2? Budget is tight this quarter, so sharpen the pencil.", byId: null, contactIds: ["ct-luis"], companyIds: ["co-brightwater"], dealIds: ["dl-line2"] },
   { id: "ac-7", at: "@-23d", type: "sync", title: "Order SO-48213 shipped", body: "Synced from the ERP: 3 line items, $21,840.00.", byId: null, companyIds: ["co-brightwater"] },
-  { id: "ac-8", at: "@-64d", type: "deal", title: "Deal closed won", body: "Brightwater Packaging: Palletizer program 2026 moved to Closed won.", byId: "alex", companyIds: ["co-brightwater"], dealIds: ["dl-bw-palletizer"] },
+  { id: "ac-8", at: "@-64d", type: "deal", title: "Deal won", body: "Brightwater Packaging: Palletizer program 2026 moved to Awarded - Won.", byId: "alex", companyIds: ["co-brightwater"], dealIds: ["dl-bw-palletizer"] },
   { id: "ac-9", at: "@-70d", type: "note", title: "Note", body: "Luis prefers quotes by email with the PDF attached. Hannah signs off on anything technical.", byId: "alex", contactIds: ["ct-luis"], companyIds: ["co-brightwater"] },
   // Corvale Foods: the AI prospecting hero.
   { id: "ac-20", at: "@-96d", type: "email", title: "Email to Renee Hallas: checking in", body: "Sent the updated washdown catalogue. No reply.", byId: "alex", contactIds: ["ct-renee"], companyIds: ["co-corvale"] },
@@ -282,7 +282,7 @@ const activities: Activity[] = [
   { id: "ac-22", at: "@-14mo", type: "sync", title: "Order SO-39120 shipped", body: "Synced from the ERP: 24 actuators and drives for the Spartanburg plant, $61,300.00.", byId: null, companyIds: ["co-corvale"] },
   // Kestrel Automation.
   { id: "ac-30", at: "@-5d", type: "call", title: "Call with Maya Okafor", body: "Cell 7 is approved. RFQ to follow by email.", byId: "alex", contactIds: ["ct-maya"], companyIds: ["co-kestrel"] },
-  { id: "ac-31", at: "@-47d", type: "deal", title: "Deal closed won", body: "Kestrel Automation: Cell 5 build moved to Closed won.", byId: "alex", contactIds: ["ct-grant"], companyIds: ["co-kestrel"], dealIds: ["dl-kestrel-cell5"] },
+  { id: "ac-31", at: "@-47d", type: "deal", title: "Deal won", body: "Kestrel Automation: Cell 5 build moved to Awarded - Won.", byId: "alex", contactIds: ["ct-grant"], companyIds: ["co-kestrel"], dealIds: ["dl-kestrel-cell5"] },
 ];
 
 // Every other record gets a short, plausible history so no timeline is empty.
@@ -318,14 +318,15 @@ export const manufacturingPack: Pack = {
     { id: "tom", name: "Tom Becker", title: "Channel Manager", email: "tom.becker@halvorsenmotion.example", viewAs: "Tom, channel manager", color: "#5d6b2f" },
   ],
   defaultPersonaId: "alex",
-  terms: { quote: "Quote", product: "Product", backOffice: "ERP" },
+  terms: { quote: "Quote", product: "Product", backOffice: "ERP", request: "RFQ" },
+  // Stage ids are the demo engine's keys. Labels follow the short transactional pipeline manufacturers use in HubSpot.
   stages: [
-    { id: "new-rfq", label: "New RFQ", probability: 10 },
-    { id: "qualified", label: "Qualified", probability: 30 },
-    { id: "quote-sent", label: "Quote sent", probability: 60 },
-    { id: "negotiation", label: "Negotiation", probability: 80 },
-    { id: "closed-won", label: "Closed won", probability: 100, closed: "won" },
-    { id: "closed-lost", label: "Closed lost", probability: 0, closed: "lost" },
+    { id: "new-rfq", label: "Qualified", probability: 10 },
+    { id: "qualified", label: "Quote Pending", probability: 30 },
+    { id: "quote-sent", label: "Quoted", probability: 50 },
+    { id: "negotiation", label: "PO Pending", probability: 70 },
+    { id: "closed-won", label: "Awarded - Won", probability: 100, closed: "won" },
+    { id: "closed-lost", label: "Closed - Lost", probability: 0, closed: "lost" },
   ],
   companies,
   contacts,
@@ -344,7 +345,7 @@ export const manufacturingPack: Pack = {
   workflows: [
     {
       id: "wf-rfq-routing",
-      name: "RFQ lead routing",
+      name: "Inbound | RFQ lead routing",
       object: "Contact",
       status: "On",
       enrolled: 1284,
@@ -365,7 +366,7 @@ export const manufacturingPack: Pack = {
           rule: "Score 70 or more, direct account",
           nodes: [
             { id: "f-owner", kind: "action", label: "Set contact owner", detail: "Territory rep from the routing result" },
-            { id: "f-deal", kind: "action", label: "Create deal", detail: "Pipeline: Sales. Stage: New RFQ" },
+            { id: "f-deal", kind: "action", label: "Create deal", detail: "Pipeline: Sales. Stage: Qualified" },
             { id: "f-task", kind: "action", label: "Create task", detail: "Call within 1 hour. High priority" },
             { id: "f-alert", kind: "action", label: "Send Slack notification", detail: "Territory channel, with score and reasons" },
           ],
@@ -376,7 +377,7 @@ export const manufacturingPack: Pack = {
           rule: "Score 40 to 69",
           nodes: [
             { id: "i-owner", kind: "action", label: "Rotate contact owner", detail: "Inside sales team" },
-            { id: "i-deal", kind: "action", label: "Create deal", detail: "Pipeline: Sales. Stage: New RFQ" },
+            { id: "i-deal", kind: "action", label: "Create deal", detail: "Pipeline: Sales. Stage: Qualified" },
             { id: "i-task", kind: "action", label: "Create task", detail: "Email today. Medium priority" },
             { id: "i-alert", kind: "action", label: "Send Slack notification", detail: "#inside-sales" },
           ],
@@ -396,15 +397,15 @@ export const manufacturingPack: Pack = {
           rule: "Score under 40",
           nodes: [
             { id: "u-stage", kind: "action", label: "Set lifecycle stage", detail: "Subscriber" },
-            { id: "u-seq", kind: "action", label: "Enroll in workflow", detail: "Engineering newsletter nurture" },
+            { id: "u-seq", kind: "action", label: "Enroll in workflow", detail: "Marketing | Engineering newsletter nurture" },
           ],
         },
       ],
     },
-    { id: "wf-quote-followup", name: "Quote follow-up reminders", object: "Deal", status: "On", enrolled: 342, createdAt: "@-300d", updatedAt: "@-40d", description: "Creates a follow-up task three days after a quote is sent." },
-    { id: "wf-nurture", name: "Engineering newsletter nurture", object: "Contact", status: "On", enrolled: 5120, createdAt: "@-620d", updatedAt: "@-75d", description: "Monthly application notes for contacts who are not sales-ready." },
-    { id: "wf-renewal", name: "Service contract renewal notice", object: "Deal", status: "On", enrolled: 96, createdAt: "@-250d", updatedAt: "@-110d", description: "Notifies the owner 60 days before a service contract ends." },
-    { id: "wf-distributor", name: "Distributor onboarding", object: "Company", status: "Off", enrolled: 14, createdAt: "@-500d", updatedAt: "@-190d", description: "Welcome sequence and price sheet for new distributors." },
+    { id: "wf-quote-followup", name: "Quoted | Quote follow-up", object: "Deal", status: "On", enrolled: 342, createdAt: "@-300d", updatedAt: "@-40d", description: "Creates a follow-up task three days after a quote is sent." },
+    { id: "wf-nurture", name: "Marketing | Engineering newsletter nurture", object: "Contact", status: "On", enrolled: 5120, createdAt: "@-620d", updatedAt: "@-75d", description: "Monthly application notes for contacts who are not sales-ready." },
+    { id: "wf-renewal", name: "Service | Contract renewal notice", object: "Deal", status: "On", enrolled: 96, createdAt: "@-250d", updatedAt: "@-110d", description: "Notifies the owner 60 days before a service contract ends." },
+    { id: "wf-distributor", name: "Channel | Distributor onboarding", object: "Company", status: "Off", enrolled: 14, createdAt: "@-500d", updatedAt: "@-190d", description: "Welcome sequence and price sheet for new distributors." },
   ],
   signals: [
     { id: "sg-corvale", companyId: "co-corvale", title: "Reorder gap and a new plant", source: "ERP order history and company news", at: "@-1d", strength: "High", summary: "14 months since the last order against a 9-month average. New plant announced in Greenville.", hero: true },

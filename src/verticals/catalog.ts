@@ -72,7 +72,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Halvorsen Motion",
     blurb: "Linear actuators and servo drives, sold direct to OEMs and through distributors.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
   },
   {
     id: "saas",

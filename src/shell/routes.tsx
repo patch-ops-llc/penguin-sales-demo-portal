@@ -2,8 +2,11 @@
 
 import { useShell } from "@/store/store";
 import { CompaniesIndex, ContactsIndex, DealsIndex, ProductsIndex, QuotesIndex, TasksIndex, WorkflowsIndex } from "./pages/lists";
+import { InboxPage } from "./pages/inbox";
+import { ProspectingPage } from "./pages/prospecting";
 import { ApprovalPage, BuyerPage, QuotePage } from "./pages/quote";
 import { CompanyRecord, ContactRecord, DealRecord } from "./pages/records";
+import { SitePage } from "./pages/site";
 import { WorkflowPage } from "./pages/workflow";
 import { A, Card, Empty } from "./ui";
 
@@ -34,6 +37,12 @@ export function Routes() {
       return <ProductsIndex />;
     case "workflows":
       return id ? <WorkflowPage key={id} id={id} /> : <WorkflowsIndex />;
+    case "inbox":
+      return <InboxPage />;
+    case "prospecting":
+      return <ProspectingPage />;
+    case "site":
+      return <SitePage />;
     case undefined:
       return null;
     default:

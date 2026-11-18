@@ -9,38 +9,43 @@ import type { Extension } from "../types";
  *                  "Built by Penguin" on the end card. `note` is the one line the prospect reads.
  *   by: "native"   no marker in the demo. Listed under "Native HubSpot" on the end card.
  *
- * The split below is the proposal from the product plan (section 1.5). It still has to be
- * confirmed against a current HubSpot Enterprise portal, so expect flags here to flip.
+ * The split follows the product plan (section 1.5), corrected against live HubSpot portals
+ * (docs/hubspot-portal-reference.md, section 6.7): only what Penguin would have to build is
+ * marked. Flags still open for the user's decision are noted beside the entry.
  * Ids of Penguin elements match the <Ext id="..."> wrappers in the screens.
  */
 export const extensions: Record<DemoId, Extension[]> = {
   "guided-quote": [
     { id: "deal-record", name: "Deal record and pipeline", by: "native" },
     { id: "products-line-items", name: "Product library and line items", by: "native" },
-    { id: "quote-editor", name: "Quote editor and template", by: "native" },
-    { id: "quote-page", name: "Buyer-facing quote page", by: "native" },
+    { id: "price-books", name: "Price books and customer-specific pricing", by: "native" },
+    { id: "pricing-models", name: "Volume tiers, bundles, and optional lines", by: "native" },
+    { id: "quote-editor", name: "Quote editor and templates", by: "native" },
+    { id: "quote-page", name: "Buyer-facing quote page and e-signature", by: "native" },
     {
       id: "guided-selling",
       name: "Guided selling",
       by: "penguin",
-      note: "Requirement and compatibility rules that turn a few answers into the right line items, with pricing and lead times from the ERP.",
+      note: "Discovery questions and compatibility rules that turn a few answers into the right line items, with lead times from the ERP.",
     },
   ],
   "discount-approval": [
-    { id: "quote-editor", name: "Quote editor", by: "native" },
-    { id: "quote-approval-status", name: "Quote approval status and lock", by: "native" },
-    { id: "notifications", name: "Notifications", by: "native" },
+    { id: "quote-editor", name: "Quote editor and discount fields", by: "native" },
+    { id: "quote-approval-status", name: "Quote approval: request, status, lock, and approve", by: "native" },
+    // Unit cost, margin, and the quote margin rollup are native or configuration, so they carry no marker.
+    { id: "margin-rule", name: "Unit cost, margin, and Quote margin %", by: "native" },
+    { id: "notifications", name: "Notifications and approval tasks", by: "native" },
     {
-      id: "margin-rule",
-      name: "Margin-aware approval rule",
+      id: "erp-cost-feed",
+      name: "Unit cost fed from the ERP",
       by: "penguin",
-      note: "The approval rule checks margin as well as discount, using unit cost synced from the ERP.",
+      note: "Keeps unit cost on every product and line item current from the ERP, so the margin HubSpot shows is real.",
     },
     {
-      id: "approval-context",
-      name: "Approval context card",
+      id: "floor-price-rule",
+      name: "Per-product floor-price rule",
       by: "penguin",
-      note: "Discount, margin after discount, and the customer's order history on one card, with one-click approval.",
+      note: "Checks every line against its product's floor price and sends the quote for approval when a line falls below it.",
     },
   ],
   "back-office": [
@@ -52,6 +57,7 @@ export const extensions: Record<DemoId, Extension[]> = {
       by: "penguin",
       note: "Three fields kept in sync from the ERP, so lists, reports, and workflows can use them.",
     },
+    // Open decision: live portals sync ERP data into records instead of reading it live into a card. Kept as planned.
     {
       id: "erp-card",
       name: "ERP card",
@@ -71,6 +77,7 @@ export const extensions: Record<DemoId, Extension[]> = {
       by: "penguin",
       note: "Shows the reasons behind the score beside it, so the rep knows why the lead is worth the call.",
     },
+    // Open decision: routing seen in live portals is native workflow branching. Kept marked as planned; set by: "native" to unmark.
     {
       id: "territory-routing",
       name: "Territory routing action",
@@ -82,6 +89,7 @@ export const extensions: Record<DemoId, Extension[]> = {
     { id: "inbox", name: "Shared inbox", by: "native" },
     { id: "deal-record", name: "Deal, line items, and associations", by: "native" },
     { id: "timeline", name: "Email and attachment on the timeline", by: "native" },
+    // Open decision: the shipped example of intake is from files, not an inbox. Kept as email parsing.
     {
       id: "rfq-parser",
       name: "RFQ parsing and review card",
@@ -91,7 +99,8 @@ export const extensions: Record<DemoId, Extension[]> = {
   ],
   "ai-prospecting": [
     { id: "prospecting-agent", name: "Breeze Prospecting Agent", by: "native" },
-    { id: "buying-group", name: "Buying group", by: "native" },
+    { id: "why-now", name: "Why now summary: Reason To Reach Out and Signals Summary", by: "native" },
+    { id: "buying-group", name: "Buying group and buying roles", by: "native" },
     { id: "outreach-drafts", name: "Outreach drafts, approval, and send", by: "native" },
     {
       id: "erp-signal",

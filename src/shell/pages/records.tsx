@@ -289,6 +289,7 @@ export function ContactRecord({ id }: { id: string }) {
           <Prop label="Lifecycle stage">{contact.lifecycle}</Prop>
           <Prop label="Lead status">{contact.leadStatus}</Prop>
           {contact.score !== undefined ? <Prop label="Lead score">{contact.score}</Prop> : null}
+          {contact.score !== undefined ? <Prop label="Contact priority">{contact.score >= 80 ? "Very High" : contact.score >= 60 ? "High" : contact.score >= 40 ? "Medium" : "Low"}</Prop> : null}
           <Prop label="Original source">{contact.source}</Prop>
           <Prop label="Create date">{dateTime(contact.createdAt)}</Prop>
         </AboutSection>
@@ -363,11 +364,11 @@ export function CompanyRecord({ id }: { id: string }) {
         <>
           {company.erp ? (
             <Ext id="erp-synced-fields" className="-mx-2 mb-3 rounded-[8px] bg-[#fafafa] px-2 py-2" pinClass="!right-2 !top-1.5">
-              <AboutSection title={`Synced from the ${label}`}>
-                <Prop label={`${label} account number`}>{company.erp.accountNumber}</Prop>
-                <Prop label="Last order date">{date(company.erp.lastOrderDate)}</Prop>
-                <Prop label="Open balance">{money(company.erp.openBalance)}</Prop>
-                <Prop label="Credit status">
+              <AboutSection title={`${label} Sync`}>
+                <Prop label={`${label} Account Number`}>{company.erp.accountNumber}</Prop>
+                <Prop label={`${label} Last Order Date`}>{date(company.erp.lastOrderDate)}</Prop>
+                <Prop label={`${label} Open Balance`}>{money(company.erp.openBalance)}</Prop>
+                <Prop label={`${label} Credit Status`}>
                   <Tag tone={statusTone(company.erp.creditStatus)}>{company.erp.creditStatus}</Tag>
                 </Prop>
               </AboutSection>
@@ -465,6 +466,7 @@ export function DealRecord({ id }: { id: string }) {
   const stageIndex = open.findIndex((s) => s.id === deal.stage);
   const match = (a: Activity) => Boolean(a.dealIds?.includes(id));
   const canQuoteFromEmail = emailThread && !world.ed.quotes[emailThread];
+  const sourceFile = emailThread ? world.threads.find((t) => t.id === emailThread)?.attachment?.name : undefined;
 
   return (
     <RecordLayout
@@ -493,6 +495,8 @@ export function DealRecord({ id }: { id: string }) {
           <Prop label="Deal stage">{stage?.label}</Prop>
           <Prop label="Deal type">{deal.type}</Prop>
           <Prop label="Original source">{deal.source}</Prop>
+          {emailThread ? <Prop label={`${pack.terms.request ?? "Request"} Source`}>Email</Prop> : null}
+          {sourceFile ? <Prop label="Source File Name">{sourceFile}</Prop> : null}
           <Prop label="Create date">{dateTime(deal.createdAt)}</Prop>
         </AboutSection>
       }

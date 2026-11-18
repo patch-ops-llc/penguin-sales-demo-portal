@@ -17,6 +17,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/contacts", label: "Contacts", icon: "contacts" },
       { to: "/companies", label: "Companies", icon: "company" },
       { to: "/deals", label: "Deals", icon: "deal" },
+      { to: "/inbox", label: "Inbox", icon: "inbox" },
       { to: "/tasks", label: "Tasks", icon: "task" },
     ],
   },
@@ -27,6 +28,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/products", label: "Products", icon: "product" },
     ],
   },
+  { group: "Sales", items: [{ to: "/prospecting", label: "Prospecting", icon: "target" }] },
   { group: "Automation", items: [{ to: "/workflows", label: "Workflows", icon: "workflow" }] },
 ];
 

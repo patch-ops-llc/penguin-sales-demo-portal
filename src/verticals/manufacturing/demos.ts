@@ -8,7 +8,7 @@ export const demos: Pack["demos"] = {
   guidedQuote: {
     dealId: "dl-line4",
     contactId: "ct-hannah",
-    intro: "Answer four questions about the application. The right parts, prices, and lead times follow.",
+    intro: "Answer four discovery questions about the application. The rate card follows: the right parts, with prices and quoted lead times.",
     fields: [
       {
         id: "load",
@@ -268,7 +268,7 @@ export const demos: Pack["demos"] = {
           { label: "RFQ form", points: 20, detail: "Gave quantity and a need-by date" },
         ],
         route: { branchId: "field", ownerId: "dana", summary: "Territory: Midwest. Product line: Actuators. Owner: Dana Ruiz" },
-        task: { title: "Call Erin Castillo within 1 hour", dueInMinutes: 60, notes: "Hot RFQ from Northfield Bottling Co. Score 86. 16 washdown axes before a March shutdown." },
+        task: { title: "Follow up on new inquiry: Northfield Bottling Co.", dueInMinutes: 60, notes: "Hot RFQ from Northfield Bottling Co. Score 86. 16 washdown axes before a March shutdown." },
         deal: { name: "Northfield Bottling Co.: Washdown actuators RFQ", amount: 48000 },
         alert: { channel: "#sales-midwest", text: "New RFQ lead: Erin Castillo, Northfield Bottling Co. Score 86. Assigned to Dana Ruiz. Call within 1 hour." },
       },
@@ -306,7 +306,7 @@ export const demos: Pack["demos"] = {
           { label: "RFQ form", points: 15, detail: "Gave quantity, no need-by date" },
         ],
         route: { branchId: "inside", ownerId: "marcus", summary: "Score under 70: inside sales. Owner: Marcus Lee" },
-        task: { title: "Email Sam Whitaker today", dueInMinutes: 480, notes: "Replacement drives for four conveyor axes. Score 58." },
+        task: { title: "Follow up on new inquiry: Tidewater Conveyor", dueInMinutes: 480, notes: "Replacement drives for four conveyor axes. Score 58." },
         deal: { name: "Tidewater Conveyor: Replacement drives", amount: 6500 },
         alert: { channel: "#inside-sales", text: "New RFQ lead: Sam Whitaker, Tidewater Conveyor. Score 58. Assigned to Marcus Lee. Email today." },
       },
@@ -357,6 +357,24 @@ export const demos: Pack["demos"] = {
   // ---------- Demo 5: AI prospecting ----------
   aiProspecting: {
     companyId: "co-corvale",
+    signalDetail: {
+      fed: {
+        title: "Reorder gap",
+        source: "ERP order history",
+        detail: "14 months since the last order, against a 9-month average between orders.",
+        bars: [
+          { label: "Usual gap between orders", value: 9, unit: "months" },
+          { label: "Since the last order", value: 14, unit: "months", now: true },
+        ],
+        footnote: "Calculated from ERP Last Order Date and the account's order history.",
+      },
+      native: {
+        title: "Plant expansion",
+        source: "Company news",
+        detail: "A fifth plant in Greenville, SC was announced last week, opening next year.",
+        footnote: "Found by Breeze from public company news.",
+      },
+    },
     whyNow: {
       headline: "Corvale Foods is overdue to reorder and is building a new plant.",
       points: [
@@ -366,9 +384,9 @@ export const demos: Pack["demos"] = {
       ],
     },
     buyingGroup: [
-      { id: "bg-renee", name: "Renee Hallas", title: "Plant Manager", role: "Decision maker", email: "renee.hallas@corvalefoods.example", contactId: "ct-renee", why: "Signed the last two orders." },
+      { id: "bg-renee", name: "Renee Hallas", title: "Plant Manager", role: "Decision Maker", email: "renee.hallas@corvalefoods.example", contactId: "ct-renee", why: "Signed the last two orders." },
       { id: "bg-victor", name: "Victor Dunn", title: "Maintenance Lead", role: "Champion", email: "victor.dunn@corvalefoods.example", contactId: "ct-victor", why: "Runs the lines that use Halvorsen actuators." },
-      { id: "bg-priyanka", name: "Priyanka Rao", title: "Director of Procurement", role: "Budget holder", email: "priyanka.rao@corvalefoods.example", contactId: null, why: "Joined four months ago. Owns equipment sourcing for the new plant." },
+      { id: "bg-priyanka", name: "Priyanka Rao", title: "Director of Procurement", role: "Budget Holder", email: "priyanka.rao@corvalefoods.example", contactId: null, why: "Joined four months ago. Owns equipment sourcing for the new plant." },
       { id: "bg-owen", name: "Owen Liddell", title: "Project Engineer, Greenville expansion", role: "Influencer", email: "owen.liddell@corvalefoods.example", contactId: null, why: "Named in the expansion announcement as equipment lead." },
     ],
     drafts: {

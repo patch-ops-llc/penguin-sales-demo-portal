@@ -252,7 +252,9 @@ export type GuidedQuoteConfig = {
 
 export type DiscountApprovalConfig = {
   quoteId: string;
+  /** HubSpot's own approval setting: a quote discount over this needs approval. */
   thresholdPct: number;
+  /** Minimum margin that sets each product's floor price from its unit cost. */
   marginFloorPct: number;
   approverId: string;
   scriptedDiscountPct: number;
@@ -418,8 +420,15 @@ export type BuyingGroupMember = {
 
 export type OutreachDraft = { tone: string; subject: string; body: string };
 
+/** The two signals on the hero account: the one fed in from the back office, and one HubSpot finds itself. */
+export type ProspectSignalDetail = {
+  fed: { title: string; source: string; detail: string; bars: { label: string; value: number; unit: string; now?: boolean }[]; footnote: string };
+  native: { title: string; source: string; detail: string; footnote: string };
+};
+
 export type AiProspectingConfig = {
   companyId: string;
+  signalDetail?: ProspectSignalDetail;
   whyNow: { headline: string; points: { label: string; detail: string; source: string }[] };
   buyingGroup: BuyingGroupMember[];
   /** Three prepared versions per person, keyed by buying-group member id. */
@@ -434,7 +443,8 @@ export type Pack = {
   portal: { company: string; domain: string; hubId: string; currency: string };
   personas: Persona[];
   defaultPersonaId: string;
-  terms: { quote: string; product: string; backOffice: string };
+  /** `request` names the inbound document a buyer sends, for example RFQ. Defaults to "Request". */
+  terms: { quote: string; product: string; backOffice: string; request?: string };
   stages: DealStage[];
   companies: Company[];
   contacts: Contact[];

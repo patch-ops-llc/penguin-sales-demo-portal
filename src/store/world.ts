@@ -249,7 +249,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       addActivity(w, {
         at,
         type: "quote",
-        title: `Approval requested for ${quote.number}`,
+        title: `Approval requested: ${quote.number}`,
         body: `${quote.discountPct}% discount. ${reasons.join(". ")}.`,
         byId: w.persona,
         contactIds: [quote.contactId],
@@ -282,7 +282,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       addActivity(w, {
         at,
         type: "quote",
-        title: `${quote.number} approved`,
+        title: `Quote approved: ${quote.number}`,
         body: `${approver?.name ?? "The approver"} approved a ${quote.discountPct}% discount.`,
         byId: quote.approval.approverId,
         contactIds: [quote.contactId],
@@ -389,6 +389,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       const at = iso(a.at);
       const owner = preset.route.ownerId;
       const fullName = `${preset.form.firstName} ${preset.form.lastName}`;
+      const workflowName = pack.workflows.find((x) => x.id === config.workflowId)?.name ?? "Lead routing";
       const company: Company = {
         id: "co-lead",
         name: preset.form.company,
@@ -463,7 +464,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
           lastActivityAt: at,
           type: "New business",
           lineItems: [],
-          source: "RFQ lead routing workflow",
+          source: `${workflowName} workflow`,
           isNew: true,
         });
         const task = w.tasks.find((t) => t.id === taskId);
@@ -491,14 +492,14 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       addActivity(w, {
         at,
         type: "workflow",
-        title: "Enrolled in workflow: RFQ lead routing",
+        title: `Enrolled in workflow: ${workflowName}`,
         body: `${preset.route.summary}.`,
         byId: null,
         ...ids,
         linkPath: `/workflows/${config.workflowId}`,
         linkLabel: "View in workflow",
       });
-      if (dealId) addActivity(w, { at, type: "deal", title: "Deal created by workflow", body: `${preset.deal!.name} was created in New RFQ.`, byId: null, ...ids, dealIds: [dealId] });
+      if (dealId) addActivity(w, { at, type: "deal", title: "Deal created by workflow", body: `${preset.deal!.name} was created in ${pack.stages.find((s) => s.id === config.dealStage)?.label ?? "the first stage"}.`, byId: null, ...ids, dealIds: [dealId] });
       if (taskId) addActivity(w, { at, type: "task", title: `Task assigned to ${ownerName}`, body: preset.task!.title, byId: null, ...ids, ...(dealId ? { dealIds: [dealId] } : {}) });
 
       w.lc = { presetId: preset.id, contactId: contact.id, companyId: company.id, dealId, taskId, ownerId: owner };

@@ -89,6 +89,7 @@ export function statusTone(status: string): Tone {
     case "Good standing":
     case "On":
     case "Closed won":
+    case "Awarded - Won":
       return "green";
     case "Pending approval":
     case "Open":
@@ -98,6 +99,7 @@ export function statusTone(status: string): Tone {
     case "Overdue":
     case "Credit hold":
     case "Closed lost":
+    case "Closed - Lost":
       return "red";
     case "Sent":
       return "blue";

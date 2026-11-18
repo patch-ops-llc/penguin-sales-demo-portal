@@ -288,7 +288,7 @@ const emailToDeal: DemoScript = {
     {
       id: "review",
       title: "Review what was parsed",
-      hint: "Click Review on the Parsed RFQ card beside the email",
+      hint: "Click Review on the parsed request card beside the email",
       path: () => "/inbox",
       done: (c) => has(c, "ed.reviewed"),
       script: () => [flag("ed.reviewed")],

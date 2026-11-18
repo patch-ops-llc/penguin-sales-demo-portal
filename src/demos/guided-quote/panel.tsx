@@ -46,7 +46,7 @@ export function GuidedSellingPanel() {
     <Ext id="guided-selling">
       <section className="rounded-[10px] border border-line bg-white" data-testid="guided-selling">
         <header className="border-b border-line-soft px-5 py-4">
-          <h3 className="text-[15px] font-semibold">Guided selling</h3>
+          <h3 className="text-[15px] font-semibold">Guided quote</h3>
           <p className="mt-0.5 text-[13px] text-ink-muted">{config.intro}</p>
         </header>
 
@@ -102,7 +102,7 @@ export function GuidedSellingPanel() {
               <Button variant="primary" disabled={!complete} onClick={() => dispatch({ t: "gq.generate" })} data-testid="gq-generate">
                 Generate line items
               </Button>
-              {!complete ? <p className="text-[12.5px] text-ink-muted">Answer every question to continue.</p> : null}
+              {!complete ? <p className="text-[12.5px] text-ink-muted">Answer every discovery question to continue.</p> : null}
             </div>
           ) : null}
         </div>
@@ -110,7 +110,7 @@ export function GuidedSellingPanel() {
         {shown.length > 0 ? (
           <div className="hs-pop border-t border-line-soft px-5 py-4" data-testid="gq-lines">
             <div className="flex items-center justify-between">
-              <h4 className="text-[13.5px] font-semibold">Recommended line items</h4>
+              <h4 className="text-[13.5px] font-semibold">Rate card</h4>
               <p className="text-[12px] text-ink-muted">Prices and lead times from the {pack.terms.backOffice}</p>
             </div>
             <table className="mt-2 w-full text-[13px]">
@@ -119,7 +119,7 @@ export function GuidedSellingPanel() {
                   <th className="py-1.5 font-semibold">Item</th>
                   <th className="py-1.5 text-right font-semibold">Qty</th>
                   <th className="py-1.5 text-right font-semibold">Unit price</th>
-                  <th className="py-1.5 text-right font-semibold">Lead time</th>
+                  <th className="py-1.5 text-right font-semibold">Quoted lead time</th>
                   <th className="py-1.5 text-right font-semibold">Total</th>
                 </tr>
               </thead>
