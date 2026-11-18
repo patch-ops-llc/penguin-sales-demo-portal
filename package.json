@@ -15,8 +15,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "node prisma/seed.mjs",
-    "test:e2e": "playwright test",
-    "check:bundle": "node scripts/check-bundle.mjs"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource-variable/lexend-deca": "^5.3.0",

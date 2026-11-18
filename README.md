@@ -11,7 +11,9 @@ Everything a prospect sees is simulated. The app makes no HubSpot API calls and 
 - **Sign-in.** Invite-only, with two roles (user and admin). Email and password, an optional emailed
   sign-in link, and optional Google sign-in. Signed-out screens carry Penguin branding only.
 - **Launchpad.** Vertical and demo picker. Manufacturing is live; the other verticals show as coming soon.
-- **Simulated HubSpot shell.** Navigation, index pages, records, quotes, tasks, products, and workflows,
+- **Six Manufacturing demos.** Guided quote, Discount approval, Back-office data in HubSpot, Lead capture
+  to pipeline, Email to deal, and AI prospecting.
+- **Simulated HubSpot shell.** Navigation, index pages, records, quotes, tasks, products, workflows, inbox, and prospecting,
   all running in the browser from one data pack per vertical. Moving around a demo never asks the server for a page.
 - **Demo bar.** Step counter, Next and Back, View as another person, highlight of Penguin extensions, one-click reset.
 - **Penguin extension callouts.** Anything Penguin would build carries a small Penguin pin with a
@@ -73,7 +75,7 @@ Optional:
 
 | Variable | Value |
 | --- | --- |
-| `RESEND_API_KEY` | Resend API key. With it, invitations, reset links, and sign-in links are emailed. Without it, the admin screen shows each one-time link to copy |
+| `RESEND_API_KEY` | Resend API key. With it, invitations, reset links, and sign-in links are emailed. The admin screen always shows each invite and reset link to copy as well, so inviting works without it |
 | `EMAIL_FROM` | Sender, for example `Penguin Sales Demo Portal <demos@your-verified-domain.com>`. The domain must be verified in Resend |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Turns on Google sign-in. The button is hidden unless both are set |
 | `ADMIN_PASSWORD_RESET` | Set to `true` for one deploy to reset the admins' passwords to `ADMIN_INITIAL_PASSWORD`, then remove it |
@@ -98,6 +100,23 @@ creates an account. In Google Cloud Console, create an OAuth client of type **We
 - Authorized redirect URI: `<APP_URL>/auth/google/callback`
 
 Then set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` on the app service and redeploy.
+
+## Tests
+
+End-to-end tests use Playwright with the installed Chrome. They run against a running portal with a seeded admin:
+
+```bash
+npm run build && npm start          # in one terminal
+E2E_EMAIL=<admin email> E2E_PASSWORD=<admin password> npm run test:e2e
+```
+
+- `tests/demos.spec.ts`: every demo runs start to finish, reset, reload, Penguin callouts, demo switching.
+- `tests/performance.spec.ts`: in-demo navigation makes no server request, every step lands inside 250 ms,
+  and the shell loads under 250 KB of compressed JavaScript.
+- `tests/access.spec.ts`: signed-out guards, Penguin-only sign-in page, access log, and the invite flow.
+  The invite test creates and removes a user, and is skipped unless the portal is local.
+
+`E2E_BASE_URL` points the tests at another address (default `http://localhost:3000`).
 
 ## How the demos work
 
