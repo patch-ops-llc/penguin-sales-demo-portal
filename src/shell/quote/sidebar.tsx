@@ -13,7 +13,7 @@ import { MODULES, useQuoteSettings, type ModuleId, type QuoteSettings } from "./
 
 const field = "h-9 w-full rounded-[4px] border border-[#7c98b6] bg-white px-3 text-[13.5px] focus:border-ink focus:outline-none";
 
-function Switch({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
+export function Switch({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={onChange} className={cx("relative h-5 w-9 shrink-0 rounded-full transition-colors", on ? "bg-[#00a4bd]" : "bg-[#cbd6e2]")}>
       <span className={cx("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-[left]", on ? "left-[18px]" : "left-0.5")} />

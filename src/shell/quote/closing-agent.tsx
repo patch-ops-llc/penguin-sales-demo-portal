@@ -14,12 +14,13 @@ import { useQuoteSettings } from "./settings";
 
 const BRAND = "#33475b";
 
-type Topic = "total" | "terms" | "timing" | "accept" | "handoff";
+export type Topic = "total" | "terms" | "timing" | "accept" | "handoff";
+/** `topic` is what the message is about: a Topic, or "file-n" when a knowledge file answers it. */
 type Message = {
   from: "agent" | "buyer";
   text: string[];
   at: number;
-  topic?: Topic;
+  topic?: string;
 };
 
 /** What a typed question is about. The first match wins, so the narrower subjects come first. */
@@ -41,7 +42,7 @@ const SUBJECTS: [Topic, RegExp][] = [
  * The closing agent's answers. Each one is read off the quote, the way the real agent answers from the quote
  * and its knowledge sources, so nothing leaves the browser.
  */
-function answer(
+export function answer(
   topic: Topic | null,
   pack: Pack,
   quote: Quote,
@@ -98,6 +99,40 @@ function answer(
   }
 }
 
+/** The questions the agent can answer from the quote alone, as the buyer would ask them. */
+export function quoteQuestions(pack: Pack): [Topic, string][] {
+  const labels = labelsOf(pack).pack;
+  return [
+    ["total", "What is the total?"],
+    ["terms", "What are the payment terms?"],
+    ["timing", labels.agent.timing],
+    ["accept", `How do I accept this ${labels.document.heading.toLowerCase()}?`],
+  ];
+}
+
+const names = (stored: string): string[] => JSON.parse(stored) as string[];
+
+/**
+ * The closing agent's settings for one quote: whether it is on, and the quote-specific knowledge files.
+ * `library` is the pack's sample files; a file a rep picked from their device is kept by name only.
+ */
+export function useClosingAgent(quote: Pick<Quote, "id">) {
+  const { pack } = useShell();
+  const s = useQuoteSettings(quote);
+  const library = labelsOf(pack).pack.agent.files;
+  const added = names(s.get("agent.files", "[]"));
+  return {
+    on: s.get("agent", "1") === "1",
+    setOn: (on: boolean) => s.set("agent", on ? "1" : "0"),
+    library,
+    added,
+    setAdded: (next: string[]) => s.set("agent.files", JSON.stringify(next)),
+    /** The files the knowledge score was last worked out from. */
+    scored: names(s.get("agent.scored", "[]")),
+    setScored: (next: string[]) => s.set("agent.scored", JSON.stringify(next)),
+  };
+}
+
 /**
  * One conversation with the closing agent. The buyer's conversation is kept with the quote; a test conversation
  * in the editor lives only as long as the editor is open, because buyers never see messages from testing.
@@ -105,53 +140,35 @@ function answer(
 function useAgentChat(quote: Quote, test: boolean) {
   const { pack, world, dispatch } = useShell();
   const s = useQuoteSettings(quote);
+  const { library, added } = useClosingAgent(quote);
   const [local, setLocal] = useState<Message[]>([]);
   const key = `q.${quote.id}.chat`;
   const stored = world.ui[key];
-  const messages: Message[] = test
-    ? local
-    : stored
-      ? (JSON.parse(stored) as Message[])
-      : [];
-  const labels = labelsOf(pack).pack;
-  const noun = labels.document.heading.toLowerCase();
-  const quickReplies: [Topic, string][] = [
-    ["total", "What is the total?"],
-    ["terms", "What are the payment terms?"],
-    ["timing", labels.agent.timing],
-    ["accept", `How do I accept this ${noun}?`],
-    ["handoff", "Talk to a representative"],
-  ];
-  const send = (text: string, picked?: Topic) => {
+  const messages: Message[] = test ? local : stored ? (JSON.parse(stored) as Message[]) : [];
+  const files = library.map((file, n) => ({ ...file, key: `file-${n}` })).filter((file) => added.includes(file.name));
+  const quickReplies: [string, string][] = [...files.map((file): [string, string] => [file.key, file.question]), ...quoteQuestions(pack), ["handoff", "Talk to a representative"]];
+  const send = (text: string, picked?: string) => {
     const said = text.trim();
     if (!said) return;
     const last = messages[messages.length - 1];
     const offered = last?.from === "agent" && !last.topic;
-    const topic =
-      picked ??
-      (offered && /^(yes|yeah|sure|ok|okay|please)\b/i.test(said)
-        ? "handoff"
-        : (SUBJECTS.find(([, pattern]) => pattern.test(said))?.[0] ?? null));
+    // A knowledge file added to the quote answers before the quote does, because it is the more specific source.
+    const file = picked ? files.find((f) => f.key === picked) : files.find((f) => new RegExp(`\\b(${f.keywords.join("|")})`, "i").test(said));
+    const topic: Topic | null = file
+      ? null
+      : ((picked as Topic | undefined) ?? (offered && /^(yes|yeah|sure|ok|okay|please)\b/i.test(said) ? "handoff" : (SUBJECTS.find(([, pattern]) => pattern.test(said))?.[0] ?? null)));
+    const about = file?.key ?? topic;
     const at = nowMs();
     const next: Message[] = [
       ...messages,
-      { from: "buyer", text: [said], at, ...(topic ? { topic } : {}) },
-      {
-        from: "agent",
-        text: answer(topic, pack, quote, s.get("accept")),
-        at,
-        ...(topic ? { topic } : {}),
-      },
+      { from: "buyer", text: [said], at, ...(about ? { topic: about } : {}) },
+      { from: "agent", text: file ? [file.answer, `Source: ${file.name}`] : answer(topic, pack, quote, s.get("accept")), at, ...(about ? { topic: about } : {}) },
     ];
     if (test) setLocal(next);
     else dispatch({ t: "ui", k: key, v: JSON.stringify(next) });
   };
   const asked = new Set(messages.map((m) => m.topic));
-  return {
-    messages,
-    send,
-    quickReplies: quickReplies.filter(([topic]) => !asked.has(topic)),
-  };
+  return { messages, send, quickReplies: quickReplies.filter(([topic]) => !asked.has(topic)).slice(0, 5) };
 }
 
 function AgentAvatar({
@@ -209,7 +226,7 @@ function ChatWindow({
   }, [messages.length, typing]);
 
   // The answer is already in the conversation; the dots only hold it back for a moment, as the agent does while it reads.
-  const say = (text: string, topic?: Topic) => {
+  const say = (text: string, topic?: string) => {
     if (!text.trim()) return;
     send(text, topic);
     setDraft("");
@@ -376,6 +393,8 @@ export function ClosingAgentPanel({
   quote: Quote;
   className?: string;
 }) {
+  const { on } = useClosingAgent(quote);
+  if (!on) return null;
   return (
     <ChatWindow
       quote={quote}
@@ -403,6 +422,8 @@ export function ClosingAgentLauncher({
   const [open, setOpen] = useState(false);
   const [greeted, setGreeted] = useState(false);
   const [notice, setNotice] = useState(true);
+  const { on } = useClosingAgent(quote);
+  if (!on) return null;
   return (
     <div
       className={cx(

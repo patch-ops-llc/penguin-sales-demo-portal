@@ -411,7 +411,29 @@ export const professionalServicesPack: Pack = {
     timing: "Billing and delivery",
     // Not "First-year total": a statement of work or a change order for hardware has no recurring year.
     quoteTotal: "Proposal total",
-    agent: { timing: "How is each line billed and delivered?" },
+    agent: {
+      timing: "How is each line billed and delivered?",
+      files: [
+        {
+          name: "Service level agreement.pdf",
+          question: "What are your response times?",
+          answer: "Critical issues get a response within 15 minutes, around the clock. Standard requests are answered within four business hours.",
+          keywords: ["response", "sla", "service level", "support hours", "help desk"],
+        },
+        {
+          name: "Onboarding runbook.pdf",
+          question: "How does onboarding work?",
+          answer: "Onboarding runs as a fixed project: discovery, tooling rollout, and a documented handover to the service desk.",
+          keywords: ["onboarding", "transition", "handover", "rollout", "runbook"],
+        },
+        {
+          name: "Master services agreement.pdf",
+          question: "Can we end the managed services early?",
+          answer: "Managed services renew for 12 months unless either party gives 60 days' notice. The master services agreement sets out the terms for ending early.",
+          keywords: ["cancel", "terminate", "end early", "notice", "msa", "master services"],
+        },
+      ],
+    },
     document: {
       heading: "Proposal",
       ref: "Proposal ref.",

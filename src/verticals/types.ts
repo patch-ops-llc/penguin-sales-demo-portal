@@ -575,6 +575,12 @@ export type AiProspectingConfig = {
 
 export type DeepPartial<T> = { [K in keyof T]?: T[K] extends string | number | boolean | unknown[] ? T[K] : DeepPartial<T[K]> };
 
+/**
+ * A sample knowledge file for the closing agent: the buyer question it lets the agent answer, the answer,
+ * and the words in a typed question that point to it.
+ */
+export type AgentFile = { name: string; question: string; answer: string; keywords: string[] };
+
 /** Wording that is shared by several screens. Manufacturing's wording is the default. */
 export type PackLabels = {
   pipeline: string;
@@ -591,8 +597,9 @@ export type PackLabels = {
   /**
    * The closing agent on the published quote. `name` is what the chat window calls it: "{company}".
    * `welcome` and `firstAction` are its two opening messages. `timing` is the quick reply that asks about the timing column.
+   * `files` are the sample documents in the files tool that a rep can add to a quote as quote-specific knowledge.
    */
-  agent: { name: string; welcome: string; firstAction: string; timing: string };
+  agent: { name: string; welcome: string; firstAction: string; timing: string; files: AgentFile[] };
   /** Rows shown under the total when a quote has recurring lines. */
   recurring: { annual: string; oneTime: string };
   /** The synced back-office fields at the top of a company record. "{backOffice}" is the vertical's back-office term. */

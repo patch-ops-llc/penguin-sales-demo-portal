@@ -427,7 +427,29 @@ export const saasPack: Pack = {
   labels: {
     timing: "Billing",
     quoteTotal: "First-year total",
-    agent: { timing: "How is each line billed?" },
+    agent: {
+      timing: "How is each line billed?",
+      files: [
+        {
+          name: "Security and access overview.pdf",
+          question: "How is our data kept secure?",
+          answer: "Data is encrypted in transit and at rest, and access is controlled with roles. The Security pack adds single sign-on, SCIM provisioning, and an audit log.",
+          keywords: ["security", "secure", "encrypt", "sso", "single sign-on", "audit"],
+        },
+        {
+          name: "Service level agreement.pdf",
+          question: "What uptime do you commit to?",
+          answer: "The service level agreement commits to 99.9% uptime each month, with service credits if it is missed.",
+          keywords: ["uptime", "sla", "service level", "availability", "outage"],
+        },
+        {
+          name: "Onboarding plan.pdf",
+          question: "How long does onboarding take?",
+          answer: "Onboarding starts at signature and takes one to five weeks, depending on the onboarding package on this quote.",
+          keywords: ["onboarding", "implementation", "go-live", "go live", "rollout"],
+        },
+      ],
+    },
     document: { summary: "{seller} will provide the subscription and services below for {buyer}: {count} line items, {total} in the first year." },
     recurring: { annual: "Annual recurring revenue", oneTime: "One-time services" },
     synced: {

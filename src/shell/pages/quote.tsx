@@ -11,6 +11,7 @@ import { Icon, type IconName } from "../icons";
 import { ApprovalsPanel, RequestApprovalDialog } from "../quote/approvals";
 import { BuyerView } from "../quote/buyer";
 import { ClosingAgentLauncher } from "../quote/closing-agent";
+import { ClosingAgentStatus, ClosingAgentSettings } from "../quote/closing-agent-settings";
 import { QuoteDocument } from "../quote/document";
 import { LineItemsEditor } from "../quote/line-items-editor";
 import type { ModuleId } from "../quote/settings";
@@ -104,6 +105,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
   const [module, setModule] = useState<ModuleId | null>(null);
   const [panel, setPanel] = useState(approvals || (isApprover && pending));
   const [requesting, setRequesting] = useState(false);
+  const [agentPanel, setAgentPanel] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [resumed, setResumed] = useState(false);
   const [toast, setToast] = useState("");
@@ -203,9 +205,14 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
               <p className="text-[12.5px] text-ink-muted">Preview: what {contact?.firstName ?? "the buyer"} sees when the quote is shared</p>
             ) : (
               <div className="ml-auto flex items-center gap-4 text-[13px]">
-                <span className="inline-flex items-center gap-1.5 text-ink-muted" title="The closing agent answers the buyer's questions on the published quote">
-                  <Icon name="star4" size={14} /> Closing agent is on
-                </span>
+                <ClosingAgentStatus
+                  quote={quote}
+                  open={agentPanel && !panel}
+                  onClick={() => {
+                    setAgentPanel((open) => (panel ? true : !open));
+                    setPanel(false);
+                  }}
+                />
                 <Menu
                   align="right"
                   width={300}
@@ -305,6 +312,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
                 </div>
                 </main>
                 {final ? null : <ClosingAgentLauncher quote={quote} test />}
+                {agentPanel && !panel ? <ClosingAgentSettings quote={quote} onClose={() => setAgentPanel(false)} /> : null}
               </div>
 
               {panel ? (

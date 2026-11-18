@@ -20,6 +20,26 @@ const PACK: PackLabels = {
     welcome: "Greetings, I am an AI assistant.",
     firstAction: "I can answer questions or transfer you to a representative. How can I help?",
     timing: "What are the lead times?",
+    files: [
+      {
+        name: "Warranty and returns policy.pdf",
+        question: "What warranty comes with this order?",
+        answer: "Every product carries a 24-month warranty from the ship date. Unused standard parts can be returned within 30 days.",
+        keywords: ["warranty", "return", "guarantee"],
+      },
+      {
+        name: "Freight and packaging FAQ.pdf",
+        question: "How will the order be shipped?",
+        answer: "Orders ship FCA from our Minneapolis plant on your carrier or ours. Partial shipments are available on request.",
+        keywords: ["freight", "carrier", "shipped", "packaging", "partial"],
+      },
+      {
+        name: "Installation and commissioning guide.pdf",
+        question: "Do you help with installation?",
+        answer: "Yes. Commissioning support is available on site or remotely, and every order includes wiring diagrams and setup files.",
+        keywords: ["install", "commission", "setup", "wiring"],
+      },
+    ],
   },
   recurring: { annual: "Annual recurring revenue", oneTime: "One-time" },
   synced: {

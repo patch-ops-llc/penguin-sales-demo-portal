@@ -241,3 +241,55 @@ test("closing agent quick replies use the vertical's wording", async ({ page }) 
   await page.getByTestId("closing-agent-reply-total").click();
   await expect(page.getByTestId("closing-agent-answer")).toContainText("The total of payments and fees is $270,115.00.");
 });
+
+test("closing agent panel: knowledge files, the knowledge score, and the on/off switch", async ({ page }) => {
+  await openDemo(page, "guided-quote");
+  for (let i = 0; i < 4; i += 1) await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("closing-agent-status")).toHaveText("Closing agent is on");
+  await page.getByTestId("closing-agent-status").click();
+  const panel = page.getByTestId("closing-agent-settings");
+  await expect(panel.locator("[data-ext]")).toHaveCount(0);
+  await expect(panel.getByTestId("agent-score")).toHaveText("57");
+  await expect(panel.getByTestId("agent-score-level")).toHaveText("Medium");
+
+  await panel.getByTestId("agent-add-file").click();
+  await panel.getByTestId("agent-files-view-all").click();
+  await panel.getByTestId("agent-file-0").check();
+  await panel.getByTestId("agent-insert-files").click();
+  await expect(panel.getByTestId("agent-files")).toContainText("Warranty and returns policy.pdf");
+  await expect(panel.getByTestId("agent-score-stale")).toBeVisible();
+  await expect(panel.getByTestId("agent-score")).toHaveText("57");
+  await panel.getByTestId("agent-refresh-score").click();
+  await expect(panel.getByTestId("agent-score")).toHaveText("71");
+  await expect(panel.getByTestId("agent-score-stale")).toHaveCount(0);
+  await panel.getByTestId("agent-score-details").click();
+  await expect(panel.getByTestId("agent-score-samples")).toContainText("Every product carries a 24-month warranty");
+  await panel.getByTestId("closing-agent-settings-close").click();
+
+  await page.getByTestId("closing-agent-launcher").click();
+  await page.getByTestId("closing-agent-input").fill("What is the warranty?");
+  await page.getByTestId("closing-agent-input").press("Enter");
+  await expect(page.getByTestId("closing-agent-answer").last()).toContainText("Source: Warranty and returns policy.pdf");
+  await page.getByTestId("closing-agent-close").click();
+
+  await page.getByTestId("closing-agent-status").click();
+  await expect(page.getByTestId("closing-agent-save")).toBeDisabled();
+  await page.getByTestId("closing-agent-switch").getByRole("switch").click();
+  await page.getByTestId("closing-agent-save").click();
+  await expect(page.getByTestId("closing-agent-status")).toHaveText("Closing agent is off");
+  await expect(page.getByTestId("closing-agent-launcher")).toHaveCount(0);
+
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("share-close").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  await expect(page.getByTestId("buyer-banner")).toBeVisible();
+  await expect(page.getByTestId("closing-agent-chat")).toHaveCount(0);
+
+  await page.getByTestId("buyer-back").click();
+  await page.getByTestId("closing-agent-status").click();
+  await page.getByTestId("closing-agent-switch").getByRole("switch").click();
+  await page.getByTestId("closing-agent-save").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  await expect(page.getByTestId("closing-agent-chat")).toBeVisible();
+  await expect(page.getByTestId("closing-agent-reply-file-0")).toHaveText("What warranty comes with this order?");
+});

@@ -449,7 +449,29 @@ export const financialServicesPack: Pack = {
     territory: "Region",
     timing: "Schedule",
     quoteTotal: "Total of payments and fees",
-    agent: { timing: "What is the payment schedule?" },
+    agent: {
+      timing: "What is the payment schedule?",
+      files: [
+        {
+          name: "Documentation checklist.pdf",
+          question: "What documents do you need from us?",
+          answer: "We need two years of financial statements, the equipment invoice, and a signed credit application.",
+          keywords: ["document", "paperwork", "financial statements", "checklist", "application"],
+        },
+        {
+          name: "Insurance requirements.pdf",
+          question: "What insurance is required?",
+          answer: "Before funding, the equipment must be insured for its full replacement value, with Fernhill Capital named as loss payee.",
+          keywords: ["insurance", "insured", "loss payee", "coverage"],
+        },
+        {
+          name: "End-of-term and payoff guide.pdf",
+          question: "What happens at the end of the term?",
+          answer: "After the last payment the agreement is paid in full and the equipment is yours, free of our lien. A payoff figure is available on request at any time.",
+          keywords: ["end of term", "end of the term", "payoff", "pay off", "buyout", "lien"],
+        },
+      ],
+    },
     document: {
       heading: "Financing proposal",
       ref: "Proposal ref.",
