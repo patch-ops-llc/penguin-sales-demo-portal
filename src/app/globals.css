@@ -178,21 +178,73 @@ button:disabled {
 .px[data-open="true"] > .px-ring {
   opacity: 1;
 }
+/*
+ * The pin: a round Penguin badge that breathes. The button itself paints nothing and never moves, so
+ * its hit area stays put; its two layers stack under the mark: a halo that spreads and fades
+ * (::before), then the disc (::after). Only transform and opacity animate, so the pulse costs no layout.
+ */
 .px-pin {
   position: absolute;
-  top: -9px;
-  right: 14px;
+  top: -10px;
+  right: 12px;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
-  background: var(--penguin);
   color: #fff;
-  box-shadow: 0 0 0 2px #fff, 0 1px 3px rgba(20, 20, 20, 0.3);
   cursor: help;
+}
+.px-pin > svg,
+.px-pin::after {
+  animation: px-breathe 2.8s ease-in-out infinite;
+}
+.px-pin::before,
+.px-pin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--penguin);
+  pointer-events: none;
+}
+.px-pin::before {
+  z-index: -2;
+  opacity: 0;
+  animation: px-halo 2.8s ease-out infinite;
+}
+.px-pin::after {
+  z-index: -1;
+  box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(28, 19, 64, 0.35);
+}
+@keyframes px-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.08);
+  }
+}
+@keyframes px-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  75%,
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .px-pin > svg,
+  .px-pin::before,
+  .px-pin::after {
+    animation: none;
+  }
 }
 .px-callout {
   position: fixed;

@@ -26,7 +26,7 @@ const CALLOUT_WIDTH = 296;
  * Marks a part of the screen that Penguin would build. Whether it shows is decided by the pack
  * (`by: "penguin"` or `"native"` in the vertical's extensions file), never by the screen.
  *
- * A Penguin element gets a small pin. Pointing at the pin or the element shows a ring and a
+ * A Penguin element gets a round pin that pulses slowly (styled as `.px-pin` in globals.css). Pointing at the pin or the element shows a ring and a
  * callout with one line on what Penguin built. Native elements render with no marker at all.
  */
 export function Ext({ id, children, className, pinClass }: { id: string; children: React.ReactNode; className?: string; pinClass?: string }) {
@@ -75,7 +75,7 @@ export function Ext({ id, children, className, pinClass }: { id: string; childre
         onFocus={() => setHover(true)}
         onBlur={() => setHover(false)}
       >
-        <PenguinMark size={12} />
+        <PenguinMark size={17} />
       </button>
       {open && position
         ? createPortal(
@@ -86,8 +86,8 @@ export function Ext({ id, children, className, pinClass }: { id: string; childre
               data-testid={`ext-callout-${id}`}
               style={{ left: position.left, top: position.top, transform: position.side === "top" ? "translateY(-100%)" : undefined, ["--px-arrow" as string]: `${position.arrow}px` }}
             >
-              <p className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[#c9bdf5]">
-                <PenguinMark size={11} /> Penguin extension
+              <p className="flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#c9bdf5]">
+                <PenguinMark size={15} className="text-white" /> Penguin extension
               </p>
               <p className="mt-1 text-[13.5px] font-semibold leading-snug">{extension.name}</p>
               {extension.note ? <p className="mt-1 text-[12.5px] leading-snug text-[#ddd6f7]">{extension.note}</p> : null}

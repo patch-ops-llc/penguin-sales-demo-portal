@@ -56,6 +56,22 @@ test("Penguin callouts: pin shows the callout, highlight mode shows them all", a
   await expect(page.getByTestId("ext-callout-erp-synced-fields")).toBeVisible();
 });
 
+test("the Penguin pin pulses, and holds still when the visitor asks for reduced motion", async ({ page }) => {
+  await openDemo(page, "back-office");
+  await page.getByTestId("demo-next").click();
+  const pin = page.getByTestId("ext-pin-erp-card");
+  const halo = () => pin.evaluate((el) => getComputedStyle(el, "::before").animationName);
+  await expect(pin).toBeVisible();
+  expect(await halo()).toBe("px-halo");
+  const box = await pin.boundingBox();
+  expect(box?.width).toBe(30);
+  expect(box?.height).toBe(30);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await halo()).toBe("none");
+  expect(await pin.evaluate((el) => getComputedStyle(el, "::after").animationName)).toBe("none");
+});
+
 test("switching demo keeps the portal and changes the script", async ({ page }) => {
   await openDemo(page, "guided-quote");
   await page.getByTestId("demo-switcher").click();

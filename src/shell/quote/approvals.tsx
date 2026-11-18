@@ -24,7 +24,7 @@ export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems
   const below = linesBelowFloor(quote, rule);
   return (
     <div className={className} data-testid="floor-check">
-      <Ext id="floor-price-rule" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
+      <Ext id="floor-price-rule" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-10" pinClass="!right-1.5 !top-1">
         <p className="text-[12.5px] font-semibold">
           Floor price check:{" "}
           <span className={below.length > 0 ? "text-[#99201a]" : "text-[#0b5b2b]"} data-testid="floor-result">
@@ -52,7 +52,7 @@ export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems
 export function CostFeed({ className }: { className?: string }) {
   const { pack } = useShell();
   return (
-    <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9", className)} pinClass="!right-2 !top-1.5">
+    <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-10", className)} pinClass="!right-1.5 !top-0.5">
       <p className="text-[12px] text-ink-muted" data-testid="cost-feed">
         {fill(labelsOf(pack).approval.costFeed, { backOffice: pack.terms.backOffice, when: relative(pack.demos.backOffice.syncedAt).toLowerCase() })}
       </p>

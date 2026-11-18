@@ -82,7 +82,7 @@ export function LineItemsEditor({ quote, onClose }: { quote: Quote; onClose: () 
                 <th className={cx(th, "text-right")}>Unit cost</th>
                 <th className={cx(th, "text-right")}>Margin</th>
                 <th className={cx(th, "pr-10")}>
-                  <Ext id="floor-price-rule" className="inline-block pr-7" pinClass="!right-0 !top-[-3px]">
+                  <Ext id="floor-price-rule" className="inline-block pr-9" pinClass="!right-0 !top-[-7px]">
                     Floor price
                   </Ext>
                 </th>
