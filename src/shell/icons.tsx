@@ -3,6 +3,7 @@ const PATHS = {
   search: "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",
   bell: "M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Zm4 11.5a2.2 2.2 0 0 0 4 0",
   plus: "M12 5v14M5 12h14",
+  chat: "M4 5h13v9H9l-3 3v-3H4V5Zm13 4h3v9h-2v3l-3-3h-5v-1",
   chevronDown: "m6 9 6 6 6-6",
   chevronRight: "m9 6 6 6-6 6",
   chevronLeft: "m15 6-6 6 6 6",

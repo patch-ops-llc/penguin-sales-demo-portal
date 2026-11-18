@@ -191,3 +191,53 @@ test("buyer e-signature: Sign now, Get started, Click to sign, Insert, Continue,
   await page.getByTestId("buyer-back").click();
   await expect(page.getByTestId("quote-page")).toContainText("Accepted");
 });
+
+test("closing agent: test mode in the editor, then the chat panel on the published quote", async ({ page }) => {
+  await openDemo(page, "guided-quote");
+  for (let i = 0; i < 4; i += 1) await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("closing-agent-welcome")).toContainText("Greetings, I am an AI assistant.");
+  await page.getByTestId("closing-agent-launcher").click();
+  await expect(page.getByTestId("closing-agent-test-mode")).toContainText("Buyers won't see any messages from testing.");
+  await expect(page.getByTestId("closing-agent-name")).toHaveText("Halvorsen Motion Assistant");
+  await page.getByTestId("closing-agent-input").fill("How much is it?");
+  await page.getByTestId("closing-agent-input").press("Enter");
+  await expect(page.getByTestId("closing-agent-answer").last()).toContainText("The total contract value is $32,352.00.");
+  await page.getByTestId("closing-agent-close").click();
+
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("share-close").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  const chat = page.getByTestId("closing-agent-chat");
+  await expect(chat).toContainText("I can answer questions or transfer you to a representative. How can I help?");
+  await expect(chat.getByTestId("closing-agent-answer")).toHaveCount(0);
+  await expect(chat.locator("[data-ext]")).toHaveCount(0);
+
+  await page.getByTestId("closing-agent-reply-terms").click();
+  await expect(chat.getByTestId("closing-agent-answer").last()).toContainText("Payment terms are");
+  await expect(page.getByTestId("closing-agent-reply-terms")).toHaveCount(0);
+  await page.getByTestId("closing-agent-input").fill("Can I change the warranty?");
+  await page.getByTestId("closing-agent-send").click();
+  await expect(chat.getByTestId("closing-agent-answer").last()).toContainText("Would you like me to connect you with your sales representative");
+  await page.getByTestId("closing-agent-input").fill("Yes please");
+  await page.getByTestId("closing-agent-send").click();
+  await expect(chat.getByTestId("closing-agent-answer").last()).toContainText("I am connecting you with Alex Morgan");
+
+  await page.getByTestId("buyer-back").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  await expect(page.getByTestId("closing-agent-answer")).toHaveCount(3);
+  await page.getByTestId("buyer-accept").click();
+  await expect(page.getByTestId("signing-bar")).toBeVisible();
+  await expect(page.getByTestId("closing-agent-chat")).toHaveCount(0);
+});
+
+test("closing agent quick replies use the vertical's wording", async ({ page }) => {
+  await openDemo(page, "guided-quote", "financial-services");
+  for (let i = 0; i < 5; i += 1) await page.getByTestId("demo-next").click();
+  await page.getByTestId("share-close").click();
+  await page.getByTestId("quote-view-as-buyer").click();
+  await expect(page.getByTestId("closing-agent-name")).toHaveText("Fernhill Capital Assistant");
+  await expect(page.getByTestId("closing-agent-reply-timing")).toHaveText("What is the payment schedule?");
+  await expect(page.getByTestId("closing-agent-reply-accept")).toHaveText("How do I accept this financing proposal?");
+  await page.getByTestId("closing-agent-reply-total").click();
+  await expect(page.getByTestId("closing-agent-answer")).toContainText("The total of payments and fees is $270,115.00.");
+});

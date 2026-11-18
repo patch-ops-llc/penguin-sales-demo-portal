@@ -588,6 +588,11 @@ export type PackLabels = {
    * `cover` is the body of the Cover letter: "{title}" (the quote's title), "{count}".
    */
   document: { heading: string; ref: string; total: string; summary: string; cover: string };
+  /**
+   * The closing agent on the published quote. `name` is what the chat window calls it: "{company}".
+   * `welcome` and `firstAction` are its two opening messages. `timing` is the quick reply that asks about the timing column.
+   */
+  agent: { name: string; welcome: string; firstAction: string; timing: string };
   /** Rows shown under the total when a quote has recurring lines. */
   recurring: { annual: string; oneTime: string };
   /** The synced back-office fields at the top of a company record. "{backOffice}" is the vertical's back-office term. */

@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nowMs } from "@/lib/format";
 import { useShell } from "@/store/store";
 import type { Quote } from "@/verticals/types";
 import { Icon } from "../icons";
 import { contactName } from "../pages/lists";
 import { A, Avatar, Card, cx, Empty, Modal } from "../ui";
+import { ClosingAgentLauncher, ClosingAgentPanel } from "./closing-agent";
 import { AcceptanceCard, QuoteDocument } from "./document";
 import { useQuoteSettings } from "./settings";
 
@@ -21,7 +22,7 @@ type Stage = "start" | "sign" | "review" | "done";
  * The published quote as the buyer sees it: the sender, Print and Download, the acceptance banner,
  * and the document. The editor's preview shows the same thing with the actions switched off.
  */
-export function BuyerView({ quote, interactive = false, narrow = false }: { quote: Quote; interactive?: boolean; narrow?: boolean }) {
+export function BuyerView({ quote, interactive = false, narrow = false, onSigning }: { quote: Quote; interactive?: boolean; narrow?: boolean; onSigning?: (signing: boolean) => void }) {
   const { pack, dispatch } = useShell();
   const s = useQuoteSettings(quote);
   const root = useRef<HTMLDivElement>(null);
@@ -39,6 +40,7 @@ export function BuyerView({ quote, interactive = false, narrow = false }: { quot
     setSignature("");
   };
   const signing = stage !== null && stage !== "done";
+  useEffect(() => onSigning?.(signing), [onSigning, signing]);
   // Signing opens at the top of the document, as the signing page does; Get started then moves to the signature field.
   const start = () => {
     setStage("start");
@@ -279,6 +281,7 @@ function SignDialog({ quote, current, onClose, onInsert }: { quote: Quote; curre
 /** The buyer's side: the quote page outside HubSpot, in a browser frame. */
 export function BuyerPage({ id }: { id: string }) {
   const { world, pack } = useShell();
+  const [signing, setSigning] = useState(false);
   const quote = world.quotes.find((q) => q.id === id);
   if (!quote || (quote.status !== "Sent" && quote.status !== "Accepted")) {
     return (
@@ -312,8 +315,19 @@ export function BuyerPage({ id }: { id: string }) {
             <Icon name="arrowLeft" size={13} /> Back to HubSpot
           </A>
         </div>
-        <div className="hs-scroll min-h-0 flex-1 overflow-y-auto">
-          <BuyerView quote={quote} interactive />
+        <div className="relative flex min-h-0 flex-1">
+          <div className="hs-scroll min-h-0 min-w-0 flex-1 overflow-y-auto">
+            <BuyerView quote={quote} interactive onSigning={setSigning} />
+          </div>
+          {/* The signing page is the document alone, so the agent steps aside while the buyer signs. */}
+          {signing ? null : (
+            <>
+              <div className="hidden min-h-0 lg:flex">
+                <ClosingAgentPanel quote={quote} />
+              </div>
+              <ClosingAgentLauncher quote={quote} className="lg:hidden" />
+            </>
+          )}
         </div>
       </div>
     </div>

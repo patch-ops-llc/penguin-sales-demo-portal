@@ -411,6 +411,7 @@ export const professionalServicesPack: Pack = {
     timing: "Billing and delivery",
     // Not "First-year total": a statement of work or a change order for hardware has no recurring year.
     quoteTotal: "Proposal total",
+    agent: { timing: "How is each line billed and delivered?" },
     document: {
       heading: "Proposal",
       ref: "Proposal ref.",

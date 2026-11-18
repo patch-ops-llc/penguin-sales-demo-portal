@@ -3,7 +3,7 @@
 import { lineNet, quoteTerms, quoteTotals, recurringTotals, unitDiscountPct } from "@/store/quote-math";
 import { useShell } from "@/store/store";
 import { fill, labelsOf, timingOf } from "@/verticals/labels";
-import type { Quote } from "@/verticals/types";
+import type { Pack, Quote } from "@/verticals/types";
 import { date, money2, pct } from "../format";
 import { Icon } from "../icons";
 import { companyOf, contactName } from "../pages/lists";
@@ -40,6 +40,14 @@ function Module({ id, editing, actions, children }: { id: ModuleId; editing?: Do
 
 const h2 = "text-[19px] font-bold tracking-[-0.01em]";
 
+/** The payment terms printed on a quote, and the other terms lines. */
+export function paymentTermsOf(pack: Pack, quote: Pick<Quote, "termsId">): { paymentTerms: string; terms: string[] } {
+  const paymentLine = pack.quoteTerms.find((t) => /payment/i.test(t));
+  // A vertical whose approval rule covers payment terms sets them on the quote; otherwise they come from the pack's terms.
+  const paymentTerms = quoteTerms(quote, pack.demos.discountApproval)?.label ?? (paymentLine ? paymentLine.replace(/^payment terms:\s*/i, "").replace(/\.$/, "") : "net 30");
+  return { paymentTerms, terms: pack.quoteTerms.filter((t) => t !== paymentLine) };
+}
+
 /**
  * The quote document, laid out as HubSpot's default quote template: header, parties, summary,
  * line items, terms, payments, acceptance. The editor, the preview and the buyer page all show it.
@@ -56,10 +64,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
     format === "pct" ? pct(totals.discountPct) : format === "amount" ? money2(totals.discount) : totals.discount > 0 ? `${pct(totals.discountPct)} (${money2(totals.discount)})` : money2(0);
   const labels = labelsOf(pack).pack;
   const recurring = recurringTotals(quote);
-  const paymentLine = pack.quoteTerms.find((t) => /payment/i.test(t));
-  const terms = pack.quoteTerms.filter((t) => t !== paymentLine);
-  // A vertical whose approval rule covers payment terms sets them on the quote; otherwise they come from the pack's terms.
-  const paymentTerms = quoteTerms(quote, pack.demos.discountApproval)?.label ?? (paymentLine ? paymentLine.replace(/^payment terms:\s*/i, "").replace(/\.$/, "") : "net 30");
+  const { paymentTerms, terms } = paymentTermsOf(pack, quote);
   const headerRows: [key: string, label: string, value: React.ReactNode][] = [
     ["ref", labels.document.ref, quoteRef(quote)],
     ["issue", "Issue date", date(quote.sentAt ?? quote.createdAt)],

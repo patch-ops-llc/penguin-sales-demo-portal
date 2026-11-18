@@ -10,6 +10,7 @@ import { date, dateTime, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { ApprovalsPanel, RequestApprovalDialog } from "../quote/approvals";
 import { BuyerView } from "../quote/buyer";
+import { ClosingAgentLauncher } from "../quote/closing-agent";
 import { QuoteDocument } from "../quote/document";
 import { LineItemsEditor } from "../quote/line-items-editor";
 import type { ModuleId } from "../quote/settings";
@@ -257,7 +258,8 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
               ) : null}
               {editable && sidebar ? <EditorSidebar quote={quote} module={module} onSelect={setModule} onClose={() => setSidebar(false)} onEditLines={() => setView("lines")} /> : null}
 
-              <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto px-6 py-6">
+              <div className="relative flex min-w-0 flex-1">
+                <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto px-6 py-6">
                 {final ? (
                   <Banner tone="plain" icon="check" testId="quote-sent-banner">
                     <span className="font-semibold">
@@ -301,7 +303,9 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
                 <div className={cx("mx-auto transition-[max-width]", device === "mobile" ? "max-w-[430px]" : "max-w-[880px]")}>
                   <QuoteDocument quote={quote} editing={editable ? { selected: module, onSelect: select, onEditLines: () => setView("lines") } : undefined} />
                 </div>
-              </main>
+                </main>
+                {final ? null : <ClosingAgentLauncher quote={quote} test />}
+              </div>
 
               {panel ? (
                 <ApprovalsPanel quote={quote} onClose={() => setPanel(false)} />

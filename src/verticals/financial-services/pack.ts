@@ -449,6 +449,7 @@ export const financialServicesPack: Pack = {
     territory: "Region",
     timing: "Schedule",
     quoteTotal: "Total of payments and fees",
+    agent: { timing: "What is the payment schedule?" },
     document: {
       heading: "Financing proposal",
       ref: "Proposal ref.",

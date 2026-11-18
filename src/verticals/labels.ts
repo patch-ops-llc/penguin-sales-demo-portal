@@ -15,6 +15,12 @@ const PACK: PackLabels = {
     summary: "{seller} will supply {lines} for {buyer}.",
     cover: "Thank you for the chance to quote {title}. The pricing below covers everything we discussed, {count} line items in all. If anything needs to change, reply to this email and I will turn a revision around the same day.",
   },
+  agent: {
+    name: "{company} Assistant",
+    welcome: "Greetings, I am an AI assistant.",
+    firstAction: "I can answer questions or transfer you to a representative. How can I help?",
+    timing: "What are the lead times?",
+  },
   recurring: { annual: "Annual recurring revenue", oneTime: "One-time" },
   synced: {
     title: "{backOffice} Sync",

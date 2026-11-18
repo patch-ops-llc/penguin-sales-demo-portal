@@ -427,6 +427,7 @@ export const saasPack: Pack = {
   labels: {
     timing: "Billing",
     quoteTotal: "First-year total",
+    agent: { timing: "How is each line billed?" },
     document: { summary: "{seller} will provide the subscription and services below for {buyer}: {count} line items, {total} in the first year." },
     recurring: { annual: "Annual recurring revenue", oneTime: "One-time services" },
     synced: {
