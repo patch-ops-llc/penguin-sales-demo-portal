@@ -31,7 +31,7 @@ export const extensions: Record<DemoId, Extension[]> = {
   ],
   "discount-approval": [
     { id: "quote-editor", name: "Quote editor and discount fields", by: "native" },
-    { id: "quote-approval-status", name: "Quote approval: request, status, lock, and approve", by: "native" },
+    { id: "quote-approval-status", name: "Quote approval rules, set in Settings: conditions, approvers, request, lock, and approve", by: "native" },
     // Unit cost, margin, and the quote margin rollup are native or configuration, so they carry no marker.
     { id: "margin-rule", name: "Unit cost, margin, and Quote margin %", by: "native" },
     { id: "notifications", name: "Notifications and approval tasks", by: "native" },
@@ -43,9 +43,9 @@ export const extensions: Record<DemoId, Extension[]> = {
     },
     {
       id: "floor-price-rule",
-      name: "Per-product floor-price rule",
+      name: "Per-product floor price and the Below floor price flag",
       by: "penguin",
-      note: "Checks every line against its product's floor price and sends the quote for approval when a line falls below it.",
+      note: "Sets each product's floor price from its ERP unit cost and flags every line priced below it. HubSpot's own approval rule reads the flag.",
     },
   ],
   "back-office": [

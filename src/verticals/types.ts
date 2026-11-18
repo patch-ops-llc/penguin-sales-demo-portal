@@ -582,6 +582,11 @@ export type PackLabels = {
   /** Heading of the lead-time column on quotes and products. */
   timing: string;
   quoteTotal: string;
+  /**
+   * Wording printed on the quote document. `summary` is the Executive summary sentence:
+   * "{seller}", "{buyer}", "{lines}" (every line as quantity and name), "{count}" (number of lines), "{total}".
+   */
+  document: { heading: string; ref: string; total: string; summary: string };
   /** Rows shown under the total when a quote has recurring lines. */
   recurring: { annual: string; oneTime: string };
   /** The synced back-office fields at the top of a company record. "{backOffice}" is the vertical's back-office term. */

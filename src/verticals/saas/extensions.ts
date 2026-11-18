@@ -29,7 +29,7 @@ export const extensions: Record<DemoId, Extension[]> = {
   ],
   "discount-approval": [
     { id: "quote-editor", name: "Quote editor and discount fields", by: "native" },
-    { id: "quote-approval-status", name: "Quote approval: request, status, lock, and approve", by: "native" },
+    { id: "quote-approval-status", name: "Quote approval rules, set in Settings: conditions, approvers, request, lock, and approve", by: "native" },
     { id: "margin-rule", name: "Unit cost, margin, and Quote margin %", by: "native" },
     // Open decision: confirm HubSpot's approval settings can trigger on payment terms. Set by: "penguin" to mark it.
     { id: "terms-rule", name: "Approval on non-standard payment terms", by: "native" },
@@ -42,9 +42,9 @@ export const extensions: Record<DemoId, Extension[]> = {
     },
     {
       id: "floor-price-rule",
-      name: "Per-product floor-price rule",
+      name: "Per-product floor price and the Below floor price flag",
       by: "penguin",
-      note: "Checks every line against its product's floor price, set by the deal desk, and sends the quote for approval when a line falls below it.",
+      note: "Holds each product's floor price, set by the deal desk, and flags every line priced below it. HubSpot's own approval rule reads the flag.",
     },
   ],
   "back-office": [

@@ -38,13 +38,13 @@ export const extensions: Record<DemoId, Extension[]> = {
       by: "penguin",
       note: "Keeps the cost of funds on every program and line item current from the treasury system, so the margin HubSpot shows is real.",
     },
-    // Marked in every vertical, as the plan has it. HubSpot's own quote approval rules are native and carry no marker;
-    // if the per-line floor check should count as one of them, set by: "native".
+    // HubSpot's own quote approval rules are native and carry no marker. The marker is on what the rule reads:
+    // the per-program floor price and the flag on a line priced below it.
     {
       id: "floor-price-rule",
-      name: "Per-program floor-price rule",
+      name: "Per-program floor price and the Below floor price flag",
       by: "penguin",
-      note: "Checks every line against its program's floor price, set from the cost of funds, and sends the proposal for approval when a line falls below it.",
+      note: "Sets each program's floor price from the cost of funds and flags every line priced below it. HubSpot's own approval rule reads the flag.",
     },
   ],
   "back-office": [

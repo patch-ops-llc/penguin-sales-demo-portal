@@ -123,3 +123,29 @@ test("quotes index: HubSpot's views and filters", async ({ page }) => {
   await expect(page.getByTestId("index-count")).toHaveText("1 record");
   await expect(page.getByTestId("index-table").locator("tbody tr")).toHaveCount(1);
 });
+
+test("approval conditions read as HubSpot's own approval rule, with the Penguin marker only on the floor price check", async ({ page }) => {
+  await openDemo(page, "discount-approval");
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("view-approval-conditions").click();
+  const card = page.getByTestId("approval-card");
+  await expect(card.getByTestId("approval-rule-source")).toContainText("Standard approval rule for quotes, set in Settings > Objects > Quotes > Approvals.");
+  await expect(card.getByTestId("approval-condition-discount")).toContainText("Total discount percent is greater than 10%");
+  await expect(card.getByTestId("approval-condition-discount")).toHaveAttribute("data-met", "true");
+  await expect(card.getByTestId("approval-condition-floor")).toContainText("Line item: Below floor price is equal to True");
+  await expect(card.getByTestId("approval-condition-floor")).toContainText("3 lines below floor price");
+  await expect(card.getByTestId("approval-reasons").locator("[data-ext]")).toHaveCount(0);
+  await expect(card.getByTestId("floor-check").getByTestId("ext-pin-floor-price-rule")).toBeVisible();
+  await expect(card.getByTestId("ext-pin-erp-cost-feed")).toBeVisible();
+});
+
+test("the quote document takes its heading and total label from the vertical", async ({ page }) => {
+  await openDemo(page, "discount-approval");
+  await expect(page.getByTestId("quote-heading")).toHaveText("Quote");
+  await expect(page.getByTestId("quote-document")).toContainText("Total contract value");
+  await openDemo(page, "discount-approval", "financial-services");
+  await expect(page.getByTestId("quote-heading")).toHaveText("Financing proposal");
+  await expect(page.getByTestId("quote-document")).toContainText("Proposal ref.");
+  await expect(page.getByTestId("quote-document")).toContainText("Total of payments and fees");
+  await expect(page.getByTestId("quote-document")).not.toContainText("Total contract value");
+});

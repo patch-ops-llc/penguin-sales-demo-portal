@@ -8,6 +8,7 @@ const PACK: PackLabels = {
   territory: "Sales territory",
   timing: "Lead time",
   quoteTotal: "Total",
+  document: { heading: "Quote", ref: "Quote ref.", total: "Total contract value", summary: "{seller} will supply {lines} for {buyer}." },
   recurring: { annual: "Annual recurring revenue", oneTime: "One-time" },
   synced: {
     title: "{backOffice} Sync",

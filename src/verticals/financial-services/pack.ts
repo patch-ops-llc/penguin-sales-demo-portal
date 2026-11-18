@@ -449,6 +449,12 @@ export const financialServicesPack: Pack = {
     territory: "Region",
     timing: "Schedule",
     quoteTotal: "Total of payments and fees",
+    document: {
+      heading: "Financing proposal",
+      ref: "Proposal ref.",
+      total: "Total of payments and fees",
+      summary: "{seller} proposes the financing below for {buyer}: {count} line items, {total} in payments and fees.",
+    },
     synced: {
       title: "Servicing Sync",
       account: "Servicing Customer Number",

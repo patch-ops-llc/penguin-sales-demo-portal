@@ -2,7 +2,7 @@
 
 import { lineNet, quoteTerms, quoteTotals, recurringTotals, unitDiscountPct } from "@/store/quote-math";
 import { useShell } from "@/store/store";
-import { labelsOf, timingOf } from "@/verticals/labels";
+import { fill, labelsOf, timingOf } from "@/verticals/labels";
 import type { Quote } from "@/verticals/types";
 import { date, money2, pct } from "../format";
 import { Icon } from "../icons";
@@ -61,7 +61,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
   // A vertical whose approval rule covers payment terms sets them on the quote; otherwise they come from the pack's terms.
   const paymentTerms = quoteTerms(quote, pack.demos.discountApproval)?.label ?? (paymentLine ? paymentLine.replace(/^payment terms:\s*/i, "").replace(/\.$/, "") : "net 30");
   const headerRows: [key: string, label: string, value: React.ReactNode][] = [
-    ["ref", "Quote ref.", quoteRef(quote)],
+    ["ref", labels.document.ref, quoteRef(quote)],
     ["issue", "Issue date", date(quote.sentAt ?? quote.createdAt)],
     ["expires", "Expires", date(quote.validUntil)],
     ["currency", "Currency", pack.portal.currency],
@@ -71,7 +71,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
     ["effective", "Effective date", "On agreement"],
     ["term", "Term length", "--"],
     ["discount", "Total discount", discountText, "quote-total-discount"],
-    ["tcv", "Total contract value", money2(totals.total), "quote-total"],
+    ["tcv", labels.document.total, money2(totals.total), "quote-total"],
   ];
   const shownSummary = summary.filter(([key]) => s.on(`show.${key}`));
 
@@ -92,7 +92,14 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
         <Module id="exec" editing={editing}>
           <h2 className={h2}>{s.get("label.exec", "Executive summary")}</h2>
           <p className="mt-3">
-            {pack.portal.company} will supply {quote.lineItems.map((l) => `${l.qty} x ${l.name}`).join(", ")} for {company?.name ?? "your team"}.{quote.lineItems.some((l) => l.timing) ? "" : ` The longest quoted lead time is ${totals.maxLead} days from receipt of order.`}
+            {fill(labels.document.summary, {
+              seller: pack.portal.company,
+              buyer: company?.name ?? "your team",
+              lines: quote.lineItems.map((l) => `${l.qty} x ${l.name}`).join("; "),
+              count: quote.lineItems.length,
+              total: money2(totals.total),
+            })}
+            {quote.lineItems.some((l) => l.timing) ? "" : ` The longest quoted lead time is ${totals.maxLead} days from receipt of order.`}
           </p>
         </Module>
       )}
@@ -105,7 +112,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
               <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted">{pack.portal.domain}</p>
             </div>
             <div>
-              <h1 className="text-[30px] font-bold leading-none tracking-[-0.02em]">Quote</h1>
+              <h1 className="text-[30px] font-bold leading-none tracking-[-0.02em]" data-testid="quote-heading">{labels.document.heading}</h1>
               <dl className="mt-4 space-y-1">
                 {headerRows
                   .filter(([key]) => key === "currency" || s.on(`show.${key}`))

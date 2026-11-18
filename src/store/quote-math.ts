@@ -60,18 +60,55 @@ export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApproval
   return rule.terms.options.find((o) => o.id === (quote.termsId ?? rule.terms!.defaultId));
 }
 
+export type ApprovalCondition = {
+  id: "discount" | "floor" | "terms";
+  /** The filter as HubSpot's approval settings word it: property, operator, value. */
+  property: string;
+  operator: string;
+  value: string;
+  /** Set when the quote meets the condition. */
+  reason?: string;
+};
+
 /**
- * The approval rule: real logic, so 8% sails through and 18% locks. Empty list means no approval needed.
- * The discount limit is HubSpot's own approval setting. The floor-price check is the Penguin rule.
+ * The quote approval rule: real logic, so 8% sails through and 18% locks. The rule is HubSpot's own standard
+ * approval, set in Settings > Objects > Quotes > Approvals as a list of filters on quote and line item properties.
+ * What Penguin adds is the data one filter reads: each product's floor price and the "Below floor price" flag on a line.
  */
-export function approvalReasons(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): string[] {
-  const reasons: string[] = [];
-  if (quoteTotals(quote).discountPct > rule.thresholdPct) reasons.push(`${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%`);
+export function approvalConditions(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): ApprovalCondition[] {
   const below = linesBelowFloor(quote, rule).length;
-  if (below > 0) reasons.push(`${below} ${below === 1 ? "line" : "lines"} below floor price`);
-  const terms = quoteTerms(quote, rule);
-  if (rule.terms && terms && !terms.standard) reasons.push(rule.terms.reason.replace("{term}", terms.label));
-  return reasons;
+  const conditions: ApprovalCondition[] = [
+    {
+      id: "discount",
+      property: "Total discount percent",
+      operator: "is greater than",
+      value: `${rule.thresholdPct}%`,
+      reason: quoteTotals(quote).discountPct > rule.thresholdPct ? `${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%` : undefined,
+    },
+    {
+      id: "floor",
+      property: "Line item: Below floor price",
+      operator: "is equal to",
+      value: "True",
+      reason: below > 0 ? `${below} ${below === 1 ? "line" : "lines"} below floor price` : undefined,
+    },
+  ];
+  if (rule.terms) {
+    const terms = quoteTerms(quote, rule);
+    conditions.push({
+      id: "terms",
+      property: rule.terms.label,
+      operator: "is none of",
+      value: rule.terms.options.filter((o) => o.standard).map((o) => o.label).join(", "),
+      reason: terms && !terms.standard ? rule.terms.reason.replace("{term}", terms.label) : undefined,
+    });
+  }
+  return conditions;
+}
+
+/** Why a quote needs approval: the conditions of the approval rule it meets. Empty list means no approval needed. */
+export function approvalReasons(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): string[] {
+  return approvalConditions(quote, rule).flatMap((c) => (c.reason ? [c.reason] : []));
 }
 
 /** A quote can be shared when it needs no approval, or the approval covers the current discount. */

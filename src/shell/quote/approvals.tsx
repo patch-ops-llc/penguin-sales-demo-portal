@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { nowMs } from "@/lib/format";
-import { approvalReasons, floorPrice, linesBelowFloor, netUnitPrice, quoteTotals, reasonList } from "@/store/quote-math";
+import { approvalConditions, approvalReasons, floorPrice, linesBelowFloor, netUnitPrice, quoteTotals, reasonList } from "@/store/quote-math";
 import { useShell } from "@/store/store";
 import { fill, labelsOf } from "@/verticals/labels";
 import type { Quote } from "@/verticals/types";
@@ -17,7 +17,7 @@ function Dot({ color }: { color: string }) {
   return <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />;
 }
 
-/** Penguin piece 1 of the approval rule: the per-product floor-price check. */
+/** Penguin piece 1: each product's floor price and the check that flags lines below it. HubSpot's approval rule filters on that flag. */
 export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems" | "discountPct">; className?: string }) {
   const { pack } = useShell();
   const rule = pack.demos.discountApproval;
@@ -131,6 +131,7 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
   const [text, setText] = useState("");
   const totals = quoteTotals(quote);
   const reasons = approval?.reasons ?? approvalReasons(quote, rule);
+  const conditions = approvalConditions(quote, rule);
   const approver = pack.personas.find((p) => p.id === (approval?.approverId ?? rule.approverId));
   const requester = pack.personas.find((p) => p.id === approval?.requestedById);
   const isApprover = persona.id === approver?.id;
@@ -238,14 +239,33 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
 
       {reasons.length > 0 ? (
         <Section title="Approval conditions">
-          <p className="mb-2.5 text-[12.5px] text-ink-muted">{fill(labelsOf(pack).approval.rule, { limit: rule.thresholdPct, approver: approver?.name ?? "", title: approver?.title ?? "" })}</p>
-          <ul className="space-y-1 text-[13px]" data-testid="approval-reasons">
-            {reasons.map((r) => (
-              <li key={r} className="flex items-center gap-2">
-                <Icon name="warning" size={14} className="shrink-0 text-[#b36b00]" /> {r}
+          <p className="flex items-start gap-2 text-[12.5px] text-ink-muted" data-testid="approval-rule-source">
+            <Icon name="settings" size={14} className="mt-0.5 shrink-0" />
+            <span>
+              <span className="font-semibold text-ink">Standard approval rule</span> for quotes, set in Settings &gt; Objects &gt; Quotes &gt; Approvals.
+            </span>
+          </p>
+          <p className="mt-3 text-[12px] font-semibold">Approval is required when any of these conditions is met</p>
+          <ul className="mt-1.5 space-y-1.5 text-[12.5px]" data-testid="approval-reasons">
+            {conditions.map((c) => (
+              <li key={c.id} className={cx("rounded-[6px] border px-2.5 py-1.5", c.reason ? "border-[#f5c26b] bg-[#fef8f0]" : "border-line")} data-testid={`approval-condition-${c.id}`} data-met={Boolean(c.reason)}>
+                <p>
+                  <span className="font-semibold">{c.property}</span> {c.operator} <span className="font-semibold">{c.value}</span>
+                </p>
+                {c.reason ? (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[12px]">
+                    <Icon name="warning" size={13} className="shrink-0 text-[#b36b00]" /> {c.reason}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-[12px] text-ink-muted">Not met on this quote</p>
+                )}
               </li>
             ))}
           </ul>
+          <p className="mt-3 text-[12px] font-semibold">Approval note</p>
+          <p className="mt-0.5 text-[12.5px] text-ink-muted" data-testid="approval-rule-note">
+            {fill(labelsOf(pack).approval.rule, { limit: rule.thresholdPct, approver: approver?.name ?? "", title: approver?.title ?? "" })}
+          </p>
           <FloorCheck quote={quote} className="mt-3" />
           {facts}
           <CostFeed className="mt-3" />

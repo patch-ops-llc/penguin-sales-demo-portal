@@ -96,6 +96,7 @@ function ModuleEditor({ quote, module, onEditLines }: { quote: Quote; module: Mo
   const s = useQuoteSettings(quote);
   const [tab, setTab] = useState("a");
   const termsRule = pack.demos.discountApproval.terms;
+  const documentLabels = labelsOf(pack).pack.document;
   const company = companyOf(world, quote.companyId);
   const contact = world.contacts.find((c) => c.id === quote.contactId);
   const owner = pack.personas.find((p) => p.id === quote.ownerId);
@@ -112,7 +113,7 @@ function ModuleEditor({ quote, module, onEditLines }: { quote: Quote; module: Mo
     case "header":
       return (
         <>
-          <Part s={s} title="Quote reference" show="show.ref" labelKey="label.ref" fallback="Quote ref." />
+          <Part s={s} title="Quote reference" show="show.ref" labelKey="label.ref" fallback={documentLabels.ref} />
           <Part s={s} title="Issue date" show="show.issue" labelKey="label.issue" fallback="Issue date" />
           <Part s={s} title="Expiration date" show="show.expires" labelKey="label.expires" fallback="Expires">
             <p className={cx(field, "mt-3 flex items-center justify-between")}>
@@ -179,7 +180,7 @@ function ModuleEditor({ quote, module, onEditLines }: { quote: Quote; module: Mo
               </select>
             </label>
           </Part>
-          <Part s={s} title="Total contract value" show="show.tcv" labelKey="label.tcv" fallback="Total contract value" />
+          <Part s={s} title="Total contract value" show="show.tcv" labelKey="label.tcv" fallback={documentLabels.total} />
         </>
       );
     case "lines":
