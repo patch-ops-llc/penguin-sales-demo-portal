@@ -587,10 +587,10 @@ export function DealRecord({ id }: { id: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {deal.lineItems.map((l) => (
-                    <tr key={l.sku} className="border-b border-line-soft last:border-b-0">
+                  {deal.lineItems.map((l, i) => (
+                    <tr key={`${l.sku}-${i}`} className="border-b border-line-soft last:border-b-0">
                       <td className="px-4 py-2 font-semibold">{l.name}</td>
-                      <td className="px-4 py-2 font-mono text-[12.5px]">{l.sku}</td>
+                      <td className="px-4 py-2 font-mono text-[12.5px]">{l.sku || "--"}</td>
                       <td className="px-4 py-2 text-right tabular-nums">{l.qty}</td>
                       <td className="px-4 py-2 text-right tabular-nums">{money(l.unitPrice)}</td>
                       <td className="px-4 py-2 text-right tabular-nums">{money(l.qty * l.unitPrice)}</td>

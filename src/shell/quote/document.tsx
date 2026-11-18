@@ -201,14 +201,16 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
                 </tr>
               </thead>
               <tbody>
-                {quote.lineItems.map((l) => (
-                  <tr key={l.sku} className="border-b border-line-soft align-top">
+                {quote.lineItems.map((l, i) => (
+                  <tr key={`${l.sku}-${i}`} className="border-b border-line-soft align-top">
                     <td className="py-3 pr-4">
                       <p className="font-bold">{l.name}</p>
-                      <p className="mt-1 text-[12.5px]">SKU: {l.sku}</p>
-                      <p className="text-[12.5px]">
-                        {labels.timing}: {timingOf(l)}
-                      </p>
+                      {l.sku ? <p className="mt-1 text-[12.5px]">SKU: {l.sku}</p> : null}
+                      {l.timing || l.leadDays > 0 ? (
+                        <p className="text-[12.5px]">
+                          {labels.timing}: {timingOf(l)}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="py-3 text-right tabular-nums">{l.qty}</td>
                     <td className="py-3 text-right tabular-nums">{money2(l.unitPrice)}</td>

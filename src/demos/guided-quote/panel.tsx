@@ -126,8 +126,8 @@ export function GuidedSellingPanel() {
                 </tr>
               </thead>
               <tbody>
-                {shown.map((l) => (
-                  <tr key={l.sku} className="border-b border-line-soft align-top">
+                {shown.map((l, i) => (
+                  <tr key={`${l.sku}-${i}`} className="border-b border-line-soft align-top">
                     <td className="py-2 pr-3">
                       <p className="font-semibold">{l.name}</p>
                       <p className="text-[12px] text-ink-muted">
