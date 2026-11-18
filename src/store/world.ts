@@ -44,7 +44,7 @@ export type Action =
   | { t: "gq.createQuote"; at: number }
   | { t: "quote.discount"; id: string; pct: number }
   | { t: "quote.terms"; id: string; termsId: string }
-  | { t: "quote.editLines"; id: string; lines: Record<string, { qty?: number; unitPrice?: number; discountPct?: number }> }
+  | { t: "quote.setLines"; id: string; lines: LineItem[] }
   | { t: "quote.requestApproval"; id: string; at: number; note?: string }
   | { t: "quote.approve"; id: string; at: number; message?: string }
   | { t: "quote.requestChanges"; id: string; at: number; feedback: string }
@@ -245,24 +245,32 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       delete quote.approval;
       return;
     }
-    case "quote.editLines": {
+    case "quote.setLines": {
       const quote = w.quotes.find((q) => q.id === a.id);
       if (!quote || quote.status === "Sent" || quote.status === "Accepted") return;
-      const next = quote.lineItems.map((l) => {
-        const edit = a.lines[l.sku] ?? {};
-        return {
+      // What the line item editor saves: the whole list, so lines can be added, cloned, removed, and repriced in one step.
+      const next: LineItem[] = a.lines
+        .filter((l) => l && String(l.name ?? "").trim())
+        .map((l) => ({
           ...l,
-          qty: edit.qty !== undefined ? Math.max(1, Math.round(Number(edit.qty) || 1)) : l.qty,
-          unitPrice: edit.unitPrice !== undefined ? Math.max(0, Math.round((Number(edit.unitPrice) || 0) * 100) / 100) : l.unitPrice,
-          discountPct: edit.discountPct !== undefined ? clampPct(edit.discountPct, 100) : unitDiscountPct(quote, l),
-        };
-      });
-      if (quote.lineItems.every((l, i) => l.qty === next[i].qty && l.unitPrice === next[i].unitPrice && unitDiscountPct(quote, l) === next[i].discountPct)) return;
+          sku: String(l.sku ?? "").trim(),
+          name: String(l.name).trim(),
+          qty: Math.max(1, Math.round(Number(l.qty) || 1)),
+          unitPrice: Math.max(0, Math.round((Number(l.unitPrice) || 0) * 100) / 100),
+          unitCost: Math.max(0, Math.round((Number(l.unitCost) || 0) * 100) / 100),
+          leadDays: Math.max(0, Math.round(Number(l.leadDays) || 0)),
+          discountPct: clampPct(l.discountPct ?? 0, 100),
+        }));
+      const fields = ["sku", "name", "description", "qty", "unitPrice", "unitCost", "leadDays", "timing", "recurring"] as const;
+      const unchanged =
+        next.length === quote.lineItems.length &&
+        quote.lineItems.every((l, i) => unitDiscountPct(quote, l) === next[i].discountPct && fields.every((f) => l[f] === next[i][f]));
+      if (unchanged) return;
       quote.lineItems = next;
       if (next.every((l) => l.discountPct === next[0].discountPct)) {
         // One discount on every line reads as the quote's discount.
         quote.discountPct = next[0]?.discountPct ?? 0;
-        for (const l of next) delete (l as LineItem).discountPct;
+        for (const l of next) delete l.discountPct;
       } else {
         quote.discountPct = Math.round(quoteTotals(quote).discountPct * 10) / 10;
       }

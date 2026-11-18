@@ -33,8 +33,8 @@ export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems
         </p>
         {below.length > 0 ? (
           <ul className="mt-1 space-y-1 text-[12px] text-ink-muted">
-            {below.map((l) => (
-              <li key={l.sku}>
+            {below.map((l, i) => (
+              <li key={`${l.sku}-${i}`}>
                 <span className="block truncate text-ink">{l.name}</span>
                 <span className="tabular-nums">
                   {money2(netUnitPrice(quote, l))} against a floor of {money2(floorPrice(l, rule))}

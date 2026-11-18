@@ -204,8 +204,8 @@ function ModuleEditor({ quote, module, onEditLines }: { quote: Quote; module: Mo
           ) : tab === "b" ? (
             <>
               <ul className="mt-3 divide-y divide-line-soft">
-                {quote.lineItems.map((l) => (
-                  <li key={l.sku} className="flex items-baseline justify-between gap-3 py-2.5 text-[13px]">
+                {quote.lineItems.map((l, i) => (
+                  <li key={`${l.sku}-${i}`} className="flex items-baseline justify-between gap-3 py-2.5 text-[13px]">
                     <span className="min-w-0">
                       <span className="block truncate font-semibold">{l.name}</span>
                       <span className="text-ink-muted">Quantity {l.qty}</span>
