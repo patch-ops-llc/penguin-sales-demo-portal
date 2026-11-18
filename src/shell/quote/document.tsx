@@ -81,10 +81,7 @@ export function QuoteDocument({ quote, editing, acceptance }: { quote: Quote; ed
         <Module id="cover" editing={editing}>
           <h2 className={h2}>{s.get("label.cover", "Cover letter")}</h2>
           <p className="mt-3">Hi {contact?.firstName ?? "there"},</p>
-          <p className="mt-2">
-            Thank you for the chance to quote {quote.title}. The pricing below covers everything we discussed, {quote.lineItems.length} line items in all. If anything needs to change, reply to this email and I will turn
-            a revision around the same day.
-          </p>
+          <p className="mt-2">{fill(labels.document.cover, { title: quote.title, count: quote.lineItems.length })}</p>
           <p className="mt-2">{owner?.name}</p>
         </Module>
       )}

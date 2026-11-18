@@ -84,6 +84,7 @@ test("the back-office card's third tab opens in every vertical", async ({ page }
     await expect(page.getByTestId("erp-stock").locator("tbody tr").first()).toBeVisible();
     if (vertical === "saas") await expect(page.getByTestId("erp-usage-LS-GRO-SEAT")).toContainText("97 of 100");
     if (vertical === "financial-services") await expect(page.getByTestId("erp-usage-FC-LINE-300-60")).toContainText("$304,793");
+    if (vertical === "professional-services") await expect(page.getByTestId("erp-usage-QT-PS-ENG")).toContainText("64 hours this month");
   }
   expect(errors).toEqual([]);
 });
@@ -147,6 +148,61 @@ test("financial services email to deal: the application is for the borrower, pri
   await expect(page.getByText("Larkspur Excavating").first()).toBeVisible();
   await expect(page.getByText("Hank Brouwer").first()).toBeVisible();
   await expect(page.getByText("Funding Request Source")).toBeVisible();
+});
+
+test("professional services guided proposal: managed services per user and site, onboarding sized from the rate card", async ({ page }) => {
+  await openDemo(page, "guided-quote", "professional-services");
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("gq-tier-essentials").click();
+  await expect(page.getByTestId("gq-security-cpl")).toBeDisabled();
+  await page.getByTestId("gq-sites-5").click();
+  await expect(page.getByTestId("gq-tier-essentials")).toBeDisabled();
+  await page.getByTestId("gq-tier-complete").click();
+  await page.getByTestId("gq-security-mdr").click();
+  await page.getByTestId("gq-sites-3").click();
+  await page.getByTestId("gq-term-36").click();
+  await page.getByTestId("gq-quantity-100").click();
+  await page.getByTestId("gq-needby-8w").click();
+  await page.getByTestId("gq-generate").click();
+  await expect(page.getByTestId("gq-lines")).toContainText("84 hours at the rate card's systems engineer rate of $165 an hour");
+  await expect(page.getByTestId("gq-lines")).toContainText("Managed network and firewall, per site");
+  await expect(page.getByTestId("gq-subtotal")).toHaveText("$175,452");
+  await expect(page.getByTestId("gq-lead-check")).toContainText("On time");
+  await page.getByTestId("gq-create-quote").click();
+  await expect(page.getByTestId("quote-recurring").first()).toContainText("$161,592.00");
+});
+
+test("professional services discount approval: 12% takes every hourly rate under its rate-card floor", async ({ page }) => {
+  await openDemo(page, "discount-approval", "professional-services");
+  await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("document-total")).toHaveText("$59,664.00");
+  await expect(page.getByTestId("quote-locked")).toContainText("discount over 10%, 4 lines below floor price");
+  await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("approval-card")).toContainText("Tessa Marlow requested approval from Omar Haddad");
+});
+
+test("professional services discount approval: 8% stays above the floor and needs no approval", async ({ page }) => {
+  await openDemo(page, "discount-approval", "professional-services");
+  await page.getByTestId("quote-module-lines").click();
+  await page.getByTestId("quote-edit-lines").click();
+  for (const index of [0, 1, 2, 3]) await page.getByTestId(`line-discount-${index}`).fill("8");
+  await expect(page.getByTestId("below-floor-0")).toHaveCount(0);
+  await page.getByTestId("line-editor-save").click();
+  await expect(page.getByRole("button", { name: "Share", exact: true })).toBeVisible();
+  await expect(page.getByTestId("document-total")).toHaveText("$62,376.00");
+});
+
+test("professional services email to deal: a purchase order becomes hardware, licence, and service lines", async ({ page }) => {
+  await openDemo(page, "email-to-deal", "professional-services");
+  await page.getByTestId("thread-th-fenwick-po").click();
+  await page.getByTestId("parsed-review").click();
+  await expect(page.getByTestId("parsed-create-deal")).toBeDisabled();
+  await page.getByTestId("parsed-suggest-QT-HW-SW48").click();
+  await expect(page.getByTestId("parsed-total")).toHaveText("$25,598");
+  await page.getByTestId("parsed-create-deal").click();
+  await page.getByTestId("parsed-view-deal").click();
+  await expect(page.getByText("Managed switch, 48-port PoE").first()).toBeVisible();
+  await expect(page.getByText("Systems engineer, per hour").first()).toBeVisible();
 });
 
 test("manufacturing keeps its own wording where a vertical can now override it", async ({ page }) => {

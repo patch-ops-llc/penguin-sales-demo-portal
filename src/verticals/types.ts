@@ -585,8 +585,9 @@ export type PackLabels = {
   /**
    * Wording printed on the quote document. `summary` is the Executive summary sentence:
    * "{seller}", "{buyer}", "{lines}" (every line as quantity and name), "{count}" (number of lines), "{total}".
+   * `cover` is the body of the Cover letter: "{title}" (the quote's title), "{count}".
    */
-  document: { heading: string; ref: string; total: string; summary: string };
+  document: { heading: string; ref: string; total: string; summary: string; cover: string };
   /** Rows shown under the total when a quote has recurring lines. */
   recurring: { annual: string; oneTime: string };
   /** The synced back-office fields at the top of a company record. "{backOffice}" is the vertical's back-office term. */

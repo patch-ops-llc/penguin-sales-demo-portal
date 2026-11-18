@@ -143,8 +143,35 @@ export const VERTICALS: VerticalTile[] = [
     name: "Professional and IT services",
     company: "Quillon Technology Partners",
     blurb: "Managed IT services, projects, and hardware resale.",
-    status: "coming-soon",
-    demos: ["guided-quote", "lead-capture", "back-office", "email-to-deal", "ai-prospecting", "discount-approval"],
+    status: "live",
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    tiles: {
+      "guided-quote": {
+        title: "Guided proposal",
+        summary: "Pick service tier, security add-on, sites, term, and users. Managed services and the onboarding project generate from the rate card, proposal preview, send.",
+        takeaway: "A new account executive scopes a managed services proposal correctly in under a minute, from the rate card.",
+      },
+      "discount-approval": {
+        summary: "A discount that takes hourly rates under the rate-card floor routes to the practice lead, one click approves, the statement of work unlocks.",
+        takeaway: "Rate-card control that does not slow the deal.",
+      },
+      "back-office": {
+        summary: "Open a customer, see contracts, open invoices, unbilled work, engineer capacity, and hardware stock from the PSA and finance system, build a change order from them.",
+        takeaway: "What are they contracted for, what do they owe, do we have the people and the hardware: answered without leaving HubSpot.",
+      },
+      "lead-capture": {
+        summary: "Assessment request submitted, company enriched and scored with reasons, routed by practice area and region, consultant gets a task and an alert.",
+        takeaway: "An assessment request reaches the right practice in seconds, and the consultant can see why it is worth the call.",
+      },
+      "email-to-deal": {
+        summary: "A purchase order for hardware and licences, or an RFP summary, arrives by email, gets parsed, and becomes a deal with product and service lines.",
+        takeaway: "Purchase orders and RFPs stop being re-keyed. A person only looks where the parser is unsure.",
+      },
+      "ai-prospecting": {
+        summary: "Equipment nears end of support and a new CIO starts, the buying group appears, outreach is drafted, rep approves and sends.",
+        takeaway: "Reps approve instead of researching, with a signal only the managed asset inventory can give.",
+      },
+    },
   },
 ];
 

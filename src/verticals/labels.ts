@@ -8,7 +8,13 @@ const PACK: PackLabels = {
   territory: "Sales territory",
   timing: "Lead time",
   quoteTotal: "Total",
-  document: { heading: "Quote", ref: "Quote ref.", total: "Total contract value", summary: "{seller} will supply {lines} for {buyer}." },
+  document: {
+    heading: "Quote",
+    ref: "Quote ref.",
+    total: "Total contract value",
+    summary: "{seller} will supply {lines} for {buyer}.",
+    cover: "Thank you for the chance to quote {title}. The pricing below covers everything we discussed, {count} line items in all. If anything needs to change, reply to this email and I will turn a revision around the same day.",
+  },
   recurring: { annual: "Annual recurring revenue", oneTime: "One-time" },
   synced: {
     title: "{backOffice} Sync",

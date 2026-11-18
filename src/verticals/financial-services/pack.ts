@@ -454,6 +454,7 @@ export const financialServicesPack: Pack = {
       ref: "Proposal ref.",
       total: "Total of payments and fees",
       summary: "{seller} proposes the financing below for {buyer}: {count} line items, {total} in payments and fees.",
+      cover: "Thank you for the chance to put this financing proposal together. The payments and fees below cover everything we discussed, {count} line items in all. If anything needs to change, reply to this email and I will send a revised proposal the same day.",
     },
     synced: {
       title: "Servicing Sync",

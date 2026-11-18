@@ -7,6 +7,7 @@ export const VERTICAL_DEMOS: Record<string, readonly string[]> = {
   manufacturing: DEMOS,
   saas: DEMOS.filter((demo) => demo !== "email-to-deal"),
   "financial-services": DEMOS,
+  "professional-services": DEMOS,
 };
 
 /** Every live vertical and demo pair. */
