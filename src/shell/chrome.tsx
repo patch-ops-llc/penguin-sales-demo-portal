@@ -206,7 +206,7 @@ function Bell() {
 }
 
 function AccountMenu() {
-  const { pack, persona, vertical } = useShell();
+  const { pack, persona, vertical, switchVertical } = useShell();
   return (
     <Menu
       align="right"
@@ -219,7 +219,7 @@ function AccountMenu() {
         </button>
       )}
     >
-      {() => (
+      {(close) => (
         <>
           <div className="flex items-center gap-3 px-3.5 pb-3 pt-2">
             <Avatar name={persona.name} color={persona.color} size={38} />
@@ -240,7 +240,17 @@ function AccountMenu() {
           <div className="border-t border-line-soft py-1.5">
             <p className="px-3.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Accounts</p>
             {VERTICALS.map((v) => (
-              <MenuItem key={v.id} active={v.id === vertical} disabled={v.status !== "live"} right={v.status !== "live" ? <Tag>Coming soon</Tag> : undefined}>
+              <MenuItem
+                key={v.id}
+                active={v.id === vertical}
+                disabled={v.status !== "live"}
+                right={v.status !== "live" ? <Tag>Coming soon</Tag> : undefined}
+                testId={`account-${v.id}`}
+                onClick={() => {
+                  close();
+                  switchVertical(v.id);
+                }}
+              >
                 <span className="block">{v.company}</span>
                 <span className="block text-[12px] font-normal text-ink-muted">{v.name}</span>
               </MenuItem>

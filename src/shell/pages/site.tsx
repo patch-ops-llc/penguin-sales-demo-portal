@@ -26,6 +26,9 @@ export function SitePage() {
   const preset = config.presets.find((p) => p.id === presetId) ?? config.presets[0];
   const form = preset.form;
   const owner = pack.personas.find((p) => p.id === preset.route.ownerId);
+  const site = config.site;
+  const nav = site.nav ?? ["Products", "Industries", "Support", "Request a quote"];
+  const thanks = site.thanks ?? { routed: "An engineer in your region will reply within one business day.", nurture: "We will be in touch with resources that fit your project." };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#d9d9d9] p-4" data-testid="site-page">
@@ -62,10 +65,11 @@ export function SitePage() {
           <div className="flex items-center justify-between bg-[#16324a] px-10 py-4 text-white">
             <p className="text-[18px] font-bold tracking-tight">{config.site.company}</p>
             <p className="flex gap-6 text-[13px] text-white/75">
-              <span>Products</span>
-              <span>Industries</span>
-              <span>Support</span>
-              <span className="font-semibold text-white">Request a quote</span>
+              {nav.map((item, i) => (
+                <span key={item} className={i === nav.length - 1 ? "font-semibold text-white" : undefined}>
+                  {item}
+                </span>
+              ))}
             </p>
           </div>
 
@@ -91,13 +95,13 @@ export function SitePage() {
                     </span>
                     Thanks, {form.firstName}.
                   </p>
-                  <p className="mt-2 text-[14px] text-[#4a5b6c]">Your request is in. {owner ? "An engineer in your region will reply within one business day." : "We will be in touch with resources that fit your project."}</p>
+                  <p className="mt-2 text-[14px] text-[#4a5b6c]">Your request is in. {owner ? thanks.routed : thanks.nurture}</p>
                   <div className="mt-5 rounded-[8px] border border-line-soft bg-[#fafafa] p-4 text-ink">
                     <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Meanwhile, in HubSpot</p>
                     <ul className="mt-2 space-y-1.5 text-[13px]">
                       {[
                         `Contact created: ${form.firstName} ${form.lastName}`,
-                        `Company enriched: ${preset.company.industry}, ${preset.company.employees.toLocaleString("en-US")} employees`,
+                        `Company enriched: ${preset.company.industry}, ${preset.company.employees.toLocaleString("en-US")} employees${(preset.company.extra ?? []).map((e) => `, ${e.label.toLowerCase()} ${e.value}`).join("")}`,
                         `Lead score set to ${preset.score}`,
                         preset.route.summary,
                         ...(preset.task ? [`Task created: ${preset.task.title}`] : []),
@@ -129,14 +133,20 @@ export function SitePage() {
                     <Field label="Company" value={form.company} />
                     <Field label="Job title" value={form.title} />
                     <Field label="Phone" value={form.phone} />
-                    <Field label="I am interested in" value={form.interest} />
+                    <Field label={site.interestLabel ?? "I am interested in"} value={form.interest} />
                     <label className="col-span-2 block text-[13px]">
-                      <span className="font-semibold text-[#243447]">Tell us about your application</span>
+                      <span className="font-semibold text-[#243447]">{site.messageLabel ?? "Tell us about your application"}</span>
                       <textarea readOnly value={form.message} rows={3} className="mt-1 w-full resize-none rounded-[6px] border border-[#c5ced8] bg-white px-3 py-2 text-[14px] text-[#243447]" />
                     </label>
+                    {site.consent ? (
+                      <label className="col-span-2 flex items-start gap-2 text-[12.5px] text-[#243447]" data-testid="lc-consent">
+                        <input type="checkbox" checked readOnly className="mt-0.5 h-4 w-4 accent-[#16324a]" />
+                        <span>{site.consent}</span>
+                      </label>
+                    ) : null}
                   </div>
                   <Button type="submit" variant="dark" className="mt-4 w-full !bg-[#16324a] hover:!bg-[#0f2436]" data-testid="lc-submit">
-                    Submit request
+                    {site.submit ?? "Submit request"}
                   </Button>
                   <p className="mt-2 text-center text-[11.5px] text-[#6b7a89]">The form is filled from the sample lead chosen above.</p>
                 </form>

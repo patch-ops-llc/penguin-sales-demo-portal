@@ -29,6 +29,8 @@ export type Shell = {
   back: () => void;
   reset: () => void;
   switchDemo: (demo: DemoId) => void;
+  /** Moves to another live vertical's portal, keeping this one's session for the way back. */
+  switchVertical: (vertical: string) => void;
   viewAs: (personaId: string) => void;
   highlight: boolean;
   toggleHighlight: () => void;
@@ -186,6 +188,15 @@ export function ShellProvider({
     [verticalId],
   );
 
+  const switchVertical = useCallback(
+    (target: string) => {
+      if (target === verticalId) return;
+      track({ type: "vertical_opened", vertical: target });
+      pushUrl(`/demo/${target}`);
+    },
+    [verticalId],
+  );
+
   const viewAs = useCallback((personaId: string) => dispatch({ t: "persona", id: personaId }), [dispatch]);
 
   const toggleHighlight = useCallback(() => {
@@ -213,6 +224,7 @@ export function ShellProvider({
     back,
     reset,
     switchDemo,
+    switchVertical,
     viewAs,
     highlight,
     toggleHighlight,

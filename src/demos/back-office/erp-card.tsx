@@ -6,6 +6,7 @@ import { date, money, num, relative } from "@/shell/format";
 import { Icon } from "@/shell/icons";
 import { A, Button, cx, LineTabs, statusTone, Tag } from "@/shell/ui";
 import { useShell } from "@/store/store";
+import { fill, labelsOf, timingOf } from "@/verticals/labels";
 import type { Company } from "@/verticals/types";
 
 type Tab = "orders" | "balance" | "stock";
@@ -15,6 +16,7 @@ export function ErpCard({ company }: { company: Company }) {
   const { pack, world, dispatch, navigate } = useShell();
   const config = pack.demos.backOffice;
   const label = config.systemLabel;
+  const labels = labelsOf(pack).backOffice;
   const tab = (world.ui["erp.tab"] as Tab) ?? "orders";
   const openOrder = world.ui["erp.order"];
   const picked = world.bo.picked;
@@ -32,7 +34,7 @@ export function ErpCard({ company }: { company: Company }) {
             <Icon name="layers" size={16} /> {label}: {company.name}
           </h3>
           <p className="mr-9 flex items-center gap-1.5 text-[12px] text-ink-muted">
-            <span className="h-2 w-2 rounded-full bg-[#1a9e4b]" /> Live from the {label}, read {relative(config.syncedAt)}
+            <span className="h-2 w-2 rounded-full bg-[#1a9e4b]" /> {fill(labels.live, { system: label, when: relative(config.syncedAt) })}
           </p>
         </header>
         <LineTabs
@@ -40,9 +42,9 @@ export function ErpCard({ company }: { company: Company }) {
           value={tab}
           onChange={setTab}
           tabs={[
-            { id: "orders", label: `Orders (${config.orders.length})`, testId: "erp-tab-orders" },
-            { id: "balance", label: "Balance", testId: "erp-tab-balance" },
-            { id: "stock", label: "Stock and pricing", testId: "erp-tab-stock" },
+            { id: "orders", label: `${labels.tabs.orders} (${config.orders.length})`, testId: "erp-tab-orders" },
+            { id: "balance", label: labels.tabs.balance, testId: "erp-tab-balance" },
+            { id: "stock", label: labels.tabs.stock, testId: "erp-tab-stock" },
           ]}
         />
 
@@ -51,11 +53,11 @@ export function ErpCard({ company }: { company: Company }) {
             <thead>
               <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
                 <th className="w-8 py-2 pl-4" />
-                <th className="py-2 font-semibold">Order</th>
-                <th className="py-2 font-semibold">Date</th>
-                <th className="py-2 font-semibold">Customer PO</th>
-                <th className="py-2 font-semibold">Status</th>
-                <th className="py-2 pr-4 text-right font-semibold">Total</th>
+                <th className="py-2 font-semibold">{labels.orders.number}</th>
+                <th className="py-2 font-semibold">{labels.orders.date}</th>
+                <th className="py-2 font-semibold">{labels.orders.po}</th>
+                <th className="py-2 font-semibold">{labels.orders.status}</th>
+                <th className="py-2 pr-4 text-right font-semibold">{labels.orders.total}</th>
               </tr>
             </thead>
             <tbody>
@@ -104,10 +106,10 @@ export function ErpCard({ company }: { company: Company }) {
           <div className="px-4 py-3" data-testid="erp-balance">
             <div className="grid grid-cols-4 gap-3">
               {[
-                { label: "Open balance", value: money(open), tone: "" },
-                { label: "Overdue", value: money(overdue), tone: overdue > 0 ? "text-[#99201a]" : "" },
-                { label: "Credit limit", value: company.erp ? money(company.erp.creditLimit) : "--", tone: "" },
-                { label: "Credit status", value: company.erp?.creditStatus ?? "--", tone: "" },
+                { label: labels.balance.open, value: money(open), tone: "" },
+                { label: labels.balance.overdue, value: money(overdue), tone: overdue > 0 ? "text-[#99201a]" : "" },
+                { label: labels.balance.limit, value: company.erp ? money(company.erp.creditLimit) : "--", tone: "" },
+                { label: labels.balance.status, value: company.erp?.creditStatus ?? "--", tone: "" },
               ].map((tile) => (
                 <div key={tile.label} className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2.5">
                   <p className="text-[11.5px] text-ink-muted">{tile.label}</p>
@@ -151,11 +153,11 @@ export function ErpCard({ company }: { company: Company }) {
                 <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
                   <th className="w-9 py-2 pl-4" />
                   <th className="py-2 font-semibold">Item</th>
-                  <th className="py-2 text-right font-semibold">On hand</th>
-                  <th className="py-2 text-right font-semibold">Lead time</th>
-                  <th className="py-2 text-right font-semibold">Contract price</th>
-                  <th className="py-2 text-right font-semibold">List price</th>
-                  <th className="py-2 pr-4 text-right font-semibold">Last ordered</th>
+                  <th className="whitespace-nowrap py-2 pl-3 text-right font-semibold">{labels.stock.onHand}</th>
+                  <th className="whitespace-nowrap py-2 pl-3 text-right font-semibold">{labels.stock.timing}</th>
+                  <th className="whitespace-nowrap py-2 pl-3 text-right font-semibold">{labels.stock.contract}</th>
+                  <th className="whitespace-nowrap py-2 pl-3 text-right font-semibold">{labels.stock.list}</th>
+                  <th className="whitespace-nowrap py-2 pl-3 pr-4 text-right font-semibold">{labels.stock.last}</th>
                 </tr>
               </thead>
               <tbody>
@@ -170,11 +172,22 @@ export function ErpCard({ company }: { company: Company }) {
                         <p className="font-semibold">{item.name}</p>
                         <p className="font-mono text-[12px] text-ink-muted">{item.sku}</p>
                       </td>
-                      <td className="py-2 text-right tabular-nums">{item.onHand > 0 ? num(item.onHand) : <Tag tone="amber">Built to order</Tag>}</td>
-                      <td className="py-2 text-right tabular-nums">{item.leadDays} days</td>
-                      <td className="py-2 text-right font-semibold tabular-nums">{money(item.contractPrice)}</td>
-                      <td className="py-2 text-right tabular-nums text-ink-muted">{money(item.listPrice)}</td>
-                      <td className="py-2 pr-4 text-right">{date(item.lastOrdered)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">
+                        {item.capacity ? (
+                          <span className="inline-flex items-center gap-2" data-testid={`erp-usage-${item.sku}`}>
+                            {item.onHand >= item.capacity * 0.9 ? <Tag tone="amber">{labels.stock.nearLimit}</Tag> : null}
+                            {num(item.onHand)} of {num(item.capacity)}
+                          </span>
+                        ) : item.onHand > 0 ? (
+                          num(item.onHand)
+                        ) : (
+                          <Tag tone="amber">{labels.stock.none}</Tag>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">{timingOf(item)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right font-semibold tabular-nums">{money(item.contractPrice)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums text-ink-muted">{money(item.listPrice)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 pr-4 text-right">{item.lastOrdered ? date(item.lastOrdered) : "--"}</td>
                     </tr>
                   );
                 })}
@@ -199,9 +212,10 @@ export function ErpCard({ company }: { company: Company }) {
                       navigate("/quotes/q-reorder");
                     }}
                   >
-                    Add to quote{picked.length > 0 ? ` (${picked.length})` : ""}
+                    {labels.add.button}
+                    {picked.length > 0 ? ` (${picked.length})` : ""}
                   </Button>
-                  <p className="text-[12.5px] text-ink-muted">Starts a quote at this customer&apos;s contract price and usual quantity.</p>
+                  <p className="text-[12.5px] text-ink-muted">{labels.add.help}</p>
                 </>
               )}
             </div>

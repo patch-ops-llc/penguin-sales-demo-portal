@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { PenguinMark } from "@/components/brand";
-import { hintOf } from "@/demos/scripts";
+import { stepText } from "@/demos/scripts";
 import { useShell } from "@/store/store";
-import { DEMOS, getVertical } from "@/verticals/catalog";
+import { demoTile, getVertical } from "@/verticals/catalog";
 import { Icon } from "./icons";
 import { cx, Menu, MenuItem } from "./ui";
 
@@ -21,6 +21,7 @@ export function DemoBar() {
   const { pack, world, demo, vertical, script, stepIndex, complete, persona, next, back, reset, switchDemo, viewAs, highlight, toggleHighlight, barHidden, toggleBar, setEndCardOpen } = shell;
   const total = script.steps.length;
   const step = stepIndex < total ? script.steps[stepIndex] : null;
+  const text = step ? stepText(demo, step, { w: world, pack }) : null;
   const demos = getVertical(vertical)?.demos ?? [];
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function DemoBar() {
         width={300}
         button={({ toggle }) => (
           <button type="button" onClick={toggle} className={cx(barButton, "bg-white/10")} data-testid="demo-switcher">
-            {DEMOS[demo].title} <Icon name="chevronDown" size={14} />
+            {demoTile(vertical, demo).title} <Icon name="chevronDown" size={14} />
           </button>
         )}
       >
@@ -73,7 +74,7 @@ export function DemoBar() {
                 switchDemo(id);
               }}
             >
-              <span className="text-ink-muted">{i + 1}.</span> {DEMOS[id].title}
+              <span className="text-ink-muted">{i + 1}.</span> {demoTile(vertical, id).title}
             </MenuItem>
           ))
         }
@@ -84,11 +85,11 @@ export function DemoBar() {
           {step ? `Step ${stepIndex + 1} of ${total}` : "Complete"}
         </span>
         <p className="min-w-0 truncate text-[13px]">
-          {step ? (
+          {step && text ? (
             <>
-              <span className="font-semibold">{step.title}</span>
+              <span className="font-semibold">{text.title}</span>
               {step.optional ? <span className="text-white/60"> (optional)</span> : null}
-              <span className="text-white/65"> · {hintOf(step, { w: world, pack })}</span>
+              <span className="text-white/65"> · {text.hint}</span>
             </>
           ) : (
             <span className="font-semibold">That is the whole story. Wrap up to see what was native and what Penguin built.</span>

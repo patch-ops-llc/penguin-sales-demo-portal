@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { DEMOS, openDemo, signIn, walk } from "./helpers";
+import { ALL_DEMOS, openDemo, signIn, walk } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await signIn(page);
 });
 
-for (const demo of DEMOS) {
-  test(`${demo}: runs start to finish and ends on the end card`, async ({ page }) => {
+for (const { vertical, demo } of ALL_DEMOS) {
+  test(`${vertical} ${demo}: runs start to finish and ends on the end card`, async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
     page.on("pageerror", (e) => errors.push(e.message));
 
-    await openDemo(page, demo);
+    await openDemo(page, demo, vertical);
     const steps = await walk(page);
     expect(steps).toBeGreaterThanOrEqual(4);
     await expect(page.getByTestId("demo-step-count")).toHaveText("Complete");

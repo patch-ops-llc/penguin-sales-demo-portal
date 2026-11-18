@@ -5,23 +5,23 @@ import { useEffect, useState } from "react";
 import { Lockup } from "@/components/brand";
 import { track } from "@/lib/beacon";
 import { hasSavedChanges } from "@/store/session";
-import { DEMOS, VERTICALS } from "@/verticals/catalog";
+import { demoTile, VERTICALS } from "@/verticals/catalog";
 
-type Props = { user: { name: string | null; email: string; isAdmin: boolean }; packVersion: string | null };
+type Props = { user: { name: string | null; email: string; isAdmin: boolean }; packVersions: Record<string, string> };
 
-export function Launchpad({ user, packVersion }: Props) {
+export function Launchpad({ user, packVersions }: Props) {
   const [verticalId, setVerticalId] = useState("manufacturing");
-  const [resumable, setResumable] = useState(false);
+  const [resumable, setResumable] = useState<string[]>([]);
   const vertical = VERTICALS.find((v) => v.id === verticalId) ?? VERTICALS[0];
 
   useEffect(() => {
     track({ type: "launchpad_opened" });
     // Read after mount: session storage does not exist on the server.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setResumable(hasSavedChanges("manufacturing"));
+    setResumable(Object.keys(packVersions).filter(hasSavedChanges));
     // Warm the browser cache so the shell opens with its data already local.
-    if (packVersion) fetch(`/api/packs/${packVersion}/manufacturing`, { credentials: "same-origin" }).catch(() => {});
-  }, [packVersion]);
+    for (const [id, version] of Object.entries(packVersions)) fetch(`/api/packs/${version}/${id}`, { credentials: "same-origin" }).catch(() => {});
+  }, [packVersions]);
 
   return (
     <div className="min-h-screen bg-cream">
@@ -100,7 +100,7 @@ export function Launchpad({ user, packVersion }: Props) {
         </div>
         <div className="mt-3 grid grid-cols-3 gap-4">
           {vertical.demos.map((id, index) => {
-            const demo = DEMOS[id];
+            const demo = demoTile(vertical.id, id);
             return (
               <div key={id} data-testid={`demo-${id}`} className="flex flex-col rounded-xl border border-line bg-white p-5">
                 <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export function Launchpad({ user, packVersion }: Props) {
                   >
                     Start demo
                   </Link>
-                  {resumable ? (
+                  {resumable.includes(vertical.id) ? (
                     <Link href={`/demo/${vertical.id}/${id}`} className="hs-link text-[13px]">
                       Continue where I left off
                     </Link>

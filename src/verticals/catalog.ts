@@ -18,6 +18,8 @@ export type VerticalTile = {
   blurb: string;
   status: "live" | "coming-soon";
   demos: DemoId[];
+  /** Tile wording for this vertical, where the shared wording does not fit it. */
+  tiles?: Partial<Record<DemoId, Partial<Omit<DemoTile, "id">>>>;
 };
 
 export const DEMOS: Record<DemoId, DemoTile> = {
@@ -79,8 +81,26 @@ export const VERTICALS: VerticalTile[] = [
     name: "SaaS and software",
     company: "Lumenstack",
     blurb: "B2B analytics platform sold by plan, seats, and add-ons.",
-    status: "coming-soon",
-    demos: ["guided-quote", "lead-capture", "back-office", "ai-prospecting", "discount-approval"],
+    status: "live",
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "ai-prospecting"],
+    tiles: {
+      "guided-quote": {
+        summary: "Pick plan, seats, add-ons, and term. Subscription lines generate, quote preview, send.",
+        takeaway: "A new rep prices a subscription correctly in under a minute, with first-year total and annual recurring revenue on the quote.",
+      },
+      "discount-approval": {
+        summary: "A discount over the threshold or non-standard payment terms route to the deal desk, one click approves, the quote unlocks.",
+        takeaway: "Deal desk control that does not slow the deal.",
+      },
+      "back-office": {
+        summary: "Open a customer, see subscriptions, invoices, and seat usage from billing and product usage, build an expansion quote from them.",
+        takeaway: "What are they on, what do they owe, are they out of seats: answered without leaving HubSpot.",
+      },
+      "lead-capture": {
+        summary: "Demo request submitted, company enriched and scored with reasons, routed by segment and territory, rep gets a task and an alert.",
+        takeaway: "A demo request reaches the right rep in seconds, and the rep can see why it is worth the call.",
+      },
+    },
   },
   {
     id: "financial-services",
@@ -103,6 +123,13 @@ export const VERTICALS: VerticalTile[] = [
 export function getVertical(id: string): VerticalTile | undefined {
   return VERTICALS.find((v) => v.id === id);
 }
+
+/** A demo's tile as one vertical words it. */
+export function demoTile(verticalId: string, id: DemoId): DemoTile {
+  return { ...DEMOS[id], ...getVertical(verticalId)?.tiles?.[id] };
+}
+
+export const LIVE_VERTICALS = VERTICALS.filter((v) => v.status === "live").map((v) => v.id);
 
 export function isDemoId(value: string): value is DemoId {
   return value in DEMOS;

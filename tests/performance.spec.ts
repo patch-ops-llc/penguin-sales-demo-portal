@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMOS, openDemo, signIn } from "./helpers";
+import { ALL_DEMOS, openDemo, signIn } from "./helpers";
 
 /** Budget for one in-demo step: click to the next screen being on the page. */
 const STEP_BUDGET_MS = 250;
@@ -35,9 +35,9 @@ test("in-demo navigation makes no server round trip", async ({ page }) => {
   expect(requests).toEqual([]);
 });
 
-for (const demo of DEMOS) {
-  test(`${demo}: every step lands inside the ${STEP_BUDGET_MS} ms budget`, async ({ page }) => {
-    await openDemo(page, demo);
+for (const { vertical, demo } of ALL_DEMOS) {
+  test(`${vertical} ${demo}: every step lands inside the ${STEP_BUDGET_MS} ms budget`, async ({ page }) => {
+    await openDemo(page, demo, vertical);
     const timings: number[] = [];
     while (await page.getByTestId("demo-next").count()) {
       const before = await page.getByTestId("demo-step-count").textContent();
@@ -59,7 +59,7 @@ for (const demo of DEMOS) {
       );
       timings.push(Math.round(elapsed));
     }
-    console.log(`${demo}: step times in ms: ${timings.join(", ")}`);
+    console.log(`${vertical} ${demo}: step times in ms: ${timings.join(", ")}`);
     expect(Math.max(...timings)).toBeLessThan(STEP_BUDGET_MS);
   });
 }

@@ -1,4 +1,5 @@
 import { generateLines, isComplete, pruneSelections } from "@/demos/guided-quote/rules";
+import { labelsOf } from "@/verticals/labels";
 import type { Activity, Company, Contact, Deal, InboxThread, LineItem, Notification, Pack, Quote, Task } from "@/verticals/types";
 import { approvalReasons, quoteTotals } from "./quote-math";
 
@@ -42,6 +43,7 @@ export type Action =
   | { t: "gq.generate" }
   | { t: "gq.createQuote"; at: number }
   | { t: "quote.discount"; id: string; pct: number }
+  | { t: "quote.terms"; id: string; termsId: string }
   | { t: "quote.requestApproval"; id: string; at: number }
   | { t: "quote.approve"; id: string; at: number }
   | { t: "quote.send"; id: string; at: number }
@@ -225,6 +227,16 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       delete quote.approval;
       return;
     }
+    case "quote.terms": {
+      const quote = w.quotes.find((q) => q.id === a.id);
+      const terms = pack.demos.discountApproval.terms;
+      if (!quote || !terms || quote.status === "Sent" || quote.status === "Accepted") return;
+      if (!terms.options.some((o) => o.id === a.termsId) || a.termsId === (quote.termsId ?? terms.defaultId)) return;
+      quote.termsId = a.termsId;
+      quote.status = "Draft";
+      delete quote.approval;
+      return;
+    }
     case "quote.requestApproval": {
       const quote = w.quotes.find((q) => q.id === a.id);
       const rule = pack.demos.discountApproval;
@@ -242,7 +254,10 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         at,
         kind: "approval",
         title: "Approval requested",
-        body: `${requester?.name ?? "A rep"} requested ${quote.discountPct}% off ${quote.number} for ${company?.name ?? "a customer"}.`,
+        body:
+          quote.discountPct > 0
+            ? `${requester?.name ?? "A rep"} requested ${quote.discountPct}% off ${quote.number} for ${company?.name ?? "a customer"}.`
+            : `${requester?.name ?? "A rep"} requested approval of ${quote.number} for ${company?.name ?? "a customer"}.`,
         path: `/approvals/${quote.id}`,
         read: false,
       });
@@ -250,7 +265,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         at,
         type: "quote",
         title: `Approval requested: ${quote.number}`,
-        body: `${quote.discountPct}% discount. ${reasons.join(". ")}.`,
+        body: `${quote.discountPct > 0 ? `${quote.discountPct}% discount. ` : ""}${reasons.join(". ")}.`,
         byId: w.persona,
         contactIds: [quote.contactId],
         companyIds: [quote.companyId],
@@ -274,8 +289,8 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         personaId: quote.approval.requestedById,
         at,
         kind: "approved",
-        title: "Discount approved",
-        body: `${approver?.name ?? "The approver"} approved ${quote.discountPct}% off ${quote.number}. The quote is ready to send.`,
+        title: quote.discountPct > 0 ? "Discount approved" : "Quote approved",
+        body: `${approver?.name ?? "The approver"} approved ${quote.discountPct > 0 ? `${quote.discountPct}% off ${quote.number}` : quote.number}. The quote is ready to send.`,
         path: `/quotes/${quote.id}`,
         read: false,
       });
@@ -283,7 +298,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         at,
         type: "quote",
         title: `Quote approved: ${quote.number}`,
-        body: `${approver?.name ?? "The approver"} approved a ${quote.discountPct}% discount.`,
+        body: quote.discountPct > 0 ? `${approver?.name ?? "The approver"} approved a ${quote.discountPct}% discount.` : `${approver?.name ?? "The approver"} approved the quote.`,
         byId: quote.approval.approverId,
         contactIds: [quote.contactId],
         companyIds: [quote.companyId],
@@ -353,11 +368,22 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       return;
     case "bo.addToQuote": {
       const config = pack.demos.backOffice;
+      const wording = labelsOf(pack).backOffice.add;
       if (w.bo.quoteId || w.bo.picked.length === 0) return;
       const at = iso(a.at);
       const lineItems: LineItem[] = config.stock
         .filter((s) => w.bo.picked.includes(s.sku))
-        .map((s) => ({ sku: s.sku, name: s.name, description: "Contract price from the ERP", qty: s.usualQty, unitPrice: s.contractPrice, unitCost: s.unitCost, leadDays: s.leadDays }));
+        .map((s) => ({
+          sku: s.sku,
+          name: s.name,
+          description: wording.lineNote,
+          qty: s.usualQty,
+          unitPrice: s.contractPrice,
+          unitCost: s.unitCost,
+          leadDays: s.leadDays,
+          ...(s.timing ? { timing: s.timing } : {}),
+          ...(s.recurring ? { recurring: true } : {}),
+        }));
       const deal: Deal = {
         id: "dl-reorder",
         name: config.dealName,
@@ -369,13 +395,13 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         closeDate: iso(a.at + 14 * DAY),
         createdAt: at,
         lastActivityAt: at,
-        type: "Existing business",
+        type: wording.dealType,
         lineItems,
-        source: "Created from the ERP card",
+        source: wording.origin,
         isNew: true,
       };
       w.deals.unshift(deal);
-      const quote = newQuote(w, { id: "q-reorder", title: config.quoteTitle, dealId: deal.id, companyId: config.companyId, contactId: config.contactId, lineItems, origin: "Created from the ERP card", at: a.at });
+      const quote = newQuote(w, { id: "q-reorder", title: config.quoteTitle, dealId: deal.id, companyId: config.companyId, contactId: config.contactId, lineItems, origin: wording.origin, at: a.at });
       w.bo.quoteId = quote.id;
       w.bo.dealId = deal.id;
       return;
@@ -408,6 +434,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         description: preset.company.description,
         territory: preset.company.territory,
         enrichedAt: at,
+        ...(preset.company.extra ? { extra: preset.company.extra } : {}),
         isNew: true,
       };
       const contact: Contact = {
@@ -423,8 +450,9 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         leadStatus: owner ? "New" : "Nurture",
         createdAt: at,
         lastActivityAt: at,
-        source: "Request a quote form",
+        source: `${config.site.formTitle} form`,
         score: preset.score,
+        ...(preset.contactExtra ? { extra: preset.contactExtra } : {}),
         isNew: true,
       };
       w.companies.unshift(company);
@@ -487,7 +515,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       const ownerName = pack.personas.find((p) => p.id === owner)?.name;
       // Newest first on the timeline: the workflow's last step is added last.
       addActivity(w, { at, type: "form", title: `Form submission: ${config.site.formTitle}`, body: `${preset.form.interest}. "${preset.form.message}"`, byId: null, ...ids });
-      addActivity(w, { at, type: "sync", title: "Company enriched", body: `${preset.company.industry}, ${preset.company.employees.toLocaleString("en-US")} employees, ${preset.company.city}, ${preset.company.state}.`, byId: null, ...ids });
+      addActivity(w, { at, type: "sync", title: "Company enriched", body: `${preset.company.industry}, ${preset.company.employees.toLocaleString("en-US")} employees, ${preset.company.city}, ${preset.company.state}.${(preset.company.extra ?? []).map((e) => ` ${e.label}: ${e.value}.`).join("")}`, byId: null, ...ids });
       addActivity(w, { at, type: "lifecycle", title: `Lead score set to ${preset.score}`, body: preset.reasons.filter((r) => r.points > 0).map((r) => r.label).join(", ") || "No scoring criteria met.", byId: null, ...ids });
       addActivity(w, {
         at,
@@ -526,7 +554,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         const sku = l.sku ?? w.ed.matches[`${thread.id}:${l.id}`];
         const product = pack.products.find((p) => p.sku === sku);
         if (!product) return; // An unmatched line blocks deal creation.
-        lineItems.push({ sku: product.sku, name: product.name, qty: l.qty, unitPrice: product.price, unitCost: product.cost, leadDays: product.leadDays });
+        lineItems.push({ sku: product.sku, name: product.name, qty: l.qty, unitPrice: product.price, unitCost: product.cost, leadDays: product.leadDays, ...(product.timing ? { timing: product.timing } : {}), ...(product.recurring ? { recurring: true } : {}) });
       }
       const at = iso(a.at);
       const deal: Deal = {

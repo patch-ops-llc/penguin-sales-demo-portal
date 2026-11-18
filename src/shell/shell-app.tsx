@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { clearSession, loadSession, type Saved } from "@/store/session";
 import { resolveDates } from "@/store/dates";
+import { parseLocation, useLocation } from "@/store/router";
 import { ShellProvider, useShell } from "@/store/store";
 import type { Pack } from "@/verticals/types";
 import { Chrome } from "./chrome";
@@ -11,7 +12,26 @@ import { EndCard } from "./end-card";
 import { isOutsideHubSpot, Routes } from "./routes";
 import { cx } from "./ui";
 
-type Loaded = { pack: Pack; saved: Saved | null; location: string };
+type Loaded = { vertical: string; pack: Pack; saved: Saved | null; location: string };
+
+// Packs stay in memory for the life of the page, so switching vertical never waits on the network.
+const packs = new Map<string, Promise<Pack>>();
+
+function loadPack(vertical: string, version: string): Promise<Pack> {
+  const key = `${version}/${vertical}`;
+  let pending = packs.get(key);
+  if (!pending) {
+    pending = fetch(`/api/packs/${key}`, { credentials: "same-origin" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Pack request failed: ${response.status}`);
+        return response.json() as Promise<Pack>;
+      })
+      .then((pack) => resolveDates(pack, Date.now()));
+    pending.catch(() => packs.delete(key));
+    packs.set(key, pending);
+  }
+  return pending;
+}
 
 function Frame() {
   const { route, highlight, endCardOpen } = useShell();
@@ -34,9 +54,13 @@ function Frame() {
 
 /**
  * Entry point of the simulated HubSpot shell. Fetches the vertical pack once (it is cached by the
- * browser after the launchpad warms it), then everything runs in the browser.
+ * browser after the launchpad warms it), then everything runs in the browser. The vertical comes
+ * from the URL, so the account switcher moves between live verticals without a page load.
  */
-export function ShellApp({ verticalId, packVersion }: { verticalId: string; packVersion: string }) {
+export function ShellApp({ initialVertical, packVersions }: { initialVertical: string; packVersions: Record<string, string> }) {
+  const requested = parseLocation(useLocation(`/demo/${initialVertical}`)).vertical;
+  const verticalId = packVersions[requested] ? requested : initialVertical;
+  const packVersion = packVersions[verticalId];
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -48,22 +72,21 @@ export function ShellApp({ verticalId, packVersion }: { verticalId: string; pack
       url.searchParams.delete("fresh");
       window.history.replaceState(null, "", url.pathname + url.search);
     }
-    fetch(`/api/packs/${packVersion}/${verticalId}`, { credentials: "same-origin" })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Pack request failed: ${response.status}`);
-        return response.json() as Promise<Pack>;
-      })
+    loadPack(verticalId, packVersion)
       .then((pack) => {
         if (cancelled) return;
-        setLoaded({ pack: resolveDates(pack, Date.now()), saved: loadSession(verticalId, packVersion), location: window.location.pathname + window.location.search });
+        setLoaded({ vertical: verticalId, pack, saved: loadSession(verticalId, packVersion), location: window.location.pathname + window.location.search });
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
       });
+    for (const [id, version] of Object.entries(packVersions)) {
+      if (id !== verticalId) loadPack(id, version).catch(() => {});
+    }
     return () => {
       cancelled = true;
     };
-  }, [verticalId, packVersion]);
+  }, [verticalId, packVersion, packVersions]);
 
   if (failed) {
     return (
@@ -77,10 +100,10 @@ export function ShellApp({ verticalId, packVersion }: { verticalId: string; pack
     );
   }
   // The frame paints at once so the first screen never jumps; the pack arrives from the browser cache.
-  if (!loaded) return <div className="h-screen bg-nav" data-testid="shell-loading" />;
+  if (!loaded || loaded.vertical !== verticalId) return <div className="h-screen bg-nav" data-testid="shell-loading" />;
 
   return (
-    <ShellProvider pack={loaded.pack} version={packVersion} initial={loaded.saved} initialLocation={loaded.location}>
+    <ShellProvider key={verticalId} pack={loaded.pack} version={packVersion} initial={loaded.saved} initialLocation={loaded.location}>
       <Frame />
     </ShellProvider>
   );

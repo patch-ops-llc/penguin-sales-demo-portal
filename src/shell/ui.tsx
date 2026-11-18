@@ -88,6 +88,8 @@ export function statusTone(status: string): Tone {
     case "Shipped":
     case "Good standing":
     case "On":
+    case "Active":
+    case "Current":
     case "Closed won":
     case "Awarded - Won":
       return "green";
@@ -97,6 +99,7 @@ export function statusTone(status: string): Tone {
     case "In production":
       return "amber";
     case "Overdue":
+    case "Past due":
     case "Credit hold":
     case "Closed lost":
     case "Closed - Lost":

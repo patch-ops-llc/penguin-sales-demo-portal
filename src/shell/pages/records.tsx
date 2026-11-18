@@ -7,6 +7,7 @@ import { GuidedSellingPanel } from "@/demos/guided-quote/panel";
 import { WhyThisScoreCard } from "@/demos/lead-capture/score-card";
 import { quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
+import { fill, labelsOf } from "@/verticals/labels";
 import type { Activity, ActivityType } from "@/verticals/types";
 import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
@@ -291,6 +292,11 @@ export function ContactRecord({ id }: { id: string }) {
           {contact.score !== undefined ? <Prop label="Lead score">{contact.score}</Prop> : null}
           {contact.score !== undefined ? <Prop label="Contact priority">{contact.score >= 80 ? "Very High" : contact.score >= 60 ? "High" : contact.score >= 40 ? "Medium" : "Low"}</Prop> : null}
           <Prop label="Original source">{contact.source}</Prop>
+          {(contact.extra ?? []).map((e) => (
+            <Prop key={e.label} label={e.label}>
+              {e.value}
+            </Prop>
+          ))}
           <Prop label="Create date">{dateTime(contact.createdAt)}</Prop>
         </AboutSection>
       }
@@ -347,7 +353,8 @@ export function CompanyRecord({ id }: { id: string }) {
   const deals = world.deals.filter((d) => d.companyId === id);
   const quotes = world.quotes.filter((q) => q.companyId === id);
   const match = (a: Activity) => Boolean(a.companyIds?.includes(id));
-  const label = pack.terms.backOffice;
+  const labels = labelsOf(pack).pack;
+  const synced = (text: string) => fill(text, { backOffice: pack.terms.backOffice });
 
   return (
     <RecordLayout
@@ -364,11 +371,11 @@ export function CompanyRecord({ id }: { id: string }) {
         <>
           {company.erp ? (
             <Ext id="erp-synced-fields" className="-mx-2 mb-3 rounded-[8px] bg-[#fafafa] px-2 py-2" pinClass="!right-2 !top-1.5">
-              <AboutSection title={`${label} Sync`}>
-                <Prop label={`${label} Account Number`}>{company.erp.accountNumber}</Prop>
-                <Prop label={`${label} Last Order Date`}>{date(company.erp.lastOrderDate)}</Prop>
-                <Prop label={`${label} Open Balance`}>{money(company.erp.openBalance)}</Prop>
-                <Prop label={`${label} Credit Status`}>
+              <AboutSection title={synced(labels.synced.title)}>
+                <Prop label={synced(labels.synced.account)}>{company.erp.accountNumber}</Prop>
+                <Prop label={synced(labels.synced.lastOrder)}>{date(company.erp.lastOrderDate)}</Prop>
+                <Prop label={synced(labels.synced.openBalance)}>{money(company.erp.openBalance)}</Prop>
+                <Prop label={synced(labels.synced.status)}>
                   <Tag tone={statusTone(company.erp.creditStatus)}>{company.erp.creditStatus}</Tag>
                 </Prop>
               </AboutSection>
@@ -384,7 +391,12 @@ export function CompanyRecord({ id }: { id: string }) {
             <Prop label="Phone number">{company.phone}</Prop>
             <Prop label="Company owner">{ownerName(pack, company.ownerId)}</Prop>
             <Prop label="Lifecycle stage">{company.lifecycle}</Prop>
-            <Prop label="Sales territory">{company.territory}</Prop>
+            <Prop label={labels.territory}>{company.territory}</Prop>
+            {(company.extra ?? []).map((e) => (
+              <Prop key={e.label} label={e.label}>
+                {e.value}
+              </Prop>
+            ))}
           </AboutSection>
         </>
       }
@@ -491,7 +503,7 @@ export function DealRecord({ id }: { id: string }) {
           <Prop label="Deal owner">{ownerName(pack, deal.ownerId)}</Prop>
           <Prop label="Amount">{money(deal.amount)}</Prop>
           <Prop label="Close date">{date(deal.closeDate)}</Prop>
-          <Prop label="Pipeline">Sales pipeline</Prop>
+          <Prop label="Pipeline">{labelsOf(pack).pack.pipeline}</Prop>
           <Prop label="Deal stage">{stage?.label}</Prop>
           <Prop label="Deal type">{deal.type}</Prop>
           <Prop label="Original source">{deal.source}</Prop>

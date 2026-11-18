@@ -1,13 +1,15 @@
 import "server-only";
 import { createHash } from "node:crypto";
+import { LIVE_VERTICALS } from "./catalog";
 import { manufacturingPack } from "./manufacturing/pack";
+import { saasPack } from "./saas/pack";
 import type { Pack } from "./types";
 
 // Packs are bundled with the server only. The browser gets them from /api/packs/<version>/<vertical>
 // after sign-in, cached under a version that is the hash of the content, so a new deploy with
 // changed content is picked up automatically and an unchanged pack is never downloaded twice.
 
-const PACKS: Record<string, Pack> = { manufacturing: manufacturingPack };
+const PACKS: Record<string, Pack> = { manufacturing: manufacturingPack, saas: saasPack };
 
 const cache = new Map<string, { json: string; version: string }>();
 
@@ -29,4 +31,14 @@ export function packVersion(vertical: string): string | null {
 
 export function packJson(vertical: string): { json: string; version: string } | null {
   return load(vertical);
+}
+
+/** Pack version of every live vertical, so the browser can warm and switch between them without asking again. */
+export function livePackVersions(): Record<string, string> {
+  const versions: Record<string, string> = {};
+  for (const id of LIVE_VERTICALS) {
+    const version = packVersion(id);
+    if (version) versions[id] = version;
+  }
+  return versions;
 }

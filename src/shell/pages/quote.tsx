@@ -2,8 +2,9 @@
 
 import { nowMs } from "@/lib/format";
 import { useState } from "react";
-import { approvalReasons, floorPrice, isLocked, linesBelowFloor, quoteTotals } from "@/store/quote-math";
+import { approvalReasons, floorPrice, isLocked, linesBelowFloor, quoteTerms, quoteTotals, recurringTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
+import { fill, labelsOf, timingOf } from "@/verticals/labels";
 import type { Quote } from "@/verticals/types";
 import { Ext } from "../ext";
 import { date, dateTime, money2, pct, relative } from "../format";
@@ -11,9 +12,34 @@ import { Icon } from "../icons";
 import { A, Button, Card, cx, Empty, Modal, Prop, statusTone, Tag } from "../ui";
 import { companyOf, contactName, ownerName } from "./lists";
 
+/** Under the total of a quote with recurring lines: what repeats every year and what is charged once. */
+function RecurringRows({ quote, className }: { quote: Quote; className?: string }) {
+  const { pack } = useShell();
+  const labels = labelsOf(pack).pack.recurring;
+  const split = recurringTotals(quote);
+  if (!split) return null;
+  return (
+    <>
+      <div className={className}>
+        <dt className="text-ink-muted">{labels.annual}</dt>
+        <dd className="tabular-nums" data-testid="quote-recurring">
+          {money2(split.annual)}
+        </dd>
+      </div>
+      {split.oneTime > 0 ? (
+        <div className={className}>
+          <dt className="text-ink-muted">{labels.oneTime}</dt>
+          <dd className="tabular-nums">{money2(split.oneTime)}</dd>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 /** The quote as the buyer sees it. Used in the preview and on the buyer page. */
 function QuoteDocument({ quote }: { quote: Quote }) {
   const { world, pack } = useShell();
+  const labels = labelsOf(pack).pack;
   const company = companyOf(world, quote.companyId);
   const contact = world.contacts.find((c) => c.id === quote.contactId);
   const owner = pack.personas.find((p) => p.id === quote.ownerId);
@@ -53,7 +79,7 @@ function QuoteDocument({ quote }: { quote: Quote }) {
             <th className="py-2 font-semibold">Item</th>
             <th className="py-2 text-right font-semibold">Qty</th>
             <th className="py-2 text-right font-semibold">Unit price</th>
-            <th className="py-2 text-right font-semibold">Lead time</th>
+            <th className="py-2 text-right font-semibold">{labels.timing}</th>
             <th className="py-2 text-right font-semibold">Amount</th>
           </tr>
         </thead>
@@ -66,7 +92,7 @@ function QuoteDocument({ quote }: { quote: Quote }) {
               </td>
               <td className="py-2.5 text-right tabular-nums">{l.qty}</td>
               <td className="py-2.5 text-right tabular-nums">{money2(l.unitPrice)}</td>
-              <td className="py-2.5 text-right tabular-nums">{l.leadDays} days</td>
+              <td className="py-2.5 text-right tabular-nums">{timingOf(l)}</td>
               <td className="py-2.5 text-right tabular-nums">{money2(l.qty * l.unitPrice)}</td>
             </tr>
           ))}
@@ -84,11 +110,12 @@ function QuoteDocument({ quote }: { quote: Quote }) {
           </div>
         ) : null}
         <div className="flex justify-between border-t border-ink pt-2 text-[16px] font-semibold">
-          <dt>Total</dt>
+          <dt>{labels.quoteTotal}</dt>
           <dd className="tabular-nums" data-testid="document-total">
             {money2(totals.total)}
           </dd>
         </div>
+        <RecurringRows quote={quote} className="flex justify-between text-[12.5px]" />
       </dl>
       <section className="mt-7 border-t border-line-soft pt-4">
         <h3 className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Terms</h3>
@@ -165,6 +192,8 @@ export function QuotePage({ id }: { id: string }) {
   const deal = world.deals.find((d) => d.id === quote.dealId);
   const approver = pack.personas.find((p) => p.id === rule.approverId);
   const listMargin = quoteTotals({ lineItems: quote.lineItems, discountPct: 0 }).marginPct;
+  const labels = labelsOf(pack);
+  const terms = quoteTerms(quote, rule);
   const send = () => {
     dispatch({ t: "quote.send", id: quote.id, at: nowMs() });
     setPreview(false);
@@ -266,7 +295,7 @@ export function QuotePage({ id }: { id: string }) {
                   <th className="px-4 py-2 font-semibold">Name</th>
                   <th className="px-4 py-2 text-right font-semibold">Quantity</th>
                   <th className="px-4 py-2 text-right font-semibold">Unit price</th>
-                  <th className="px-4 py-2 text-right font-semibold">Lead time</th>
+                  <th className="px-4 py-2 text-right font-semibold">{labels.pack.timing}</th>
                   <th className="px-4 py-2 text-right font-semibold">Net price</th>
                 </tr>
               </thead>
@@ -282,7 +311,7 @@ export function QuotePage({ id }: { id: string }) {
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{l.qty}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{money2(l.unitPrice)}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{l.leadDays} days</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{timingOf(l)}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{money2(l.qty * l.unitPrice)}</td>
                   </tr>
                 ))}
@@ -295,7 +324,7 @@ export function QuotePage({ id }: { id: string }) {
             <Ext id="margin-rule">
               <Card title="Approval rule" className={cx(reasons.length > 0 && !final && quote.status !== "Approved" && "border-[#d39b00]")} testId="approval-rule">
                 <p className="text-[13px] text-ink-muted">
-                  A discount over {rule.thresholdPct}%, or a line priced under its floor price, needs approval from {approver?.name}, {approver?.title}.
+                  {fill(labels.approval.rule, { limit: rule.thresholdPct, approver: approver?.name ?? "", title: approver?.title ?? "" })}
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3 py-2">
@@ -340,12 +369,34 @@ export function QuotePage({ id }: { id: string }) {
                     <span className="w-24 text-right tabular-nums">-{money2(totals.discount)}</span>
                   </dd>
                 </div>
+                {rule.terms && terms ? (
+                  <div className="flex items-center justify-between">
+                    <dt className="text-ink-muted">{rule.terms.label}</dt>
+                    <dd>
+                      <select
+                        value={terms.id}
+                        disabled={final}
+                        aria-label={rule.terms.label}
+                        data-testid="quote-terms"
+                        onChange={(e) => dispatch({ t: "quote.terms", id: quote.id, termsId: e.target.value })}
+                        className="h-8 rounded-[6px] border border-line bg-white px-2 text-[13.5px] focus:border-ink focus:outline-none disabled:bg-[#f3f3f3] disabled:text-ink-muted"
+                      >
+                        {rule.terms.options.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between border-t border-line pt-2.5 text-[16px] font-semibold">
-                  <dt>Total</dt>
+                  <dt>{labels.pack.quoteTotal}</dt>
                   <dd className="tabular-nums" data-testid="quote-total">
                     {money2(totals.total)}
                   </dd>
                 </div>
+                <RecurringRows quote={quote} className="flex items-center justify-between" />
               </dl>
               {!final && quote.status !== "Draft" ? <p className="mt-3 text-[12px] text-ink-muted">Changing the discount returns the quote to draft and clears the approval.</p> : null}
             </Card>
@@ -513,7 +564,7 @@ function CostFeed({ className }: { className?: string }) {
   return (
     <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9", className)} pinClass="!right-2 !top-1.5">
       <p className="text-[12px] text-ink-muted" data-testid="cost-feed">
-        Unit cost on every line is synced from the {pack.terms.backOffice}. Last sync {relative(pack.demos.backOffice.syncedAt).toLowerCase()}.
+        {fill(labelsOf(pack).approval.costFeed, { backOffice: pack.terms.backOffice, when: relative(pack.demos.backOffice.syncedAt).toLowerCase() })}
       </p>
     </Ext>
   );
@@ -556,7 +607,7 @@ export function ApprovalPage({ id }: { id: string }) {
             <header className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4">
               <div>
                 <h2 className="text-[16px] font-semibold">
-                  {requester?.name} asks for {pct(approval.discountPct)} off {quote.number}
+                  {requester?.name} asks for {approval.discountPct > 0 ? `${pct(approval.discountPct)} off` : "approval of"} {quote.number}
                 </h2>
                 <p className="mt-0.5 text-[13px] text-ink-muted">
                   {quote.title} · requested {relative(approval.requestedAt).toLowerCase()} ·{" "}

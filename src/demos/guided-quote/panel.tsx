@@ -7,6 +7,7 @@ import { Icon } from "@/shell/icons";
 import { A, Button, cx, Tag } from "@/shell/ui";
 import { subtotal } from "@/store/quote-math";
 import { useShell } from "@/store/store";
+import { fill, labelsOf, timingOf } from "@/verticals/labels";
 import { activeNotes, disabledOptions, isComplete } from "./rules";
 
 function Choice({ selected, disabled, reason, onClick, children, hint, testId }: { selected: boolean; disabled?: boolean; reason?: string; onClick: () => void; children: React.ReactNode; hint?: string; testId: string }) {
@@ -39,7 +40,8 @@ export function GuidedSellingPanel() {
   const shown = quote ? quote.lineItems : lines;
   const maxLead = shown.reduce((max, l) => Math.max(max, l.leadDays), 0);
   const need = config.needBy.options.find((o) => o.id === needBy);
-  const notes = activeNotes(config, sel);
+  const notes = activeNotes(config, sel, quantity);
+  const labels = labelsOf(pack).guided;
   const locked = Boolean(quote);
 
   return (
@@ -111,7 +113,7 @@ export function GuidedSellingPanel() {
           <div className="hs-pop border-t border-line-soft px-5 py-4" data-testid="gq-lines">
             <div className="flex items-center justify-between">
               <h4 className="text-[13.5px] font-semibold">Rate card</h4>
-              <p className="text-[12px] text-ink-muted">Prices and lead times from the {pack.terms.backOffice}</p>
+              <p className="text-[12px] text-ink-muted">{fill(labels.source, { backOffice: pack.terms.backOffice })}</p>
             </div>
             <table className="mt-2 w-full text-[13px]">
               <thead>
@@ -119,7 +121,7 @@ export function GuidedSellingPanel() {
                   <th className="py-1.5 font-semibold">Item</th>
                   <th className="py-1.5 text-right font-semibold">Qty</th>
                   <th className="py-1.5 text-right font-semibold">Unit price</th>
-                  <th className="py-1.5 text-right font-semibold">Quoted lead time</th>
+                  <th className="py-1.5 text-right font-semibold">{labels.timing}</th>
                   <th className="py-1.5 text-right font-semibold">Total</th>
                 </tr>
               </thead>
@@ -135,7 +137,7 @@ export function GuidedSellingPanel() {
                     </td>
                     <td className="py-2 text-right tabular-nums">{l.qty}</td>
                     <td className="py-2 text-right tabular-nums">{money(l.unitPrice)}</td>
-                    <td className="py-2 text-right tabular-nums">{l.leadDays} days</td>
+                    <td className="py-2 text-right tabular-nums">{timingOf(l)}</td>
                     <td className="py-2 text-right font-semibold tabular-nums">{money(l.qty * l.unitPrice)}</td>
                   </tr>
                 ))}
@@ -151,7 +153,7 @@ export function GuidedSellingPanel() {
                 {need ? (
                   <p className="flex items-center gap-1.5 text-[12.5px]" data-testid="gq-lead-check">
                     <Tag tone={maxLead <= need.days ? "green" : "amber"}>{maxLead <= need.days ? "On time" : "At risk"}</Tag>
-                    Ships in {maxLead} days. Needed {need.label.toLowerCase()} ({need.days} days).
+                    {fill(labels.leadCheck, { lead: maxLead, need: need.label.toLowerCase(), days: need.days })}
                   </p>
                 ) : null}
               </div>

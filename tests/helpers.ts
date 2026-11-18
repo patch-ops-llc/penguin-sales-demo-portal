@@ -2,6 +2,15 @@ import { expect, type Page } from "@playwright/test";
 
 export const DEMOS = ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"] as const;
 
+/** The demos each live vertical has. Manufacturing has all six; SaaS has no Email to deal. */
+export const VERTICAL_DEMOS: Record<string, readonly string[]> = {
+  manufacturing: DEMOS,
+  saas: DEMOS.filter((demo) => demo !== "email-to-deal"),
+};
+
+/** Every live vertical and demo pair. */
+export const ALL_DEMOS = Object.entries(VERTICAL_DEMOS).flatMap(([vertical, demos]) => demos.map((demo) => ({ vertical, demo })));
+
 export const isLocal = /localhost|127\.0\.0\.1/.test(process.env.E2E_BASE_URL ?? "http://localhost:3000");
 
 export function credentials() {

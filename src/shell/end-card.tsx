@@ -2,7 +2,7 @@
 
 import { HubSpotSprocket, PenguinMark } from "@/components/brand";
 import { useShell } from "@/store/store";
-import { DEMOS, getVertical } from "@/verticals/catalog";
+import { demoTile, getVertical } from "@/verticals/catalog";
 import { Icon } from "./icons";
 import { Button, Modal } from "./ui";
 
@@ -17,7 +17,7 @@ export function EndCard() {
 
   return (
     <Modal
-      title={`What you just saw: ${DEMOS[demo].title}`}
+      title={`What you just saw: ${demoTile(vertical, demo).title}`}
       onClose={() => setEndCardOpen(false)}
       width={760}
       testId="end-card"
@@ -31,13 +31,13 @@ export function EndCard() {
           </Button>
           {nextDemo && nextDemo !== demo ? (
             <Button variant="dark" onClick={() => switchDemo(nextDemo)} data-testid="end-next-demo">
-              Next demo: {DEMOS[nextDemo].title} <Icon name="arrowRight" size={15} />
+              Next demo: {demoTile(vertical, nextDemo).title} <Icon name="arrowRight" size={15} />
             </Button>
           ) : null}
         </>
       }
     >
-      <p className="text-[15px] leading-relaxed">{DEMOS[demo].takeaway}</p>
+      <p className="text-[15px] leading-relaxed">{demoTile(vertical, demo).takeaway}</p>
       <div className="mt-4 grid grid-cols-2 gap-4">
         <section className="rounded-[10px] border border-line p-4" data-testid="end-native">
           <h3 className="flex items-center gap-2 text-[13px] font-semibold">

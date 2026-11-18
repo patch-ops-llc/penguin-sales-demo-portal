@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { ShellApp } from "@/shell/shell-app";
 import { getVertical } from "@/verticals/catalog";
-import { packVersion } from "@/verticals/server";
+import { livePackVersions } from "@/verticals/server";
 
 export const dynamic = "force-dynamic";
 // Inside the demo the browser tab looks like HubSpot too.
@@ -16,8 +16,8 @@ export default async function DemoPage({ params }: PageProps<"/demo/[[...path]]"
   const { path } = await params;
   const verticalId = path?.[0];
   const vertical = verticalId ? getVertical(verticalId) : undefined;
-  const version = vertical ? packVersion(vertical.id) : null;
-  if (!vertical || vertical.status !== "live" || !version) redirect("/launchpad");
+  const versions = livePackVersions();
+  if (!vertical || vertical.status !== "live" || !versions[vertical.id]) redirect("/launchpad");
 
-  return <ShellApp verticalId={vertical.id} packVersion={version} />;
+  return <ShellApp initialVertical={vertical.id} packVersions={versions} />;
 }

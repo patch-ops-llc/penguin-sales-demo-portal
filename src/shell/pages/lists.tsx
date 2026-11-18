@@ -4,6 +4,7 @@ import { useState } from "react";
 import { quoteTotals } from "@/store/quote-math";
 import { useShell } from "@/store/store";
 import type { World } from "@/store/world";
+import { labelsOf, timingOf } from "@/verticals/labels";
 import type { Company, Contact, Deal, Pack, Product, Quote, Task, Workflow } from "@/verticals/types";
 import { compactMoney, date, money, num, relative } from "../format";
 import { Icon } from "../icons";
@@ -237,7 +238,7 @@ export function DealsIndex() {
       alternate={board ? (rows) => <DealBoard deals={rows} /> : undefined}
       toolbar={
         <div className="flex items-center gap-3">
-          <p className="text-[12.5px] text-ink-muted">Sales pipeline</p>
+          <p className="text-[12.5px] text-ink-muted">{labelsOf(pack).pack.pipeline}</p>
           <div className="inline-flex overflow-hidden rounded-[6px] border border-line bg-white" role="group" aria-label="Layout">
             <button type="button" onClick={() => setBoard(false)} aria-pressed={!board} data-testid="deals-table-view" className={cx("inline-flex h-8 items-center gap-1.5 px-3 text-[12.5px] font-semibold", !board ? "bg-ink text-white" : "hover:bg-[#f0f0f0]")}>
               <Icon name="list" size={14} /> Table
@@ -374,7 +375,7 @@ export function ProductsIndex() {
     { id: "family", label: "Product family", cell: (p) => p.family, sort: (p) => p.family },
     { id: "price", label: "Unit price", align: "right", cell: (p) => money(p.price), sort: (p) => p.price },
     { id: "cost", label: "Unit cost", align: "right", cell: (p) => money(p.cost), sort: (p) => p.cost },
-    { id: "lead", label: "Lead time", align: "right", cell: (p) => `${p.leadDays} days`, sort: (p) => p.leadDays },
+    { id: "lead", label: labelsOf(pack).pack.timing, align: "right", cell: (p) => timingOf(p), sort: (p) => p.leadDays },
   ];
   return (
     <IndexPage

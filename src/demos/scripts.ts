@@ -121,7 +121,7 @@ const discountApproval: DemoScript = {
     {
       id: "view-as-approver",
       title: "Switch to the approver",
-      hint: "Demo bar: View as, Sales Director. The bell shows one new item",
+      hint: ({ pack }) => `Demo bar: View as, ${pack.personas.find((p) => p.id === pack.demos.discountApproval.approverId)?.viewAs ?? "the approver"}. The bell shows one new item`,
       path: ({ pack }) => `/quotes/${pack.demos.discountApproval.quoteId}`,
       after: ({ pack }) => `/quotes/${pack.demos.discountApproval.quoteId}`,
       done: (c) => has(c, "da.asApprover"),
@@ -217,7 +217,7 @@ const leadCapture: DemoScript = {
       id: "form",
       title: "Submit the web form",
       hint: "Pick one of the three leads, then Submit",
-      path: () => "/site/request-a-quote",
+      path: ({ pack }) => `/site/${pack.demos.leadCapture.site.url.split("/").pop() || "form"}`,
       done: ({ w }) => w.lc !== null,
       script: ({ w, pack }, now) => [{ t: "lc.submit", presetId: w.ui["lc.preset"] ?? pack.demos.leadCapture.scriptedPresetId, at: now }],
     },
@@ -407,4 +407,10 @@ export function requiredSteps(script: DemoScript): number {
 
 export function hintOf(step: Step, ctx: StepCtx): string {
   return typeof step.hint === "function" ? step.hint(ctx) : step.hint;
+}
+
+/** What the demo bar shows for a step: the shared storyboard's wording, unless the vertical's pack words the step its own way. */
+export function stepText(demo: DemoId, step: Step, ctx: StepCtx): { title: string; hint: string } {
+  const note = ctx.pack.stepNotes?.[demo]?.[step.id];
+  return { title: note?.title ?? step.title, hint: note?.hint ?? hintOf(step, ctx) };
 }

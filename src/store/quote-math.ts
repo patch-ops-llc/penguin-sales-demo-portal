@@ -29,15 +29,23 @@ export function linesBelowFloor(quote: Pick<Quote, "lineItems" | "discountPct">,
   return quote.lineItems.filter((l) => l.unitPrice * (1 - quote.discountPct / 100) < floorPrice(l, rule));
 }
 
+/** The selected option of the approval rule's terms list, when the vertical has one. */
+export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApprovalConfig) {
+  if (!rule.terms) return undefined;
+  return rule.terms.options.find((o) => o.id === (quote.termsId ?? rule.terms!.defaultId));
+}
+
 /**
  * The approval rule: real logic, so 8% sails through and 18% locks. Empty list means no approval needed.
  * The discount limit is HubSpot's own approval setting. The floor-price check is the Penguin rule.
  */
-export function approvalReasons(quote: Pick<Quote, "lineItems" | "discountPct">, rule: DiscountApprovalConfig): string[] {
+export function approvalReasons(quote: Pick<Quote, "lineItems" | "discountPct" | "termsId">, rule: DiscountApprovalConfig): string[] {
   const reasons: string[] = [];
   if (quote.discountPct > rule.thresholdPct) reasons.push(`Discount over ${rule.thresholdPct}%`);
   const below = linesBelowFloor(quote, rule).length;
   if (below > 0) reasons.push(`${below} ${below === 1 ? "line" : "lines"} below floor price`);
+  const terms = quoteTerms(quote, rule);
+  if (rule.terms && terms && !terms.standard) reasons.push(rule.terms.reason.replace("{term}", terms.label));
   return reasons;
 }
 
@@ -46,4 +54,13 @@ export function isLocked(quote: Quote, rule: DiscountApprovalConfig): boolean {
   if (quote.status === "Sent" || quote.status === "Accepted") return false;
   if (approvalReasons(quote, rule).length === 0) return false;
   return !(quote.approval?.status === "approved" && quote.approval.discountPct === quote.discountPct);
+}
+
+/** Splits a quote's total after discount into what repeats every year and what is charged once. */
+export function recurringTotals(quote: Pick<Quote, "lineItems" | "discountPct">): { annual: number; oneTime: number } | null {
+  const recurring = quote.lineItems.filter((l) => l.recurring);
+  if (recurring.length === 0) return null;
+  const net = (lines: LineItem[]) => Math.round(subtotal(lines) * (100 - quote.discountPct)) / 100;
+  const annual = net(recurring);
+  return { annual, oneTime: quoteTotals(quote).total - annual };
 }

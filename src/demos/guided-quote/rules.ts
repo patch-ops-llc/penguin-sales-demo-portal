@@ -53,24 +53,35 @@ function num(config: GuidedQuoteConfig, sel: Selections, path: string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-/** The rules engine: the same selections always give the same line items, prices, and lead times. */
-export function generateLines(config: GuidedQuoteConfig, sel: Selections, quantity: number): LineItem[] {
-  return config.lines.map((template) => {
-    const added = template.price.add.reduce((sum, path) => sum + num(config, sel, path), template.price.base);
-    const multiplied = template.price.multiply.reduce((value, path) => value * (num(config, sel, path) || 1), added);
-    const unitPrice = Math.round(multiplied);
-    return {
-      sku: fill(config, sel, template.sku),
-      name: fill(config, sel, template.name),
-      description: fill(config, sel, template.description),
-      qty: quantity * template.qtyPerUnit,
-      unitPrice,
-      unitCost: Math.round(unitPrice * template.costRatio),
-      leadDays: template.lead.add.reduce((sum, path) => sum + num(config, sel, path), template.lead.base),
-    };
-  });
+function quantityBreak(config: GuidedQuoteConfig, quantity: number | null) {
+  if (quantity === null) return undefined;
+  return (config.quantityBreaks ?? []).filter((b) => quantity >= b.from).sort((x, y) => y.from - x.from)[0];
 }
 
-export function activeNotes(config: GuidedQuoteConfig, sel: Selections): string[] {
-  return config.notes.filter((n) => matches(n.when, sel)).map((n) => n.text);
+/** The rules engine: the same selections always give the same line items, prices, and lead times. */
+export function generateLines(config: GuidedQuoteConfig, sel: Selections, quantity: number): LineItem[] {
+  const volume = quantityBreak(config, quantity)?.multiplier ?? 1;
+  return config.lines
+    .filter((template) => !template.when || matches(template.when, sel))
+    .map((template) => {
+      const added = template.price.add.reduce((sum, path) => sum + num(config, sel, path), template.price.base);
+      const multiplied = template.price.multiply.reduce((value, path) => value * (num(config, sel, path) || 1), added);
+      const unitPrice = Math.round(multiplied * (template.volume ? volume : 1));
+      return {
+        sku: fill(config, sel, template.sku),
+        name: fill(config, sel, template.name),
+        description: fill(config, sel, template.description),
+        qty: template.qtyFixed ?? quantity * template.qtyPerUnit,
+        unitPrice,
+        unitCost: Math.round(unitPrice * template.costRatio),
+        leadDays: template.lead.add.reduce((sum, path) => sum + num(config, sel, path), template.lead.base),
+        ...(template.timing ? { timing: fill(config, sel, template.timing) } : {}),
+        ...(template.recurring ? { recurring: true } : {}),
+      };
+    });
+}
+
+export function activeNotes(config: GuidedQuoteConfig, sel: Selections, quantity: number | null = null): string[] {
+  const volume = quantityBreak(config, quantity);
+  return [...config.notes.filter((n) => matches(n.when, sel)).map((n) => n.text), ...(volume ? [volume.note] : [])];
 }

@@ -24,6 +24,9 @@ export type ErpSummary = {
   creditLimit: number;
 };
 
+/** An extra property on a record, for facts only some verticals have: tech stack, consent, segment. */
+export type ExtraProp = { label: string; value: string };
+
 export type Company = {
   id: string;
   name: string;
@@ -44,6 +47,7 @@ export type Company = {
   /** The three fields synced from the back-office system, shown at the top of the record. */
   erp?: ErpSummary;
   enrichedAt?: string;
+  extra?: ExtraProp[];
   isNew?: boolean;
 };
 
@@ -62,6 +66,7 @@ export type Contact = {
   lastActivityAt: string;
   source?: string;
   score?: number;
+  extra?: ExtraProp[];
   isNew?: boolean;
 };
 
@@ -73,6 +78,10 @@ export type LineItem = {
   unitPrice: number;
   unitCost: number;
   leadDays: number;
+  /** Shown in the lead-time column instead of "<leadDays> days", for lines that are not shipped goods: "Billed annually", "60 months". */
+  timing?: string;
+  /** Marks a line that repeats every year, so quote totals can show annual recurring revenue. */
+  recurring?: boolean;
 };
 
 export type Deal = {
@@ -100,6 +109,9 @@ export type Product = {
   cost: number;
   leadDays: number;
   onHand: number;
+  /** Shown in the lead-time column instead of "<leadDays> days". */
+  timing?: string;
+  recurring?: boolean;
 };
 
 export type QuoteStatus = "Draft" | "Pending approval" | "Approved" | "Sent" | "Accepted";
@@ -131,6 +143,8 @@ export type Quote = {
   acceptedAt?: string;
   approval?: QuoteApproval;
   origin?: string;
+  /** Id of the selected option in the approval rule's terms list, when the vertical has one. */
+  termsId?: string;
   isNew?: boolean;
 };
 
@@ -230,6 +244,25 @@ export type GqLineTemplate = {
   /** Lead time in days = base + sum of the named attrs. */
   lead: { base: number; add: string[] };
   qtyPerUnit: number;
+  /** Include the line only when every listed field has one of the listed options selected. */
+  when?: Record<string, string[]>;
+  /** A fixed quantity, for lines that do not scale with the quantity question (a one-time onboarding package). */
+  qtyFixed?: number;
+  /** Apply the config's quantity breaks to this line's unit price. */
+  volume?: boolean;
+  /** Filled like `name`, then shown in the lead-time column instead of a number of days. */
+  timing?: string;
+  recurring?: boolean;
+};
+
+/** Wording of the Guided quote card. Every key is optional in a pack; Manufacturing's wording is the default. */
+export type GuidedLabels = {
+  /** "{backOffice}" is the vertical's back-office term. */
+  source: string;
+  /** Heading of the column that shows a line's lead time or, for lines that are not shipped goods, its `timing`. */
+  timing: string;
+  /** "{lead}" days until ready, "{need}" the chosen need-by label, "{days}" its length. */
+  leadCheck: string;
 };
 
 export type GuidedQuoteConfig = {
@@ -246,9 +279,30 @@ export type GuidedQuoteConfig = {
   /** The choices the Next button makes when the rep lets the script drive. */
   scripted: { selections: Record<string, string>; quantity: number; needBy: string };
   quoteTitle: string;
+  /** Volume pricing: the highest break at or under the chosen quantity multiplies the unit price of `volume` lines. */
+  quantityBreaks?: { from: number; multiplier: number; note: string }[];
+  labels?: Partial<GuidedLabels>;
 };
 
 // ---------- Discount approval ----------
+
+/** Wording of the approval rule where a vertical's differs. Manufacturing's wording is the default. */
+export type ApprovalLabels = {
+  /** The rule in one sentence: "{limit}", "{approver}", "{title}". */
+  rule: string;
+  /** Where the floor price comes from: "{backOffice}", "{when}". */
+  costFeed: string;
+};
+
+/** A second approval trigger that is a choice on the quote rather than a number, such as payment terms. */
+export type TermsRule = {
+  label: string;
+  options: { id: string; label: string; standard: boolean }[];
+  /** The option a quote has until another is chosen. */
+  defaultId: string;
+  /** Reason shown when a non-standard option is chosen. "{term}" is the option's label. */
+  reason: string;
+};
 
 export type DiscountApprovalConfig = {
   quoteId: string;
@@ -258,6 +312,8 @@ export type DiscountApprovalConfig = {
   marginFloorPct: number;
   approverId: string;
   scriptedDiscountPct: number;
+  terms?: TermsRule;
+  labels?: Partial<ApprovalLabels>;
 };
 
 // ---------- Back-office data ----------
@@ -274,7 +330,33 @@ export type ErpOrder = {
 
 export type ErpInvoice = { id: string; number: string; date: string; dueDate: string; amount: number; balance: number; status: "Paid" | "Open" | "Overdue" };
 
-export type ErpStockItem = { sku: string; name: string; onHand: number; leadDays: number; contractPrice: number; listPrice: number; unitCost: number; lastOrdered: string; usualQty: number };
+export type ErpStockItem = {
+  sku: string;
+  name: string;
+  onHand: number;
+  leadDays: number;
+  contractPrice: number;
+  listPrice: number;
+  unitCost: number;
+  lastOrdered: string;
+  usualQty: number;
+  /** When set, the on-hand column shows usage against this limit: seats used of seats licensed, hours used of hours contracted. */
+  capacity?: number;
+  /** Shown in the lead-time column instead of "<leadDays> days". */
+  timing?: string;
+  recurring?: boolean;
+};
+
+/** Wording of the back-office card and of what it creates. Manufacturing's wording is the default. */
+export type BackOfficeLabels = {
+  /** "{system}" is the card's system label, "{when}" how long ago it was read. */
+  live: string;
+  tabs: { orders: string; balance: string; stock: string };
+  orders: { number: string; date: string; po: string; status: string; total: string };
+  balance: { open: string; overdue: string; limit: string; status: string };
+  stock: { onHand: string; none: string; nearLimit: string; timing: string; contract: string; list: string; last: string };
+  add: { button: string; help: string; lineNote: string; origin: string; dealType: string };
+};
 
 export type BackOfficeConfig = {
   companyId: string;
@@ -288,6 +370,7 @@ export type BackOfficeConfig = {
   scriptedOrderId: string;
   quoteTitle: string;
   dealName: string;
+  labels?: DeepPartial<BackOfficeLabels>;
 };
 
 // ---------- Lead capture ----------
@@ -308,7 +391,11 @@ export type LeadPreset = {
     description: string;
     territory: string;
     type: string;
+    /** Extra facts enrichment fills on the company, such as tech stack. */
+    extra?: ExtraProp[];
   };
+  /** Extra facts the form captures on the contact, such as consent. */
+  contactExtra?: ExtraProp[];
   score: number;
   reasons: { label: string; points: number; detail: string }[];
   route: { branchId: string; ownerId: string | null; summary: string };
@@ -343,7 +430,22 @@ export type Workflow = {
 };
 
 export type LeadCaptureConfig = {
-  site: { company: string; url: string; headline: string; sub: string; formTitle: string; interests: string[] };
+  site: {
+    company: string;
+    url: string;
+    headline: string;
+    sub: string;
+    formTitle: string;
+    interests: string[];
+    /** Wording of the public page, where it differs from Manufacturing's request-a-quote page. The last nav item is the current page. */
+    nav?: string[];
+    interestLabel?: string;
+    messageLabel?: string;
+    submit?: string;
+    thanks?: { routed: string; nurture: string };
+    /** A consent line shown ticked on the form. */
+    consent?: string;
+  };
   presets: LeadPreset[];
   scriptedPresetId: string;
   workflowId: string;
@@ -438,6 +540,24 @@ export type AiProspectingConfig = {
 
 // ---------- Pack ----------
 
+export type DeepPartial<T> = { [K in keyof T]?: T[K] extends string | number | boolean | unknown[] ? T[K] : DeepPartial<T[K]> };
+
+/** Wording that is shared by several screens. Manufacturing's wording is the default. */
+export type PackLabels = {
+  pipeline: string;
+  territory: string;
+  /** Heading of the lead-time column on quotes and products. */
+  timing: string;
+  quoteTotal: string;
+  /** Rows shown under the total when a quote has recurring lines. */
+  recurring: { annual: string; oneTime: string };
+  /** The synced back-office fields at the top of a company record. "{backOffice}" is the vertical's back-office term. */
+  synced: { title: string; account: string; lastOrder: string; openBalance: string; status: string };
+};
+
+/** Per-vertical wording for a storyboard step: what the demo bar shows the rep. */
+export type StepNote = { title?: string; hint?: string };
+
 export type Pack = {
   vertical: { id: string; name: string };
   portal: { company: string; domain: string; hubId: string; currency: string };
@@ -460,6 +580,9 @@ export type Pack = {
   quoteTerms: string[];
   /** Per demo: every element named on the end card, and the flag that marks it as Penguin or native. */
   extensions: Record<DemoId, Extension[]>;
+  labels?: DeepPartial<PackLabels>;
+  /** Presenter wording per demo and step id, where the shared storyboard's wording does not fit the vertical. */
+  stepNotes?: Partial<Record<DemoId, Record<string, StepNote>>>;
   demos: {
     guidedQuote: GuidedQuoteConfig;
     discountApproval: DiscountApprovalConfig;
