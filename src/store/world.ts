@@ -45,6 +45,7 @@ export type Action =
   | { t: "quote.discount"; id: string; pct: number }
   | { t: "quote.terms"; id: string; termsId: string }
   | { t: "quote.setLines"; id: string; lines: LineItem[] }
+  | { t: "quote.create"; dealId: string; at: number }
   | { t: "quote.requestApproval"; id: string; at: number; note?: string }
   | { t: "quote.approve"; id: string; at: number; message?: string }
   | { t: "quote.requestChanges"; id: string; at: number; feedback: string }
@@ -107,6 +108,12 @@ const clampPct = (pct: number, steps = 10) => Math.min(60, Math.max(0, Math.roun
 
 /** A quote's name, as it reads in notifications and activities. */
 export const quoteName = (quote: Pick<Quote, "number" | "title">) => `${quote.number}: ${quote.title}`;
+
+/** The id the next quote created from a deal's Quotes card will get. */
+export function nextDealQuoteId(w: Pick<World, "quotes">, dealId: string): string {
+  const prefix = `q-${dealId}-`;
+  return `${prefix}${w.quotes.filter((q) => q.id.startsWith(prefix)).length + 1}`;
+}
 
 function nextQuoteNumber(w: World): string {
   const max = w.quotes.reduce((m, q) => Math.max(m, Number(q.number.replace(/\D/g, "")) || 0), 0);
@@ -243,6 +250,12 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       quote.termsId = a.termsId;
       quote.status = "Draft";
       delete quote.approval;
+      return;
+    }
+    case "quote.create": {
+      const deal = w.deals.find((d) => d.id === a.dealId);
+      if (!deal) return;
+      newQuote(w, { id: nextDealQuoteId(w, deal.id), title: deal.name, dealId: deal.id, companyId: deal.companyId, contactId: deal.contactIds[0] ?? "", lineItems: deal.lineItems, origin: "Created from the deal", at: a.at });
       return;
     }
     case "quote.setLines": {

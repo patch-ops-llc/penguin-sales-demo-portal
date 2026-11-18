@@ -13,7 +13,7 @@ import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
-import { QuoteStatus } from "../quote/status";
+import { DealQuotesCard } from "../quote/deal-quotes";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
 const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync" };
@@ -530,27 +530,21 @@ export function DealRecord({ id }: { id: string }) {
           <Assoc title="Companies" count={company ? 1 : 0}>
             {company ? <AssocRow to={`/companies/${company.id}`} title={company.name} lines={[company.domain]} /> : null}
           </Assoc>
-          <Card title={`Quotes (${quotes.length})`} testId="deal-quotes">
-            <div className="space-y-2.5">
-              {quotes.length === 0 && !canQuoteFromEmail ? <p className="text-[12.5px] text-ink-muted">No quotes yet.</p> : null}
-              {quotes.map((q) => (
-                <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[<QuoteStatus key="s" status={q.status} className="text-ink" />, money(quoteTotals(q).total)]} testId={`deal-quote-${q.id}`} />
-              ))}
-              {canQuoteFromEmail ? (
-                <Button
-                  size="sm"
-                  icon="plus"
-                  data-testid="deal-create-quote"
-                  onClick={() => {
-                    dispatch({ t: "ed.createQuote", threadId: emailThread, at: nowMs() });
-                    navigate(`/quotes/q-${emailThread}`);
-                  }}
-                >
-                  Create quote
-                </Button>
-              ) : null}
-            </div>
-          </Card>
+          <DealQuotesCard deal={deal} quotes={quotes}>
+            {canQuoteFromEmail ? (
+              <Button
+                size="sm"
+                icon="plus"
+                data-testid="deal-create-quote"
+                onClick={() => {
+                  dispatch({ t: "ed.createQuote", threadId: emailThread, at: nowMs() });
+                  navigate(`/quotes/q-${emailThread}`);
+                }}
+              >
+                Create quote
+              </Button>
+            ) : null}
+          </DealQuotesCard>
         </>
       }
     >

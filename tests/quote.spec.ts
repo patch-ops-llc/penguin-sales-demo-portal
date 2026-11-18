@@ -88,3 +88,38 @@ test("line item editor: Cancel leaves the quote as it was, and Edit columns chan
   await expect(page.getByTestId("quote-lines").locator("tbody tr")).toHaveCount(4);
   await expect(page.getByTestId("quote-total")).toContainText("$32,352.00");
 });
+
+test("deal Quotes card: + Add creates a quote from a template, and the published quote is tagged Primary", async ({ page }) => {
+  await openDemo(page, "guided-quote");
+  for (let i = 0; i < 5; i += 1) await page.getByTestId("demo-next").click();
+  await page.getByTestId("share-close").click();
+  await page.getByTestId("quote-exit").click();
+  const card = page.getByTestId("deal-quotes");
+  await expect(card).toContainText("Quotes (1)");
+  await expect(card.getByTestId("deal-quote-primary")).toHaveCount(1);
+
+  await card.getByTestId("deal-add-quote").click();
+  await expect(page.getByTestId("create-quote-panel")).toContainText("Select a quote template");
+  await page.getByTestId("quote-template").selectOption("proposal");
+  await page.getByTestId("create-quote-confirm").click();
+  await expect(page.getByTestId("quote-page")).toBeVisible();
+  await expect(page.getByTestId("quote-status")).toContainText("Draft");
+  await expect(page.getByTestId("quote-module-cover")).toBeVisible();
+  await expect(page.getByTestId("quote-lines").locator("tbody tr")).toHaveCount(4);
+
+  await page.getByTestId("quote-exit").click();
+  await expect(page.getByTestId("deal-quotes")).toContainText("Quotes (2)");
+  await expect(page.getByTestId("deal-quotes").getByTestId("deal-quote-primary")).toHaveCount(1);
+});
+
+test("quotes index: HubSpot's views and filters", async ({ page }) => {
+  await openDemo(page, "discount-approval");
+  for (let i = 0; i < 3; i += 1) await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("index-table")).toBeVisible();
+  for (const label of ["All quotes", "Expiring soon", "Pending acceptance", "Pending approval", "Status", "Last activity date", "Owner", "Signing status"]) {
+    await expect(page.getByRole("button", { name: label, exact: true }).first()).toBeVisible();
+  }
+  await page.getByRole("button", { name: "Pending approval", exact: true }).click();
+  await expect(page.getByTestId("index-count")).toHaveText("1 record");
+  await expect(page.getByTestId("index-table").locator("tbody tr")).toHaveCount(1);
+});

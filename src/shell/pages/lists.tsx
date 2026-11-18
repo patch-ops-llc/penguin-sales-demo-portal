@@ -268,7 +268,14 @@ export function DealsIndex() {
 }
 
 export function QuotesIndex() {
-  const { world, pack, persona } = useShell();
+  const { world, pack } = useShell();
+  const until = (iso: string) => new Date(iso).getTime() - Date.now();
+  const lastActivity = (q: Quote) => q.acceptedAt ?? q.sentAt ?? q.approval?.decidedAt ?? q.approval?.requestedAt ?? q.createdAt;
+  /** HubSpot tracks e-signature progress apart from the quote status. Quotes accepted another way are "Not applicable". */
+  const signing = (q: Quote) => {
+    if ((world.ui[`q.${q.id}.accept`] ?? "esign") !== "esign") return "Not applicable";
+    return q.status === "Accepted" ? "Signed" : q.status === "Sent" ? "Pending signature" : "Not applicable";
+  };
   const columns: Column<Quote>[] = [
     {
       id: "title",
@@ -292,10 +299,22 @@ export function QuotesIndex() {
   ];
   const views: View<Quote>[] = [
     { id: "all", label: "All quotes", filter: () => true },
-    { id: "mine", label: "My quotes", filter: (q) => q.ownerId === persona.id },
-    { id: "approval", label: "Needs approval", filter: (q) => q.status === "Pending approval" },
+    { id: "expiring", label: "Expiring soon", filter: (q) => q.status !== "Accepted" && until(q.validUntil) >= 0 && until(q.validUntil) <= WEEK },
+    { id: "acceptance", label: "Pending acceptance", filter: (q) => q.status === "Sent" },
+    { id: "approval", label: "Pending approval", filter: (q) => q.status === "Pending approval" },
   ];
   const statuses: Quote["status"][] = ["Draft", "Pending approval", "Changes requested", "Approved", "Sent", "Accepted"];
+  const activity = [
+    { value: "1", label: "Today" },
+    { value: "7", label: "Last 7 days" },
+    { value: "30", label: "Last 30 days" },
+  ];
+  const filters: Filter<Quote>[] = [
+    { id: "status", label: "Status", options: statuses.map((v) => ({ value: v, label: quoteStatusLabel(v) })), test: (q, v) => q.status === v },
+    { id: "activity", label: "Last activity date", options: activity, test: (q, v) => -until(lastActivity(q)) <= Number(v) * 86_400_000 },
+    ownerFilter<Quote>(pack, (q) => q.ownerId),
+    { id: "signing", label: "Signing status", options: ["Not applicable", "Pending signature", "Signed"].map((v) => ({ value: v, label: v })), test: (q, v) => signing(q) === v },
+  ];
   return (
     <IndexPage
       title="Quotes"
@@ -303,7 +322,9 @@ export function QuotesIndex() {
       rows={world.quotes}
       columns={columns}
       views={views}
-      filters={[ownerFilter<Quote>(pack, (q) => q.ownerId), { id: "status", label: "Status", options: statuses.map((v) => ({ value: v, label: quoteStatusLabel(v) })), test: (q, v) => q.status === v }]}
+      filters={filters}
+      countLabel={(count) => `${count} ${count === 1 ? "record" : "records"}`}
+      searchLabel="Search"
       searchText={(q) => `${q.number} ${q.title} ${companyOf(world, q.companyId)?.name ?? ""}`}
       rowKey={(q) => q.id}
       isNew={(q) => Boolean(q.isNew)}

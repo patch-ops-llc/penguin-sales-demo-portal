@@ -32,10 +32,14 @@ type Props<T> = {
   /** Replaces the table, for example with a board. Gets the rows after views, filters, and search. */
   alternate?: (rows: T[]) => React.ReactNode;
   initialSort?: { id: string; dir: 1 | -1 };
+  /** The line under the title. Defaults to "<count> <noun>s". */
+  countLabel?: (count: number) => string;
+  /** Defaults to "Search <noun>s". */
+  searchLabel?: string;
 };
 
 /** An index page: view tabs, filter chips, search, a sortable table, and a preview panel. */
-export function IndexPage<T>({ title, noun, rows, columns, views, filters = [], searchText, preview, rowKey, isNew, toolbar, alternate, initialSort }: Props<T>) {
+export function IndexPage<T>({ title, noun, rows, columns, views, filters = [], searchText, preview, rowKey, isNew, toolbar, alternate, initialSort, countLabel, searchLabel = `Search ${noun}s` }: Props<T>) {
   const [viewId, setViewId] = useState(views[0].id);
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Record<string, string>>({});
@@ -66,7 +70,7 @@ export function IndexPage<T>({ title, noun, rows, columns, views, filters = [], 
         <div>
           <h1 className="text-[22px] font-semibold leading-tight">{title}</h1>
           <p className="mt-0.5 text-[12.5px] text-ink-muted" data-testid="index-count">
-            {visible.length} {visible.length === 1 ? noun : `${noun}s`}
+            {countLabel ? countLabel(visible.length) : `${visible.length} ${visible.length === 1 ? noun : `${noun}s`}`}
           </p>
         </div>
         {toolbar}
@@ -89,7 +93,7 @@ export function IndexPage<T>({ title, noun, rows, columns, views, filters = [], 
         <div className="flex items-center gap-2 border-b border-line-soft px-4 py-2.5">
           <div className="relative">
             <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${noun}s`} aria-label={`Search ${noun}s`} data-testid="index-search" className="h-8 w-[240px] rounded-[6px] border border-line pl-8 pr-2 text-[13px] focus:border-ink focus:outline-none" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={searchLabel} aria-label={searchLabel} data-testid="index-search" className="h-8 w-[240px] rounded-[6px] border border-line pl-8 pr-2 text-[13px] focus:border-ink focus:outline-none" />
           </div>
           {filters.map((filter) => {
             const current = filter.options.find((o) => o.value === picked[filter.id]);
