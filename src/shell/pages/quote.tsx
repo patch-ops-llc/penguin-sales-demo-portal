@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { nowMs } from "@/lib/format";
 import { approvalReasons, isLocked, reasonList } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
-import { quoteName } from "@/store/world";
+import { quoteName, ruleOf } from "@/store/world";
 import type { Quote } from "@/verticals/types";
 import { date, dateTime, relative } from "../format";
 import { Icon, type IconName } from "../icons";
@@ -86,18 +86,20 @@ export function ApprovalPage({ id }: { id: string }) {
 
 function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean }) {
   const { world, pack, persona, dispatch, navigate } = useShell();
-  const rule = pack.demos.discountApproval;
+  const rule = ruleOf(pack, world);
   const reasons = approvalReasons(quote, rule);
   const locked = isLocked(quote, rule);
   const final = quote.status === "Sent" || quote.status === "Accepted";
   const pending = quote.status === "Pending approval";
   const changes = quote.status === "Changes requested";
-  const isApprover = persona.id === rule.approverId;
+  // A request that has been sent stays with its approver, whatever the rule says now.
+  const approverId = quote.approval?.approverId ?? rule.approverId;
+  const isApprover = persona.id === approverId;
   const isRuleQuote = quote.id === rule.quoteId;
   const company = companyOf(world, quote.companyId);
   const contact = world.contacts.find((c) => c.id === quote.contactId);
   const deal = world.deals.find((d) => d.id === quote.dealId);
-  const approver = pack.personas.find((p) => p.id === rule.approverId);
+  const approver = pack.personas.find((p) => p.id === approverId);
 
   const [view, setView] = useState<"edit" | "lines" | "preview">("edit");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");

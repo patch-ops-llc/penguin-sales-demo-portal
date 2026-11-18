@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useShell } from "@/store/store";
 import { Icon } from "../icons";
-import { Picker, StillButton } from "../quote/approval-controls";
+import { Picker, SmallButton } from "../quote/approval-controls";
 import { APPROVAL_WORKFLOW_NAME, approvalWorkflowFrom } from "../quote/approval-rule";
 import { A, Button, cx, Empty, LineTabs } from "../ui";
 
@@ -22,9 +22,7 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
-const VIEW_ONLY = "Super Admin permissions are required to change quote approvals.";
-
-/** HubSpot's settings switch: a dark track with a check when on. Changing it takes Super Admin permissions, so it only shows its state. */
+/** HubSpot's settings switch: a dark track with a check when on. It shows its state and does not change it. */
 function Switch({ on, label, testId }: { on: boolean; label: string; testId?: string }) {
   return (
     <span
@@ -32,7 +30,6 @@ function Switch({ on, label, testId }: { on: boolean; label: string; testId?: st
       aria-checked={on}
       aria-disabled="true"
       aria-label={label}
-      title={VIEW_ONLY}
       data-testid={testId}
       className={cx("inline-flex h-7 w-[52px] shrink-0 cursor-default rounded-[4px] border p-[2px]", on ? "justify-end border-ink bg-ink" : "justify-start border-[#7c8a99] bg-white")}
     >
@@ -43,7 +40,7 @@ function Switch({ on, label, testId }: { on: boolean; label: string; testId?: st
   );
 }
 
-/** The right panel behind Edit on Standard approvals. No standard approval is set up, so it has no filters and no approvers. */
+/** The right panel behind Edit on Standard approvals. No standard approval is set up, and advanced approvals are in use, so it stays empty. */
 function StandardPanel({ onClose }: { onClose: () => void }) {
   const label = "mb-1 block text-[12.5px] font-semibold";
   return (
@@ -61,9 +58,9 @@ function StandardPanel({ onClose }: { onClose: () => void }) {
           <div className="mt-3 rounded-[10px] border border-line p-4" data-testid="standard-approvals-filters">
             <h4 className="text-[14px] font-bold">Filters</h4>
             <div className="mt-3 rounded-[6px] bg-[#f0f0f0] p-2.5">
-              <StillButton title={VIEW_ONLY}>
+              <SmallButton>
                 <Icon name="plus" size={13} /> Add filter
-              </StillButton>
+              </SmallButton>
             </div>
           </div>
 
@@ -71,12 +68,12 @@ function StandardPanel({ onClose }: { onClose: () => void }) {
           <div className="mt-3 space-y-4">
             <div>
               <p className={label}>Approvers</p>
-              <Picker title={VIEW_ONLY} testId="standard-approvals-approvers" />
+              <Picker testId="standard-approvals-approvers" />
             </div>
             <fieldset>
               <legend className={label}>Approver requirements</legend>
               {["All approvers required", "At least one approver required"].map((option) => (
-                <label key={option} className="flex items-center gap-2 py-0.5" title={VIEW_ONLY}>
+                <label key={option} className="flex items-center gap-2 py-0.5">
                   <input type="radio" name="approver-requirement" checked={false} readOnly className="accent-ink" /> {option}
                 </label>
               ))}
@@ -85,19 +82,18 @@ function StandardPanel({ onClose }: { onClose: () => void }) {
               <label className={label} htmlFor="standard-approval-note">
                 With this approval note
               </label>
-              <textarea id="standard-approval-note" readOnly rows={3} value="" title={VIEW_ONLY} className="w-full cursor-default resize-none rounded-[4px] border border-[#7c8a99] px-3 py-2 text-[13.5px] focus:outline-none" />
+              <textarea id="standard-approval-note" readOnly rows={3} value="" className="w-full cursor-default resize-none rounded-[4px] border border-[#7c8a99] px-3 py-2 text-[13.5px] focus:outline-none" />
               <p className="mt-1 text-[12.5px] text-ink-muted">Quote creators and approvers will see this note when an approval takes place.</p>
             </div>
           </div>
         </div>
         <footer className="flex items-center gap-2 border-t border-line px-6 py-3">
-          <Button variant="primary" disabled title={VIEW_ONLY}>
+          <Button variant="primary" disabled>
             Save
           </Button>
           <Button onClick={onClose} data-testid="standard-approvals-close">
             Cancel
           </Button>
-          <p className="ml-auto max-w-[220px] text-right text-[12px] text-ink-muted">{VIEW_ONLY}</p>
         </footer>
       </aside>
     </div>
@@ -121,9 +117,6 @@ function ApprovalsTab({ from }: { from?: string }) {
           <span className="text-[13.5px] font-semibold">Approvals</span>
           <Switch on label="Approvals" testId="approvals-switch" />
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-ink-muted" data-testid="settings-view-only">
-          <Icon name="lock" size={13} /> View only. {VIEW_ONLY}
-        </p>
       </section>
 
       <section className={card} data-testid="standard-approvals">
@@ -159,7 +152,7 @@ function ApprovalsTab({ from }: { from?: string }) {
           {open ? (
             <ul className="space-y-3 border-t border-line-soft px-4 py-3.5 text-[13.5px] font-semibold" data-testid="advanced-approvals-links">
               <li>
-                <span className="cursor-default text-link" title={VIEW_ONLY}>
+                <span className="cursor-default text-link">
                   Team approver settings
                 </span>
               </li>

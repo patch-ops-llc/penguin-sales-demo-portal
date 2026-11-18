@@ -1,6 +1,6 @@
 import { generateLines, isComplete, pruneSelections } from "@/demos/guided-quote/rules";
 import { labelsOf } from "@/verticals/labels";
-import type { Activity, Company, Contact, Deal, InboxThread, LineItem, Notification, Pack, Quote, Task } from "@/verticals/types";
+import type { Activity, ApprovalFilterId, Company, Contact, Deal, DiscountApprovalConfig, InboxThread, LineItem, Notification, Pack, Quote, Task } from "@/verticals/types";
 import { approvalReasons, quoteTotals, unitDiscountPct } from "./quote-math";
 
 /**
@@ -27,13 +27,31 @@ export type World = {
   lc: { presetId: string; contactId: string; companyId: string; dealId: string | null; taskId: string | null; ownerId: string | null } | null;
   ed: { matches: Record<string, string>; deals: Record<string, string>; quotes: Record<string, string> };
   ap: { drafted: boolean; version: number; edits: Record<string, string>; sent: boolean };
+  /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
+  approvalRule: ApprovalRuleEdit;
   seq: number;
 };
+
+/** What the approval flow can ask of a step's approvers. The first is HubSpot's wording for every approver. */
+export const APPROVERS_REQUIRED = ["All approvers", "Any approvers", "Sequential"];
+
+export type ApprovalRuleEdit = { thresholdPct?: number; filters?: ApprovalFilterId[]; approverId?: string; required?: string };
+
+/**
+ * The quote approval rule in force: the pack's, with what the rep has changed in the approval workflow.
+ * Everything that checks a quote against the rule reads this, so an edit shows at once.
+ */
+export function ruleOf(pack: Pack, w: Pick<World, "approvalRule">): DiscountApprovalConfig {
+  const base = pack.demos.discountApproval;
+  const { thresholdPct, filters, approverId } = w.approvalRule;
+  return { ...base, thresholdPct: thresholdPct ?? base.thresholdPct, filters: filters ?? base.filters, approverId: approverId ?? base.approverId };
+}
 
 export type Action =
   | { t: "flag"; k: string }
   | { t: "ui"; k: string; v: string }
   | { t: "persona"; id: string }
+  | { t: "approval.rule"; edit: ApprovalRuleEdit | null }
   | { t: "notif.read"; id: string }
   | { t: "task.toggle"; id: string }
   | { t: "log"; kind: "note" | "email" | "call" | "meeting" | "task"; text: string; contactIds: string[]; companyIds: string[]; dealIds: string[]; at: number }
@@ -81,6 +99,7 @@ export function seedWorld(pack: Pack): World {
     lc: null,
     ed: { matches: {}, deals: {}, quotes: {} },
     ap: { drafted: false, version: 0, edits: {}, sent: false },
+    approvalRule: {},
     seq: 0,
   };
 }
@@ -166,9 +185,25 @@ export function mutate(w: World, a: Action, pack: Pack): void {
     case "persona": {
       if (!pack.personas.some((p) => p.id === a.id)) return;
       w.persona = a.id;
-      // Playing the second person is a demo step in its own right.
-      const rule = pack.demos.discountApproval;
-      if (a.id === rule.approverId && w.quotes.some((q) => q.id === rule.quoteId && q.approval)) w.flags["da.asApprover"] = true;
+      // Playing the second person is a demo step in its own right. A request stays with the approver it was sent to.
+      const request = w.quotes.find((q) => q.id === pack.demos.discountApproval.quoteId)?.approval;
+      if (request && a.id === request.approverId) w.flags["da.asApprover"] = true;
+      return;
+    }
+    case "approval.rule": {
+      // Null puts the pack's rule back. Requests already sent keep their approver and their reasons.
+      if (!a.edit) {
+        w.approvalRule = {};
+        return;
+      }
+      const base = pack.demos.discountApproval;
+      const { thresholdPct, filters, approverId, required } = a.edit;
+      const next = { ...w.approvalRule };
+      if (thresholdPct !== undefined && Number.isFinite(thresholdPct)) next.thresholdPct = Math.min(100, Math.max(0, Math.round(thresholdPct * 100) / 100));
+      if (filters) next.filters = (["discount", "floor", "terms"] as const).filter((id) => filters.includes(id) && (id !== "terms" || Boolean(base.terms)));
+      if (approverId && pack.personas.some((p) => p.id === approverId)) next.approverId = approverId;
+      if (required && APPROVERS_REQUIRED.includes(required)) next.required = required;
+      w.approvalRule = next;
       return;
     }
     case "notif.read": {
@@ -293,7 +328,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
     }
     case "quote.requestApproval": {
       const quote = w.quotes.find((q) => q.id === a.id);
-      const rule = pack.demos.discountApproval;
+      const rule = ruleOf(pack, w);
       if (!quote || (quote.status !== "Draft" && quote.status !== "Changes requested")) return;
       const reasons = approvalReasons(quote, rule);
       if (reasons.length === 0) return;
@@ -405,8 +440,9 @@ export function mutate(w: World, a: Action, pack: Pack): void {
     }
     case "quote.send": {
       const quote = w.quotes.find((q) => q.id === a.id);
-      if (!quote || (quote.status !== "Draft" && quote.status !== "Approved")) return;
-      if (approvalReasons(quote, pack.demos.discountApproval).length > 0 && quote.status !== "Approved") return;
+      // A quote sent back for changes can go out once the rule in force no longer asks for approval.
+      if (!quote || (quote.status !== "Draft" && quote.status !== "Approved" && quote.status !== "Changes requested")) return;
+      if (approvalReasons(quote, ruleOf(pack, w)).length > 0 && quote.status !== "Approved") return;
       const at = iso(a.at);
       const contact = w.contacts.find((c) => c.id === quote.contactId);
       const totals = quoteTotals(quote);

@@ -171,7 +171,7 @@ export const demos: Pack["demos"] = {
     approverId: "omar",
     scriptedDiscountPct: 12,
     labels: {
-      rule: "A discount over {limit}%, or an hourly rate under its rate-card floor, needs approval from {approver}, {title}.",
+      ruleFloor: "an hourly rate under its rate-card floor",
       costFeed: "Loaded cost per hour on every line is synced from the PSA. Last sync {when}.",
     },
   },

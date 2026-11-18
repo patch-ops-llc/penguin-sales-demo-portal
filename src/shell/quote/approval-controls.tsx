@@ -5,10 +5,8 @@ import { Ext } from "../ext";
 import { Icon } from "../icons";
 import { cx } from "../ui";
 
-// The approval settings and the approval workflow are shown as saved: their controls show a value and do not change it.
-
-/** A dropdown as HubSpot draws it, showing the saved choice. */
-export function Picker({ children, testId, title }: { children?: React.ReactNode; testId?: string; title: string }) {
+/** A dropdown as HubSpot draws it, showing the saved choice. It does not open. */
+export function Picker({ children, testId, title }: { children?: React.ReactNode; testId?: string; title?: string }) {
   return (
     <span title={title} data-testid={testId} className="flex min-h-9 w-full cursor-default items-center gap-2 rounded-[4px] border border-[#7c8a99] bg-white px-3 py-1.5 text-[13.5px]">
       <span className="min-w-0 flex-1">{children}</span>
@@ -17,12 +15,15 @@ export function Picker({ children, testId, title }: { children?: React.ReactNode
   );
 }
 
-/** A button of the editor that is drawn but does nothing here, such as Discard. */
-export function StillButton({ children, title }: { children: React.ReactNode; title: string }) {
-  return (
-    <span className="inline-flex h-8 cursor-default items-center gap-1.5 rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13px] text-ink-muted" title={title}>
+/** A small outlined button, as HubSpot draws Discard and Add filter. Without onClick it is drawn but does nothing. */
+export function SmallButton({ children, onClick, testId }: { children: React.ReactNode; onClick?: () => void; testId?: string }) {
+  const look = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13px]";
+  return onClick ? (
+    <button type="button" onClick={onClick} data-testid={testId} className={cx(look, "font-semibold hover:bg-[#f5f5f5]")}>
       {children}
-    </span>
+    </button>
+  ) : (
+    <span className={cx(look, "cursor-default text-ink-muted")}>{children}</span>
   );
 }
 
@@ -42,27 +43,36 @@ export function Marked({ filter, marked = true, className, children }: { filter:
   );
 }
 
-/** One filter in an editor: property, operator, value, stacked as HubSpot stacks them. */
-export function FilterFields({ filter, title }: { filter: ApprovalFilter; title: string }) {
-  const percent = filter.value.endsWith("%");
+/**
+ * One filter in the workflow's criteria: property, operator, value, stacked as HubSpot stacks them.
+ * The percentage can be changed and the filter removed; the property and operator are fixed for each kind of filter.
+ */
+export function FilterFields({ filter, limit, onLimit, onRemove }: { filter: ApprovalFilter; limit: string; onLimit: (value: string) => void; onRemove: () => void }) {
   return (
     <Marked filter={filter} className="rounded-[6px] bg-[#f0f0f0] p-2.5">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1 space-y-1.5">
-          <Picker title={title}>{filter.property}</Picker>
-          <Picker title={title}>{filter.operator}</Picker>
-          {percent ? (
+          <Picker>{filter.property}</Picker>
+          <Picker>{filter.operator}</Picker>
+          {filter.id === "discount" ? (
             <div className="flex items-center gap-2">
-              <input readOnly value={filter.value.slice(0, -1)} aria-label={`${filter.property} value`} title={title} className="h-9 min-w-0 flex-1 cursor-default rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13.5px] focus:outline-none" />
+              <input
+                value={limit}
+                onChange={(e) => onLimit(e.target.value)}
+                inputMode="decimal"
+                aria-label={`${filter.property} value`}
+                data-testid="aw-limit"
+                className="h-9 min-w-0 flex-1 rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13.5px] focus:border-ink focus:outline-none focus:ring-2 focus:ring-[#b6d9d7]"
+              />
               <span className="w-4 text-[13.5px]">%</span>
             </div>
           ) : (
-            <Picker title={title}>{filter.value}</Picker>
+            <Picker>{filter.value}</Picker>
           )}
         </div>
-        <span className="mt-2 text-ink-muted" aria-hidden="true">
+        <button type="button" onClick={onRemove} aria-label={`Remove ${filter.property}`} data-testid={`aw-remove-${filter.id}`} className="mt-1.5 rounded p-0.5 hover:bg-[#dcdcdc]">
           <Icon name="close" size={16} />
-        </span>
+        </button>
       </div>
     </Marked>
   );

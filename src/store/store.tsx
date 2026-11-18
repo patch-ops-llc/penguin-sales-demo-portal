@@ -145,8 +145,20 @@ export function ShellProvider({
       return;
     }
     const step = sc.steps[index];
-    const changes = [...s.changes, ...step.script({ w, pack }, Date.now())];
-    const after = { w: replay(seed, changes, pack), pack };
+    const now = Date.now();
+    let changes = [...s.changes, ...step.script({ w, pack }, now)];
+    let after = { w: replay(seed, changes, pack), pack };
+    // The scripted steps are written for the pack's approval rule. Where a rule the rep has edited keeps
+    // a step from finishing, Next puts the pack's rule back and plays the step again, so it always moves on.
+    if (!step.done(after) && Object.keys(w.approvalRule).length > 0) {
+      const restored: Action[] = [...s.changes, { t: "approval.rule", edit: null }];
+      const replayed = [...restored, ...step.script({ w: replay(seed, restored, pack), pack }, now)];
+      const then = { w: replay(seed, replayed, pack), pack };
+      if (step.done(then)) {
+        changes = replayed;
+        after = then;
+      }
+    }
     setState((prev) => ({ ...prev, changes }));
     navigate(step.after?.(after) ?? sc.steps[index + 1]?.path(after) ?? step.path(after));
   }, [pack, seed, navigate]);

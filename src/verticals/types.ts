@@ -299,8 +299,14 @@ export type GuidedQuoteConfig = {
 
 /** Wording of the approval rule where a vertical's differs. Manufacturing's wording is the default. */
 export type ApprovalLabels = {
-  /** The rule in one sentence: "{limit}", "{approver}", "{title}". */
+  /** The approval step's message to the approver: "{criteria}", "{approver}", "{title}". */
   rule: string;
+  /** Each kind of criteria as the message words it, so the message follows the criteria that are set. "{limit}" is the discount limit. */
+  ruleDiscount: string;
+  ruleFloor: string;
+  ruleTerms: string;
+  /** The message when no criteria are set. */
+  ruleNone: string;
   /** Where the floor price comes from: "{backOffice}", "{when}". */
   costFeed: string;
   /** What the quote-level percentage off is called: "Discount", or "Rate exception" for a lender. */
@@ -319,10 +325,15 @@ export type TermsRule = {
   reason: string;
 };
 
+/** The kinds of criteria the approval rule can have. */
+export type ApprovalFilterId = "discount" | "floor" | "terms";
+
 export type DiscountApprovalConfig = {
   quoteId: string;
   /** HubSpot's own approval setting: a quote discount over this needs approval. */
   thresholdPct: number;
+  /** The criteria that are set. Defaults to every kind the vertical has. */
+  filters?: ApprovalFilterId[];
   /** Minimum margin that sets each product's floor price from its unit cost. */
   marginFloorPct: number;
   approverId: string;

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { approvalReasons, floorPrice, lineMarginPct, lineNet, netUnitPrice, quoteTotals, reasonList, unitDiscountPct } from "@/store/quote-math";
 import { useShell } from "@/store/store";
+import { ruleOf } from "@/store/world";
 import { labelsOf, timingOf } from "@/verticals/labels";
 import type { LineItem, Product, Quote } from "@/verticals/types";
 import { Ext } from "../ext";
@@ -329,7 +330,7 @@ const toRow = (line: LineItem, key: number, discountPct = 0): Row => ({ key, lin
  */
 export function LineItemsEditor({ quote, onClose }: { quote: Quote; onClose: () => void }) {
   const { pack, world, dispatch } = useShell();
-  const rule = pack.demos.discountApproval;
+  const rule = ruleOf(pack, world);
   const labels = labelsOf(pack).pack;
   const columnLabels: Record<ColumnId, string> = { description: "Description", timing: labels.timing, cost: "Unit cost", margin: "Margin" };
   const columns = (world.ui[COLUMNS_KEY] ?? DEFAULT_COLUMNS).split(",") as ColumnId[];

@@ -180,7 +180,7 @@ export const demos: Pack["demos"] = {
     scriptedDiscountPct: 4,
     scriptedSkus: ["FC-EFA-PMT"],
     labels: {
-      rule: "A rate exception over {limit}% off standard pricing, or a line priced under its floor price, needs approval from {approver}, {title}.",
+      ruleDiscount: "a rate exception over {limit}% off standard pricing",
       costFeed: "Cost of funds on every line is synced from the treasury system. Last sync {when}.",
       discount: "Rate exception",
     },

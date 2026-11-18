@@ -4,13 +4,14 @@ import { useState } from "react";
 import { nowMs } from "@/lib/format";
 import { approvalConditions, approvalReasons, floorPrice, linesBelowFloor, netUnitPrice, quoteTotals, reasonList } from "@/store/quote-math";
 import { useShell } from "@/store/store";
+import { ruleOf } from "@/store/world";
 import { fill, labelsOf } from "@/verticals/labels";
 import type { Quote } from "@/verticals/types";
 import { Ext } from "../ext";
 import { dateTime, money2, pct, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, Button, cx, Modal } from "../ui";
-import { APPROVAL_SETTINGS_TRAIL, APPROVAL_WORKFLOW_NAME, approvalRuleOf, approvalSettingsFrom, approvalWorkflowFrom } from "./approval-rule";
+import { APPROVAL_SETTINGS_TRAIL, APPROVAL_WORKFLOW_NAME, approvalMessage, approvalSettingsFrom, approvalWorkflowFrom } from "./approval-rule";
 
 const DOT = { pending: "#f5c26b", approved: "#00bda5", changes: "#f2545b", none: "#b0b9c6" };
 
@@ -20,8 +21,8 @@ function Dot({ color }: { color: string }) {
 
 /** Penguin piece 1: each product's floor price and the check that flags lines below it. HubSpot's approval workflow filters on that flag. */
 export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems" | "discountPct">; className?: string }) {
-  const { pack } = useShell();
-  const rule = pack.demos.discountApproval;
+  const { pack, world } = useShell();
+  const rule = ruleOf(pack, world);
   const below = linesBelowFloor(quote, rule);
   return (
     <div className={className} data-testid="floor-check">
@@ -63,8 +64,8 @@ export function CostFeed({ className }: { className?: string }) {
 
 /** "Request approval", with HubSpot's one field: Notes to approver. */
 export function RequestApprovalDialog({ quote, onClose }: { quote: Quote; onClose: () => void }) {
-  const { pack, dispatch } = useShell();
-  const rule = pack.demos.discountApproval;
+  const { pack, world, dispatch } = useShell();
+  const rule = ruleOf(pack, world);
   const approver = pack.personas.find((p) => p.id === rule.approverId);
   const reasons = approvalReasons(quote, rule);
   const [note, setNote] = useState("");
@@ -125,8 +126,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * for the approver, the request note, the approvers, and the approval activity.
  */
 export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () => void }) {
-  const { pack, persona, dispatch } = useShell();
-  const rule = pack.demos.discountApproval;
+  const { pack, world, persona, dispatch } = useShell();
+  const rule = ruleOf(pack, world);
   const approval = quote.approval;
   const [form, setForm] = useState<"approve" | "changes" | null>(null);
   const [text, setText] = useState("");
@@ -262,7 +263,7 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
               .
             </span>
           </p>
-          <p className="mt-3 text-[12px] font-semibold">The workflow asks for approval when any of these criteria is met</p>
+          {conditions.length > 0 ? <p className="mt-3 text-[12px] font-semibold">The workflow asks for approval when any of these criteria is met</p> : null}
           <ul className="mt-1.5 space-y-1.5 text-[12.5px]" data-testid="approval-reasons">
             {conditions.map((c) => (
               <li key={c.id} className={cx("rounded-[6px] border px-2.5 py-1.5", c.reason ? "border-[#f5c26b] bg-[#fef8f0]" : "border-line")} data-testid={`approval-condition-${c.id}`} data-met={Boolean(c.reason)}>
@@ -281,7 +282,7 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
           </ul>
           <p className="mt-3 text-[12px] font-semibold">Message to approver</p>
           <p className="mt-0.5 text-[12.5px] text-ink-muted" data-testid="approval-rule-note">
-            {approvalRuleOf(pack).note}
+            {approvalMessage(pack, rule)}
           </p>
           <FloorCheck quote={quote} className="mt-3" />
           {facts}

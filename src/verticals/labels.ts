@@ -58,7 +58,11 @@ const GUIDED: GuidedLabels = {
 };
 
 const APPROVAL: ApprovalLabels = {
-  rule: "A discount over {limit}%, or a line priced under its floor price, needs approval from {approver}, {title}.",
+  rule: "{criteria} needs approval from {approver}, {title}.",
+  ruleDiscount: "a discount over {limit}%",
+  ruleFloor: "a line priced under its floor price",
+  ruleTerms: "non-standard payment terms",
+  ruleNone: "No criteria are set, so quotes are approved automatically.",
   costFeed: "Unit cost on every line is synced from the {backOffice}. Last sync {when}.",
   discount: "Discount",
 };

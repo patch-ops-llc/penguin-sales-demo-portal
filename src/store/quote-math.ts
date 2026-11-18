@@ -1,4 +1,4 @@
-import type { DiscountApprovalConfig, LineItem, Quote, QuoteStatus } from "@/verticals/types";
+import type { ApprovalFilterId, DiscountApprovalConfig, LineItem, Quote, QuoteStatus } from "@/verticals/types";
 
 type Priced = Pick<Quote, "lineItems" | "discountPct">;
 
@@ -62,7 +62,7 @@ export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApproval
 
 /** One filter of the approval rule, as HubSpot words a filter: property, operator, value. */
 export type ApprovalFilter = {
-  id: "discount" | "floor" | "terms";
+  id: ApprovalFilterId;
   property: string;
   operator: string;
   value: string;
@@ -78,7 +78,7 @@ export type ApprovalCondition = ApprovalFilter & {
  * Settings > Objects > Quotes > Approvals and held in the Quote Approval Workflow as filters on quote and line item
  * properties; a quote that meets any of them needs approval. What Penguin adds is the data one filter reads: each
  * product's floor price and the "Below floor price" flag on a line. The workflow and the quote's Approvals panel
- * both read this list.
+ * both read this list. A rep can change the limit and which criteria are set; `rule.filters` holds the ones that are.
  */
 export function approvalFilters(rule: DiscountApprovalConfig): ApprovalFilter[] {
   const filters: ApprovalFilter[] = [
@@ -89,14 +89,14 @@ export function approvalFilters(rule: DiscountApprovalConfig): ApprovalFilter[] 
     const standard = rule.terms.options.filter((o) => o.standard).map((o) => o.label);
     filters.push({ id: "terms", property: rule.terms.property ?? rule.terms.label, operator: "is none of", value: standard.join(", ") });
   }
-  return filters;
+  return rule.filters ? filters.filter((f) => rule.filters!.includes(f.id)) : filters;
 }
 
 /** The approval rule checked against a quote: real logic, so 8% sails through and 18% locks. */
 export function approvalConditions(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): ApprovalCondition[] {
   const below = linesBelowFloor(quote, rule).length;
   const terms = quoteTerms(quote, rule);
-  const reasons: Record<ApprovalFilter["id"], string | undefined> = {
+  const reasons: Record<ApprovalFilterId, string | undefined> = {
     discount: quoteTotals(quote).discountPct > rule.thresholdPct ? `${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%` : undefined,
     floor: below > 0 ? `${below} ${below === 1 ? "line" : "lines"} below floor price` : undefined,
     terms: rule.terms && terms && !terms.standard ? rule.terms.reason.replace("{term}", terms.label) : undefined,

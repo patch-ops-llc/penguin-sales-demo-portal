@@ -154,7 +154,7 @@ export const demos: Pack["demos"] = {
       reason: "Non-standard payment terms: {term}",
     },
     labels: {
-      rule: "A discount over {limit}%, payment terms other than Net 30, or a line priced under its floor price, needs approval from {approver}, {title}.",
+      ruleTerms: "payment terms other than Net 30",
       costFeed: "Cost to serve on every line is synced from the finance system. Last sync {when}.",
     },
   },

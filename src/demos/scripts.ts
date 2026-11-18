@@ -1,5 +1,5 @@
 import { approvalReasons } from "@/store/quote-math";
-import type { Action, World } from "@/store/world";
+import { ruleOf, type Action, type World } from "@/store/world";
 import type { DemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
 import { isComplete } from "./guided-quote/rules";
@@ -96,6 +96,9 @@ const guidedQuote: DemoScript = {
   ],
 };
 
+/** Who the scripted quote's approval request went to, or will go to under the rule in force. */
+const requestApprover = ({ w, pack }: StepCtx) => w.quotes.find((q) => q.id === pack.demos.discountApproval.quoteId)?.approval?.approverId ?? ruleOf(pack, w).approverId;
+
 const discountApproval: DemoScript = {
   id: "discount-approval",
   steps: [
@@ -106,7 +109,7 @@ const discountApproval: DemoScript = {
       path: ({ pack }) => `/quotes/${pack.demos.discountApproval.quoteId}`,
       done: ({ w, pack }) => {
         const quote = w.quotes.find((q) => q.id === pack.demos.discountApproval.quoteId);
-        return Boolean(quote && (quote.approval || quote.status === "Sent" || approvalReasons(quote, pack.demos.discountApproval).length > 0));
+        return Boolean(quote && (quote.approval || quote.status === "Sent" || approvalReasons(quote, ruleOf(pack, w)).length > 0));
       },
       script: ({ w, pack }) => {
         const { quoteId, scriptedDiscountPct, scriptedSkus } = pack.demos.discountApproval;
@@ -126,11 +129,11 @@ const discountApproval: DemoScript = {
     {
       id: "view-as-approver",
       title: "Switch to the approver",
-      hint: ({ pack }) => `Demo bar: View as, ${pack.personas.find((p) => p.id === pack.demos.discountApproval.approverId)?.viewAs ?? "the approver"}. The bell shows one new item`,
+      hint: (c) => `Demo bar: View as, ${c.pack.personas.find((p) => p.id === requestApprover(c))?.viewAs ?? "the approver"}. The bell shows one new item`,
       path: ({ pack }) => `/quotes/${pack.demos.discountApproval.quoteId}`,
       after: () => "/quotes",
       done: (c) => has(c, "da.asApprover"),
-      script: ({ pack }) => [{ t: "persona", id: pack.demos.discountApproval.approverId }],
+      script: (c) => [{ t: "persona", id: requestApprover(c) }],
     },
     {
       id: "open-request",
