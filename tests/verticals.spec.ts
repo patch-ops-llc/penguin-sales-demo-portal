@@ -155,3 +155,31 @@ test("manufacturing keeps its own wording where a vertical can now override it",
   await expect(page.getByTestId("quote-locked")).toContainText("discount over 10%");
   await expect(page.getByTestId("quote-lines")).toContainText("18%");
 });
+
+for (const [vertical, demos] of Object.entries(VERTICAL_DEMOS)) {
+  test(`${vertical}: the demo bar shows every step title in full at laptop widths`, async ({ page }) => {
+    test.setTimeout(60_000);
+    for (const demo of demos) {
+      await openDemo(page, demo, vertical);
+      for (;;) {
+        for (const width of [1440, 1366, 1280]) {
+          await page.setViewportSize({ width, height: 800 });
+          const title = page.getByTestId("demo-step-title");
+          const state = await title.evaluate((el) => {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size;
+            const bar = document.querySelector('[data-testid="demo-bar"]')!.getBoundingClientRect();
+            const last = document.querySelector('[data-testid="demo-bar-hide"]')!.getBoundingClientRect();
+            return { cut: el.scrollWidth > el.clientWidth + 0.5 || el.scrollHeight > el.clientHeight + 0.5, lines, barHeight: bar.height, controlsFit: last.right <= bar.right };
+          });
+          expect(state, `${demo} at ${width}px: "${await title.textContent()}"`).toEqual({ cut: false, lines: 1, barHeight: 60, controlsFit: true });
+        }
+        if (!(await page.getByTestId("demo-next").count())) break;
+        const before = await page.getByTestId("demo-step-count").textContent();
+        await page.getByTestId("demo-next").click();
+        await expect(page.getByTestId("demo-step-count")).not.toHaveText(before ?? "");
+      }
+    }
+  });
+}

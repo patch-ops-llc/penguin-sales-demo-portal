@@ -11,6 +11,14 @@ import { cx, Menu, MenuItem } from "./ui";
 const barButton = "inline-flex h-10 shrink-0 items-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-white/90 hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent";
 /** Labels the secondary controls drop at laptop widths, so the step instruction keeps its room. Each keeps its icon and tooltip. */
 const wideOnly = "hidden min-[1340px]:inline";
+/**
+ * How the bar gives way when it is short of room. Flex shares a shortfall in proportion to these numbers,
+ * so the vertical name absorbs it first, then the two menu labels; the step title (shrink 1) is effectively untouched until they have nothing left.
+ */
+const yieldFirst = "shrink-[1000000000]";
+const yieldNext = "shrink-[1000000]";
+const stepTitle = "line-clamp-2 text-[15px] font-semibold";
+const stepHint = "mt-0.5 block w-0 min-w-full truncate text-[13px] text-white/75";
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -55,17 +63,22 @@ export function DemoBar() {
       style={{ fontFamily: "var(--font-penguin)" }}
       data-testid="demo-bar"
     >
-      <span className="mr-1.5 inline-flex shrink-0 items-center gap-2 text-[13px] text-white/75">
-        <PenguinMark size={20} className="text-white" />
-        <span className="hidden min-[1400px]:inline">{pack.vertical.name}</span>
+      {/*
+        Room goes to the bold step title first. The title's column never gives way while anything else can:
+        the vertical name shortens first, then the demo switcher and View as labels, and only then does the title wrap to a second line.
+      */}
+      <span className={cx("mr-1.5 flex min-w-5 items-center gap-2 text-[13px] text-white/75", yieldFirst)}>
+        <PenguinMark size={20} className="shrink-0 text-white" />
+        <span className="hidden min-w-0 truncate min-[1600px]:block">{pack.vertical.name}</span>
       </span>
 
       <Menu
         up
         width={300}
+        className={cx("flex min-w-[120px]", yieldNext)}
         button={({ toggle }) => (
-          <button type="button" onClick={toggle} title="Switch demo" className={cx(barButton, "border border-white/30 bg-white/[0.14] !text-white hover:!bg-white/20")} data-testid="demo-switcher">
-            <span className="max-w-[210px] truncate">{demoTile(vertical, demo).title}</span> <Icon name="chevronDown" size={16} />
+          <button type="button" onClick={toggle} title="Switch demo" className={cx(barButton, "min-w-0 !shrink border border-white/30 bg-white/[0.14] !text-white hover:!bg-white/20")} data-testid="demo-switcher">
+            <span className="max-w-[210px] min-w-0 truncate">{demoTile(vertical, demo).title}</span> <Icon name="chevronDown" size={16} className="shrink-0" />
           </button>
         )}
       >
@@ -86,24 +99,29 @@ export function DemoBar() {
         }
       </Menu>
 
-      <div className="mx-2.5 flex min-w-0 flex-1 items-center gap-3" data-testid="demo-step">
+      <div className="mx-2.5 flex min-w-0 flex-[1_1_auto] items-center gap-3" data-testid="demo-step">
         <span className="shrink-0 rounded-full bg-[#6f55e8] px-3 py-1.5 text-[13px] font-semibold leading-none" data-testid="demo-step-count">
           {step ? `Step ${stepIndex + 1} of ${total}` : "Complete"}
         </span>
-        {/* Two lines: what the step is, then what to click. Each line shortens with an ellipsis; the full text is in the tooltip. */}
-        <p className="min-w-0 leading-tight" title={step && text ? `${text.title}. ${text.hint}` : undefined}>
+        {/*
+          Two lines: what the step is, then what to click. The title sets this column's width and is always shown in full.
+          The hint takes whatever width is left (it asks for none of its own) and shortens with an ellipsis; the tooltip has the full text.
+        */}
+        <p className="min-w-0 flex-[1_1_auto] leading-tight" title={step && text ? `${text.title}. ${text.hint}` : undefined}>
           {step && text ? (
             <>
-              <span className="block truncate text-[15px] font-semibold">
+              <span className={stepTitle} data-testid="demo-step-title">
                 {text.title}
                 {step.optional ? <span className="font-normal text-white/65"> (optional)</span> : null}
               </span>
-              <span className="mt-0.5 block truncate text-[13px] text-white/75">{text.hint}</span>
+              <span className={stepHint}>{text.hint}</span>
             </>
           ) : (
             <>
-              <span className="block truncate text-[15px] font-semibold">That is the whole story.</span>
-              <span className="mt-0.5 block truncate text-[13px] text-white/75">Wrap up: what was native, what Penguin built.</span>
+              <span className={stepTitle} data-testid="demo-step-title">
+                That is the whole story.
+              </span>
+              <span className={stepHint}>Wrap up: what was native, what Penguin built.</span>
             </>
           )}
         </p>
@@ -135,10 +153,11 @@ export function DemoBar() {
         up
         align="right"
         width={250}
+        className={cx("flex min-w-[76px]", yieldNext)}
         button={({ toggle }) => (
-          <button type="button" onClick={toggle} className={barButton} title="See the portal as another person" data-testid="view-as">
-            <Icon name="eye" size={16} />
-            <span className="max-w-[190px] truncate">
+          <button type="button" onClick={toggle} className={cx(barButton, "min-w-0 !shrink")} title="See the portal as another person" data-testid="view-as">
+            <Icon name="eye" size={16} className="shrink-0" />
+            <span className="max-w-[230px] min-w-0 truncate">
               <span className={wideOnly}>View as: </span>
               {persona.viewAs}
             </span>
