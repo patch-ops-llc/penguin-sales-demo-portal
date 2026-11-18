@@ -66,7 +66,7 @@ export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApproval
  */
 export function approvalReasons(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): string[] {
   const reasons: string[] = [];
-  if (quoteTotals(quote).discountPct > rule.thresholdPct) reasons.push(`Discount over ${rule.thresholdPct}%`);
+  if (quoteTotals(quote).discountPct > rule.thresholdPct) reasons.push(`${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%`);
   const below = linesBelowFloor(quote, rule).length;
   if (below > 0) reasons.push(`${below} ${below === 1 ? "line" : "lines"} below floor price`);
   const terms = quoteTerms(quote, rule);

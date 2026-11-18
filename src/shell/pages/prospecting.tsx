@@ -299,6 +299,7 @@ function Outreach() {
   const tones = config.drafts[config.buyingGroup[0].id].map((d) => d.tone);
   const body = edits[member.id] ?? draft.body;
   const typingKey = `${member.id}:${version}`;
+  const found = config.buyingGroup.filter((m) => !m.contactId).length;
 
   if (!drafted) {
     return (
@@ -336,7 +337,7 @@ function Outreach() {
           <div className="text-[13.5px]">
             <p className="font-semibold">{config.buyingGroup.length} emails sent and logged</p>
             <p className="mt-0.5 text-ink-muted">
-              {config.buyingGroup.filter((m) => !m.contactId).length} new contacts were created and a follow-up task is due in {config.followUp.dueInDays} days.{" "}
+              {found === 1 ? "1 new contact was" : `${found} new contacts were`} created and a follow-up task is due in {config.followUp.dueInDays} days.{" "}
               <A to={`/companies/${config.companyId}`} className="hs-link" data-testid="ap-view-company">
                 View the company timeline
               </A>

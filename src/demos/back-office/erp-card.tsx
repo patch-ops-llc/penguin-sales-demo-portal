@@ -120,7 +120,7 @@ export function ErpCard({ company }: { company: Company }) {
             <table className="mt-3 w-full text-[13px]">
               <thead>
                 <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
-                  <th className="py-2 font-semibold">Invoice</th>
+                  <th className="py-2 font-semibold">{labels.balance.invoice}</th>
                   <th className="py-2 font-semibold">Issued</th>
                   <th className="py-2 font-semibold">Due</th>
                   <th className="py-2 font-semibold">Status</th>
@@ -173,7 +173,9 @@ export function ErpCard({ company }: { company: Company }) {
                         <p className="font-mono text-[12px] text-ink-muted">{item.sku}</p>
                       </td>
                       <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">
-                        {item.capacity ? (
+                        {item.usage ? (
+                          <span data-testid={`erp-usage-${item.sku}`}>{item.usage}</span>
+                        ) : item.capacity ? (
                           <span className="inline-flex items-center gap-2" data-testid={`erp-usage-${item.sku}`}>
                             {item.onHand >= item.capacity * 0.9 ? <Tag tone="amber">{labels.stock.nearLimit}</Tag> : null}
                             {num(item.onHand)} of {num(item.capacity)}

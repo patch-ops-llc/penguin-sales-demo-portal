@@ -636,30 +636,33 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         const sku = l.sku ?? w.ed.matches[`${thread.id}:${l.id}`];
         const product = pack.products.find((p) => p.sku === sku);
         if (!product) return; // An unmatched line blocks deal creation.
-        lineItems.push({ sku: product.sku, name: product.name, qty: l.qty, unitPrice: product.price, unitCost: product.cost, leadDays: product.leadDays, ...(product.timing ? { timing: product.timing } : {}), ...(product.recurring ? { recurring: true } : {}) });
+        const unitPrice = l.prices?.[product.sku] ?? product.price;
+        lineItems.push({ sku: product.sku, name: product.name, qty: l.qty, unitPrice, unitCost: unitPrice === product.price ? product.cost : Math.round((unitPrice * product.cost) / (product.price || 1)), leadDays: product.leadDays, ...(product.timing ? { timing: product.timing } : {}), ...(product.recurring ? { recurring: true } : {}) });
       }
       const at = iso(a.at);
+      const forCompany = parsed.dealFor?.companyId ?? thread.companyId;
+      const forContacts = parsed.dealFor?.contactIds ?? [thread.contactId];
       const deal: Deal = {
         id: `dl-${thread.id}`,
         name: parsed.dealName,
-        companyId: thread.companyId,
-        contactIds: [thread.contactId],
+        companyId: forCompany,
+        contactIds: forContacts,
         ownerId: w.persona,
         stage: pack.demos.emailToDeal.dealStage,
         amount: lineItems.reduce((sum, l) => sum + l.qty * l.unitPrice, 0),
         closeDate: iso(a.at + parsed.closeInDays * DAY),
         createdAt: at,
         lastActivityAt: at,
-        type: "Existing business",
+        type: labelsOf(pack).email.dealType,
         lineItems,
         source: "Created from an email",
         isNew: true,
       };
       w.deals.unshift(deal);
-      const ids = { contactIds: [thread.contactId], companyIds: [thread.companyId], dealIds: [deal.id] };
+      const ids = { contactIds: forContacts, companyIds: [forCompany], dealIds: [deal.id] };
       addActivity(w, { at: thread.at, type: "email", title: `Email from ${thread.from.name}: ${thread.subject}`, body: thread.preview, byId: null, ...ids, ...(thread.attachment ? { attachment: thread.attachment.name } : {}) });
       addActivity(w, { at, type: "deal", title: "Deal created from email", body: `${lineItems.length} line items from the parsed request. Company and contact associated.`, byId: w.persona, ...ids });
-      touch(w, at, { companyId: thread.companyId, contactIds: [thread.contactId] });
+      touch(w, at, { companyId: forCompany, contactIds: forContacts });
       w.ed.deals[thread.id] = deal.id;
       return;
     }

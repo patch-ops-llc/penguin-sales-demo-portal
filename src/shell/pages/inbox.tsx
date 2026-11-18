@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ParsedRfqCard } from "@/demos/email-to-deal/parsed-card";
 import { useShell } from "@/store/store";
+import { labelsOf } from "@/verticals/labels";
 import { dateTime, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, Card, colorFor, cx, Empty, Tag } from "../ui";
@@ -52,7 +53,7 @@ export function InboxPage() {
       <section className="hs-scroll min-w-0 overflow-y-auto px-5 py-4">
         {!thread ? (
           <Card>
-            <Empty title="Select a conversation">New requests for quotes and purchase orders land here.</Empty>
+            <Empty title="Select a conversation">{labelsOf(pack).email.empty}</Empty>
           </Card>
         ) : (
           <article className="rounded-[10px] border border-line bg-white" data-testid="thread-view">

@@ -108,7 +108,12 @@ const discountApproval: DemoScript = {
         const quote = w.quotes.find((q) => q.id === pack.demos.discountApproval.quoteId);
         return Boolean(quote && (quote.approval || quote.status === "Sent" || approvalReasons(quote, pack.demos.discountApproval).length > 0));
       },
-      script: ({ pack }) => [{ t: "quote.discount", id: pack.demos.discountApproval.quoteId, pct: pack.demos.discountApproval.scriptedDiscountPct }],
+      script: ({ w, pack }) => {
+        const { quoteId, scriptedDiscountPct, scriptedSkus } = pack.demos.discountApproval;
+        const quote = w.quotes.find((q) => q.id === quoteId);
+        if (!scriptedSkus || !quote) return [{ t: "quote.discount", id: quoteId, pct: scriptedDiscountPct }];
+        return [{ t: "quote.setLines", id: quoteId, lines: quote.lineItems.map((l) => ({ ...l, discountPct: scriptedSkus.includes(l.sku) ? scriptedDiscountPct : 0 })) }];
+      },
     },
     {
       id: "request",

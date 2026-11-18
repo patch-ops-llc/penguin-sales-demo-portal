@@ -82,7 +82,76 @@ test("the back-office card's third tab opens in every vertical", async ({ page }
     await page.getByTestId("demo-next").click();
     await page.getByTestId("erp-tab-stock").click();
     await expect(page.getByTestId("erp-stock").locator("tbody tr").first()).toBeVisible();
+    if (vertical === "saas") await expect(page.getByTestId("erp-usage-LS-GRO-SEAT")).toContainText("97 of 100");
+    if (vertical === "financial-services") await expect(page.getByTestId("erp-usage-FC-LINE-300-60")).toContainText("$304,793");
   }
-  await expect(page.getByTestId("erp-usage-LS-GRO-SEAT")).toContainText("97 of 100");
   expect(errors).toEqual([]);
+});
+
+test("financial services guided proposal: payment from cost, down payment, tier, and term", async ({ page }) => {
+  await openDemo(page, "guided-quote", "financial-services");
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("gq-cost-75").click();
+  await expect(page.getByTestId("gq-program-fmv")).toBeDisabled();
+  await page.getByTestId("gq-tier-c").click();
+  await expect(page.getByTestId("gq-down-none")).toBeDisabled();
+  await page.getByTestId("gq-program-efa").click();
+  await page.getByTestId("gq-cost-250").click();
+  await page.getByTestId("gq-down-ten").click();
+  await page.getByTestId("gq-tier-a").click();
+  await page.getByTestId("gq-quantity-60").click();
+  await page.getByTestId("gq-needby-2w").click();
+  await page.getByTestId("gq-generate").click();
+  await expect(page.getByTestId("gq-lines")).toContainText("$225,000 financed over 60 months after 10% down. Fixed rate 7.25%.");
+  await expect(page.getByTestId("gq-lines")).toContainText("$4,482");
+  await expect(page.getByTestId("gq-subtotal")).toHaveText("$270,115");
+  await expect(page.getByTestId("gq-lead-check")).toContainText("On time");
+});
+
+test("financial services rate exception: on the payment line only, with the approval activity naming both people", async ({ page }) => {
+  await openDemo(page, "discount-approval", "financial-services");
+  await page.getByTestId("quote-module-lines").click();
+  await page.getByTestId("quote-edit-lines").click();
+  await page.getByTestId("line-discount-0").fill("4");
+  await expect(page.getByTestId("line-editor-approval")).toContainText("rate exception over 2%, 1 line below floor price");
+  await expect(page.getByTestId("below-floor-0")).toBeVisible();
+  await page.getByTestId("line-editor-save").click();
+  await page.getByTestId("quote-request-approval").click();
+  await page.getByTestId("request-approval-submit").click();
+  await expect(page.getByTestId("approval-reasons")).toContainText("Rate exception over 2%");
+  await expect(page.getByTestId("approval-reasons")).toContainText("1 line below floor price");
+  await expect(page.getByTestId("approval-card")).toContainText("Dana Whitlock requested approval from Ruth Adeyemi");
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("demo-next").click();
+  await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("approval-card")).toContainText("Ruth Adeyemi approved the quote");
+});
+
+test("financial services rate exception: the scripted step leaves the fees at list price", async ({ page }) => {
+  await openDemo(page, "discount-approval", "financial-services");
+  await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("quote-lines")).toContainText("4%");
+  await expect(page.getByTestId("document-total")).toHaveText("$345,412.60");
+  await expect(page.getByTestId("quote-locked")).toContainText("rate exception over 2%, 1 line below floor price");
+});
+
+test("financial services email to deal: the application is for the borrower, priced from the invoice", async ({ page }) => {
+  await openDemo(page, "email-to-deal", "financial-services");
+  await page.getByTestId("thread-th-stonegate-request").click();
+  await page.getByTestId("parsed-review").click();
+  await expect(page.getByTestId("parsed-create-deal")).toBeDisabled();
+  await page.getByTestId("parsed-suggest-FC-EFU-PMT").click();
+  await expect(page.getByTestId("parsed-total")).toHaveText("$127,980");
+  await page.getByTestId("parsed-create-deal").click();
+  await page.getByTestId("parsed-view-deal").click();
+  await expect(page.getByText("Larkspur Excavating").first()).toBeVisible();
+  await expect(page.getByText("Hank Brouwer").first()).toBeVisible();
+  await expect(page.getByText("Funding Request Source")).toBeVisible();
+});
+
+test("manufacturing keeps its own wording where a vertical can now override it", async ({ page }) => {
+  await openDemo(page, "discount-approval");
+  await page.getByTestId("demo-next").click();
+  await expect(page.getByTestId("quote-locked")).toContainText("discount over 10%");
+  await expect(page.getByTestId("quote-lines")).toContainText("18%");
 });

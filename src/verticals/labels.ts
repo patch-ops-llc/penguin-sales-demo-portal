@@ -1,4 +1,4 @@
-import type { ApprovalLabels, BackOfficeLabels, DeepPartial, GuidedLabels, Pack, PackLabels } from "./types";
+import type { ApprovalLabels, BackOfficeLabels, DeepPartial, EmailLabels, GuidedLabels, Pack, PackLabels } from "./types";
 
 // Wording the demo screens share. The defaults are Manufacturing's, so its pack sets none of
 // them; another vertical overrides only the phrases that do not fit it.
@@ -27,13 +27,22 @@ const GUIDED: GuidedLabels = {
 const APPROVAL: ApprovalLabels = {
   rule: "A discount over {limit}%, or a line priced under its floor price, needs approval from {approver}, {title}.",
   costFeed: "Unit cost on every line is synced from the {backOffice}. Last sync {when}.",
+  discount: "Discount",
+};
+
+const EMAIL: EmailLabels = {
+  empty: "New requests for quotes and purchase orders land here.",
+  flagged: "No exact match. Pick the right part:",
+  confirm: "Confirm the flagged part first.",
+  total: "Deal amount at list price",
+  dealType: "Existing business",
 };
 
 const BACK_OFFICE: BackOfficeLabels = {
   live: "Live from the {system}, read {when}",
   tabs: { orders: "Orders", balance: "Balance", stock: "Stock and pricing" },
   orders: { number: "Order", date: "Date", po: "Customer PO", status: "Status", total: "Total" },
-  balance: { open: "Open balance", overdue: "Overdue", limit: "Credit limit", status: "Credit status" },
+  balance: { open: "Open balance", overdue: "Overdue", limit: "Credit limit", status: "Credit status", invoice: "Invoice" },
   stock: { onHand: "On hand", none: "Built to order", nearLimit: "Near limit", timing: "Lead time", contract: "Contract price", list: "List price", last: "Last ordered" },
   add: {
     button: "Add to quote",
@@ -55,7 +64,7 @@ function merge<T>(base: T, over: DeepPartial<T> | undefined): T {
   return out as T;
 }
 
-export type Labels = { pack: PackLabels; guided: GuidedLabels; approval: ApprovalLabels; backOffice: BackOfficeLabels };
+export type Labels = { pack: PackLabels; guided: GuidedLabels; approval: ApprovalLabels; backOffice: BackOfficeLabels; email: EmailLabels };
 
 const cache = new WeakMap<Pack, Labels>();
 
@@ -67,6 +76,7 @@ export function labelsOf(pack: Pack): Labels {
       guided: merge(GUIDED, pack.demos.guidedQuote.labels),
       approval: merge(APPROVAL, pack.demos.discountApproval.labels),
       backOffice: merge(BACK_OFFICE, pack.demos.backOffice.labels),
+      email: merge(EMAIL, pack.demos.emailToDeal.labels),
     };
     cache.set(pack, labels);
   }

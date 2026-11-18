@@ -6,6 +6,7 @@ import { money } from "@/shell/format";
 import { Icon } from "@/shell/icons";
 import { A, Button, cx, Tag, type Tone } from "@/shell/ui";
 import { useShell } from "@/store/store";
+import { labelsOf } from "@/verticals/labels";
 import type { InboxThread } from "@/verticals/types";
 
 const CONFIDENCE: Record<string, { tone: Tone; label: string }> = {
@@ -24,10 +25,12 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
   const deal = world.deals.find((d) => d.id === dealId);
   const lines = parsed.lines.map((line) => {
     const sku = line.sku ?? world.ed.matches[`${thread.id}:${line.id}`] ?? null;
-    return { line, sku, product: pack.products.find((p) => p.sku === sku) };
+    const product = pack.products.find((p) => p.sku === sku);
+    return { line, sku, product, unitPrice: product ? (line.prices?.[product.sku] ?? product.price) : 0 };
   });
   const unmatched = lines.filter((l) => !l.product).length;
-  const total = lines.reduce((sum, l) => sum + (l.product ? l.product.price * l.line.qty : 0), 0);
+  const total = lines.reduce((sum, l) => sum + l.unitPrice * l.line.qty, 0);
+  const labels = labelsOf(pack).email;
 
   return (
     <Ext id="rfq-parser">
@@ -63,7 +66,7 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
             <div className="border-t border-line-soft px-4 py-3">
               <h4 className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Line items</h4>
               <ul className="mt-2 space-y-2.5">
-                {lines.map(({ line, product }) => (
+                {lines.map(({ line, product, unitPrice }) => (
                   <li key={line.id} className={cx("rounded-[8px] border px-3 py-2", product ? "border-line-soft" : "border-[#d39b00] bg-[#fffaf0]")} data-testid={`parsed-line-${line.id}`} onMouseEnter={() => onHoverField(line.id)} onMouseLeave={() => onHoverField(null)}>
                     <p className="text-[12px] italic text-ink-muted">&quot;{line.raw}&quot;</p>
                     {product ? (
@@ -75,7 +78,7 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
                           <span className="block font-mono text-[12px] text-ink-muted">{product.sku}</span>
                         </span>
                         <span className="shrink-0 text-right tabular-nums">
-                          {money(line.qty * product.price)}
+                          {money(line.qty * unitPrice)}
                           <span className="mt-0.5 block">
                             <Tag tone={line.sku ? CONFIDENCE[line.confidence].tone : "blue"}>{line.sku ? CONFIDENCE[line.confidence].label : "Confirmed by you"}</Tag>
                           </span>
@@ -84,7 +87,7 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
                     ) : (
                       <div className="mt-1.5">
                         <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-[#754c00]">
-                          <Icon name="warning" size={14} /> No exact match. Pick the right part:
+                          <Icon name="warning" size={14} /> {labels.flagged}
                         </p>
                         <div className="mt-1.5 space-y-1.5">
                           {(line.suggestions ?? []).map((suggestion) => {
@@ -111,7 +114,7 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
                 ))}
               </ul>
               <p className="mt-3 flex items-center justify-between text-[13px]">
-                <span className="text-ink-muted">Deal amount at list price</span>
+                <span className="text-ink-muted">{labels.total}</span>
                 <span className="font-semibold tabular-nums" data-testid="parsed-total">
                   {money(total)}
                 </span>
@@ -130,7 +133,7 @@ export function ParsedRfqCard({ thread, onHoverField }: { thread: InboxThread; o
                   <Button variant="primary" disabled={unmatched > 0} onClick={() => dispatch({ t: "ed.createDeal", threadId: thread.id, at: nowMs() })} data-testid="parsed-create-deal">
                     Create deal
                   </Button>
-                  <p className="mt-1.5 text-[12px] text-ink-muted">{unmatched > 0 ? "Confirm the flagged part first." : "Creates the deal with line items, and associates the company and contact."}</p>
+                  <p className="mt-1.5 text-[12px] text-ink-muted">{unmatched > 0 ? labels.confirm : "Creates the deal with line items, and associates the company and contact."}</p>
                 </>
               )}
             </footer>

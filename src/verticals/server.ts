@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { LIVE_VERTICALS } from "./catalog";
+import { financialServicesPack } from "./financial-services/pack";
 import { manufacturingPack } from "./manufacturing/pack";
 import { saasPack } from "./saas/pack";
 import type { Pack } from "./types";
@@ -9,7 +10,7 @@ import type { Pack } from "./types";
 // after sign-in, cached under a version that is the hash of the content, so a new deploy with
 // changed content is picked up automatically and an unchanged pack is never downloaded twice.
 
-const PACKS: Record<string, Pack> = { manufacturing: manufacturingPack, saas: saasPack };
+const PACKS: Record<string, Pack> = { manufacturing: manufacturingPack, saas: saasPack, "financial-services": financialServicesPack };
 
 const cache = new Map<string, { json: string; version: string }>();
 

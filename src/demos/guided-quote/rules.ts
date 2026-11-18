@@ -44,12 +44,26 @@ function attr(config: GuidedQuoteConfig, sel: Selections, path: string): string 
   return option.attrs?.[name] ?? "";
 }
 
-function fill(config: GuidedQuoteConfig, sel: Selections, template: string): string {
-  return template.replace(/\{([a-z]+\.[a-zA-Z]+)\}/g, (_, path: string) => String(attr(config, sel, path)));
+const PLACEHOLDER = /\{([a-z]+\.[a-zA-Z0-9]+)\}/g;
+
+/**
+ * Fills "{field.attr}" placeholders from the selected options, and "{quantity}" from the quantity answer.
+ * A placeholder may sit inside another, so an attribute can depend on two answers:
+ * "{cost.financed{down.code}}" reads `financedTen` from the selected cost when the selected down
+ * payment's code is "Ten", and "{tier.factor{quantity}}" reads `factor60` for a quantity of 60.
+ */
+function fill(config: GuidedQuoteConfig, sel: Selections, template: string, quantity: number): string {
+  let text = template.replace(/\{quantity\}/g, String(quantity));
+  for (let pass = 0; pass < 3; pass++) {
+    const next = text.replace(PLACEHOLDER, (_, path: string) => String(attr(config, sel, path)));
+    if (next === text) break;
+    text = next;
+  }
+  return text;
 }
 
-function num(config: GuidedQuoteConfig, sel: Selections, path: string): number {
-  const value = Number(attr(config, sel, path));
+function num(config: GuidedQuoteConfig, sel: Selections, path: string, quantity: number): number {
+  const value = Number(attr(config, sel, fill(config, sel, path, quantity)));
   return Number.isFinite(value) ? value : 0;
 }
 
@@ -64,18 +78,18 @@ export function generateLines(config: GuidedQuoteConfig, sel: Selections, quanti
   return config.lines
     .filter((template) => !template.when || matches(template.when, sel))
     .map((template) => {
-      const added = template.price.add.reduce((sum, path) => sum + num(config, sel, path), template.price.base);
-      const multiplied = template.price.multiply.reduce((value, path) => value * (num(config, sel, path) || 1), added);
+      const added = template.price.add.reduce((sum, path) => sum + num(config, sel, path, quantity), template.price.base);
+      const multiplied = template.price.multiply.reduce((value, path) => value * (num(config, sel, path, quantity) || 1), added);
       const unitPrice = Math.round(multiplied * (template.volume ? volume : 1));
       return {
-        sku: fill(config, sel, template.sku),
-        name: fill(config, sel, template.name),
-        description: fill(config, sel, template.description),
+        sku: fill(config, sel, template.sku, quantity),
+        name: fill(config, sel, template.name, quantity),
+        description: fill(config, sel, template.description, quantity),
         qty: template.qtyFixed ?? quantity * template.qtyPerUnit,
         unitPrice,
         unitCost: Math.round(unitPrice * template.costRatio),
-        leadDays: template.lead.add.reduce((sum, path) => sum + num(config, sel, path), template.lead.base),
-        ...(template.timing ? { timing: fill(config, sel, template.timing) } : {}),
+        leadDays: template.lead.add.reduce((sum, path) => sum + num(config, sel, path, quantity), template.lead.base),
+        ...(template.timing ? { timing: fill(config, sel, template.timing, quantity) } : {}),
         ...(template.recurring ? { recurring: true } : {}),
       };
     });

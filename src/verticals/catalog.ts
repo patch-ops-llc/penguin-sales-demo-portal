@@ -106,9 +106,37 @@ export const VERTICALS: VerticalTile[] = [
     id: "financial-services",
     name: "Financial services and fintech",
     company: "Fernhill Capital",
-    blurb: "Equipment and working-capital finance for mid-size businesses.",
-    status: "coming-soon",
-    demos: ["guided-quote", "lead-capture", "back-office", "email-to-deal", "ai-prospecting", "discount-approval"],
+    blurb: "Equipment finance for mid-size businesses, direct and through vendors and brokers.",
+    status: "live",
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    tiles: {
+      "guided-quote": {
+        title: "Guided financing proposal",
+        summary: "Pick program, equipment cost, down payment, credit tier, and term. The payment and fees generate, proposal preview, send.",
+        takeaway: "A new relationship manager prices a financing proposal correctly in under a minute, from the current rate card.",
+      },
+      "discount-approval": {
+        title: "Rate exception approval",
+        summary: "A rate exception over the limit routes to the credit officer, one click approves, the proposal unlocks, and the approval activity shows who approved.",
+        takeaway: "Pricing control with a record of who approved, without slowing the deal.",
+      },
+      "back-office": {
+        summary: "Open a customer, see facilities, payments, and available credit from loan servicing, start a proposal against the credit that is left.",
+        takeaway: "What do they owe, are they current, how much can they still borrow: answered without leaving HubSpot.",
+      },
+      "lead-capture": {
+        summary: "Financing request submitted with consent, company enriched and scored with reasons, routed by region and deal size, rep gets a task and an alert.",
+        takeaway: "A financing inquiry reaches the right relationship manager in seconds, with consent on the record.",
+      },
+      "email-to-deal": {
+        summary: "A vendor or broker emails a funding request with an invoice, it gets parsed, and becomes a financing application with line items.",
+        takeaway: "Funding requests stop being re-keyed. A person only looks where the parser is unsure.",
+      },
+      "ai-prospecting": {
+        summary: "A facility nears maturity and the customer announces an expansion, the buying group appears, outreach is drafted, rep approves and sends.",
+        takeaway: "Reps approve instead of researching, and no regulated outreach goes out without a human click.",
+      },
+    },
   },
   {
     id: "professional-services",

@@ -241,7 +241,10 @@ export type GqConstraint = {
 
 export type GqLineTemplate = {
   role: string;
-  /** "{field.attr}" placeholders are filled from the selected options. */
+  /**
+   * "{field.attr}" placeholders are filled from the selected options, and "{quantity}" from the quantity answer.
+   * Placeholders nest, so "{cost.financed{down.code}}" picks an attribute by a second answer.
+   */
   sku: string;
   name: string;
   description: string;
@@ -300,6 +303,8 @@ export type ApprovalLabels = {
   rule: string;
   /** Where the floor price comes from: "{backOffice}", "{when}". */
   costFeed: string;
+  /** What the quote-level percentage off is called: "Discount", or "Rate exception" for a lender. */
+  discount: string;
 };
 
 /** A second approval trigger that is a choice on the quote rather than a number, such as payment terms. */
@@ -320,6 +325,8 @@ export type DiscountApprovalConfig = {
   marginFloorPct: number;
   approverId: string;
   scriptedDiscountPct: number;
+  /** Lines the scripted discount goes on, by SKU. Defaults to every line. */
+  scriptedSkus?: string[];
   terms?: TermsRule;
   labels?: Partial<ApprovalLabels>;
 };
@@ -350,6 +357,8 @@ export type ErpStockItem = {
   usualQty: number;
   /** When set, the on-hand column shows usage against this limit: seats used of seats licensed, hours used of hours contracted. */
   capacity?: number;
+  /** Prepared text for the on-hand column, for usage that is not a plain count: "$650,000 of $1,000,000". */
+  usage?: string;
   /** Shown in the lead-time column instead of "<leadDays> days". */
   timing?: string;
   recurring?: boolean;
@@ -361,7 +370,7 @@ export type BackOfficeLabels = {
   live: string;
   tabs: { orders: string; balance: string; stock: string };
   orders: { number: string; date: string; po: string; status: string; total: string };
-  balance: { open: string; overdue: string; limit: string; status: string };
+  balance: { open: string; overdue: string; limit: string; status: string; invoice: string };
   stock: { onHand: string; none: string; nearLimit: string; timing: string; contract: string; list: string; last: string };
   add: { button: string; help: string; lineNote: string; origin: string; dealType: string };
 };
@@ -472,6 +481,8 @@ export type ParsedLine = {
   sku: string | null;
   suggestions?: { sku: string; why: string }[];
   confidence: "high" | "medium" | "low";
+  /** Unit price by SKU, for a line priced from the request rather than the product library: a payment worked out from an invoice total. */
+  prices?: Record<string, number>;
 };
 
 /** Email body as segments, so a parsed field can light up the text it came from. */
@@ -496,12 +507,26 @@ export type InboxThread = {
     lines: ParsedLine[];
     dealName: string;
     closeInDays: number;
+    /** Who the deal is for, when that is not the sender: a vendor or broker writing on behalf of a borrower. Defaults to the thread's company and contact. */
+    dealFor?: { companyId: string; contactIds: string[] };
     newCompany?: { name: string; domain: string; industry: string; city: string; state: string };
     newContact?: { firstName: string; lastName: string; title: string; phone: string };
   };
 };
 
-export type EmailToDealConfig = { sampleIds: string[]; scriptedThreadId: string; dealStage: string };
+/** Wording of the inbox and the parsed request card. Manufacturing's wording is the default. */
+export type EmailLabels = {
+  /** Shown in the inbox before a conversation is opened. */
+  empty: string;
+  /** Above the suggestions for a line the parser could not match. */
+  flagged: string;
+  /** Under the Create deal button while a line is still unmatched. */
+  confirm: string;
+  total: string;
+  dealType: string;
+};
+
+export type EmailToDealConfig = { sampleIds: string[]; scriptedThreadId: string; dealStage: string; labels?: Partial<EmailLabels> };
 
 // ---------- AI prospecting ----------
 
