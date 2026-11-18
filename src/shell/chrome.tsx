@@ -7,6 +7,7 @@ import { VERTICALS } from "@/verticals/catalog";
 import type { Notification } from "@/verticals/types";
 import { relative } from "./format";
 import { Icon, type IconName } from "./icons";
+import { APPROVAL_SETTINGS_PATH } from "./quote/approval-rule";
 import { A, Avatar, cx, Menu, MenuItem, Tag, useClickOutside } from "./ui";
 
 type NavItem = { to: string; label: string; icon: IconName };
@@ -206,6 +207,17 @@ function Bell() {
   );
 }
 
+/** The settings icon of the top bar. The one settings screen this portal simulates is where quote approvals are set. */
+function SettingsGear() {
+  const { route } = useShell();
+  const active = route.segments[0] === "settings";
+  return (
+    <A to={APPROVAL_SETTINGS_PATH} aria-label="Settings" title="Settings" aria-current={active ? "page" : undefined} data-testid="settings-gear" className={cx("inline-flex h-8 w-8 items-center justify-center rounded-full text-white/90 hover:bg-nav-hover", active && "bg-white/15")}>
+      <Icon name="settings" size={18} />
+    </A>
+  );
+}
+
 function AccountMenu() {
   const { pack, persona, vertical, switchVertical } = useShell();
   return (
@@ -278,6 +290,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
         </A>
         <Search />
         <div className="ml-auto flex items-center gap-1.5">
+          <SettingsGear />
           <Bell />
           <AccountMenu />
         </div>

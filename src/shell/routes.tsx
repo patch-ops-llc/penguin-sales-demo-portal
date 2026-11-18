@@ -6,6 +6,7 @@ import { InboxPage } from "./pages/inbox";
 import { ProspectingPage } from "./pages/prospecting";
 import { ApprovalPage, BuyerPage, QuotePage } from "./pages/quote";
 import { CompanyRecord, ContactRecord, DealRecord } from "./pages/records";
+import { SettingsPage } from "./pages/settings";
 import { SitePage } from "./pages/site";
 import { WorkflowPage } from "./pages/workflow";
 import { A, Card, Empty } from "./ui";
@@ -46,6 +47,8 @@ export function Routes() {
       return <ProspectingPage />;
     case "site":
       return <SitePage />;
+    case "settings":
+      return <SettingsPage />;
     case undefined:
       return null;
     default:

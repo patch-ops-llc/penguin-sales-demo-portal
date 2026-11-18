@@ -9,7 +9,8 @@ import type { Quote } from "@/verticals/types";
 import { Ext } from "../ext";
 import { dateTime, money2, pct, relative } from "../format";
 import { Icon } from "../icons";
-import { Avatar, Button, cx, Modal } from "../ui";
+import { A, Avatar, Button, cx, Modal } from "../ui";
+import { APPROVAL_SETTINGS_TRAIL, approvalRuleOf, approvalSettingsFrom } from "./approval-rule";
 
 const DOT = { pending: "#f5c26b", approved: "#00bda5", changes: "#f2545b", none: "#b0b9c6" };
 
@@ -234,7 +235,15 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
             {approver?.name} asked for changes{approval.feedback ? `: "${approval.feedback}"` : "."} Edit the quote, then request approval again.
           </p>
         ) : null}
-        {!approval && reasons.length === 0 ? <p className="mt-2 text-[12.5px] text-ink-muted">This quote is inside the approval limits and can be shared.</p> : null}
+        {!approval && reasons.length === 0 ? (
+          <p className="mt-2 text-[12.5px] text-ink-muted">
+            This quote is inside the approval limits and can be shared. The limits are set in{" "}
+            <A to={approvalSettingsFrom(quote.id)} className="hs-link" data-testid="approval-settings-link">
+              {APPROVAL_SETTINGS_TRAIL}
+            </A>
+            .
+          </p>
+        ) : null}
       </div>
 
       {reasons.length > 0 ? (
@@ -242,7 +251,11 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
           <p className="flex items-start gap-2 text-[12.5px] text-ink-muted" data-testid="approval-rule-source">
             <Icon name="settings" size={14} className="mt-0.5 shrink-0" />
             <span>
-              <span className="font-semibold text-ink">Standard approval rule</span> for quotes, set in Settings &gt; Objects &gt; Quotes &gt; Approvals.
+              <span className="font-semibold text-ink">Standard approval rule</span> for quotes, set in{" "}
+              <A to={approvalSettingsFrom(quote.id)} className="hs-link" data-testid="approval-settings-link">
+                {APPROVAL_SETTINGS_TRAIL}
+              </A>
+              .
             </span>
           </p>
           <p className="mt-3 text-[12px] font-semibold">Approval is required when any of these conditions is met</p>
@@ -264,7 +277,7 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
           </ul>
           <p className="mt-3 text-[12px] font-semibold">Approval note</p>
           <p className="mt-0.5 text-[12.5px] text-ink-muted" data-testid="approval-rule-note">
-            {fill(labelsOf(pack).approval.rule, { limit: rule.thresholdPct, approver: approver?.name ?? "", title: approver?.title ?? "" })}
+            {approvalRuleOf(pack).note}
           </p>
           <FloorCheck quote={quote} className="mt-3" />
           {facts}

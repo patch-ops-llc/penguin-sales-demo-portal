@@ -60,50 +60,47 @@ export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApproval
   return rule.terms.options.find((o) => o.id === (quote.termsId ?? rule.terms!.defaultId));
 }
 
-export type ApprovalCondition = {
+/** One filter of the approval rule, as HubSpot's approval settings word it: property, operator, value. */
+export type ApprovalFilter = {
   id: "discount" | "floor" | "terms";
-  /** The filter as HubSpot's approval settings word it: property, operator, value. */
   property: string;
   operator: string;
   value: string;
+};
+
+export type ApprovalCondition = ApprovalFilter & {
   /** Set when the quote meets the condition. */
   reason?: string;
 };
 
 /**
- * The quote approval rule: real logic, so 8% sails through and 18% locks. The rule is HubSpot's own standard
- * approval, set in Settings > Objects > Quotes > Approvals as a list of filters on quote and line item properties.
- * What Penguin adds is the data one filter reads: each product's floor price and the "Below floor price" flag on a line.
+ * The filters of the quote approval rule. The rule is HubSpot's own standard approval, set in
+ * Settings > Objects > Quotes > Approvals as filters on quote and line item properties; a quote that meets any of them
+ * needs approval. What Penguin adds is the data one filter reads: each product's floor price and the "Below floor price"
+ * flag on a line. The settings screen and the quote's Approvals panel both read this list.
  */
-export function approvalConditions(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): ApprovalCondition[] {
-  const below = linesBelowFloor(quote, rule).length;
-  const conditions: ApprovalCondition[] = [
-    {
-      id: "discount",
-      property: "Total discount percent",
-      operator: "is greater than",
-      value: `${rule.thresholdPct}%`,
-      reason: quoteTotals(quote).discountPct > rule.thresholdPct ? `${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%` : undefined,
-    },
-    {
-      id: "floor",
-      property: "Line item: Below floor price",
-      operator: "is equal to",
-      value: "True",
-      reason: below > 0 ? `${below} ${below === 1 ? "line" : "lines"} below floor price` : undefined,
-    },
+export function approvalFilters(rule: DiscountApprovalConfig): ApprovalFilter[] {
+  const filters: ApprovalFilter[] = [
+    { id: "discount", property: "Total discount percent", operator: "is greater than", value: `${rule.thresholdPct}%` },
+    { id: "floor", property: "Line item: Below floor price", operator: "is equal to", value: "True" },
   ];
   if (rule.terms) {
-    const terms = quoteTerms(quote, rule);
-    conditions.push({
-      id: "terms",
-      property: rule.terms.label,
-      operator: "is none of",
-      value: rule.terms.options.filter((o) => o.standard).map((o) => o.label).join(", "),
-      reason: terms && !terms.standard ? rule.terms.reason.replace("{term}", terms.label) : undefined,
-    });
+    const standard = rule.terms.options.filter((o) => o.standard).map((o) => o.label);
+    filters.push({ id: "terms", property: rule.terms.label, operator: "is none of", value: standard.join(", ") });
   }
-  return conditions;
+  return filters;
+}
+
+/** The approval rule checked against a quote: real logic, so 8% sails through and 18% locks. */
+export function approvalConditions(quote: Priced & Pick<Quote, "termsId">, rule: DiscountApprovalConfig): ApprovalCondition[] {
+  const below = linesBelowFloor(quote, rule).length;
+  const terms = quoteTerms(quote, rule);
+  const reasons: Record<ApprovalFilter["id"], string | undefined> = {
+    discount: quoteTotals(quote).discountPct > rule.thresholdPct ? `${rule.labels?.discount ?? "Discount"} over ${rule.thresholdPct}%` : undefined,
+    floor: below > 0 ? `${below} ${below === 1 ? "line" : "lines"} below floor price` : undefined,
+    terms: rule.terms && terms && !terms.standard ? rule.terms.reason.replace("{term}", terms.label) : undefined,
+  };
+  return approvalFilters(rule).map((filter) => ({ ...filter, reason: reasons[filter.id] }));
 }
 
 /** Why a quote needs approval: the conditions of the approval rule it meets. Empty list means no approval needed. */
