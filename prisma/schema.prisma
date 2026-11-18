@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  REP
+  ADMIN
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum TokenPurpose {
+  LOGIN
+  RESET
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String?
+  organization String?
+  role         Role       @default(REP)
+  status       UserStatus @default(INVITED)
+  passwordHash String?
+  lastLoginAt  DateTime?
+  invitedAt    DateTime?
+  invitedById  String?
+  invitedBy    User?      @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitees     User[]     @relation("InvitedBy")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  sessions    Session[]
+  invites     Invite[]
+  loginTokens MagicLinkToken[]
+  events      AccessEvent[]
+  demoRuns    DemoRun[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// A set-password link for an invited user. Only the HMAC of the token is stored.
+model Invite {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastSentAt DateTime  @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([userId])
+}
+
+/// One-time links: magic-link sign-in (LOGIN) and admin-issued password resets (RESET).
+model MagicLinkToken {
+  id        String       @id @default(cuid())
+  tokenHash String       @unique
+  purpose   TokenPurpose @default(LOGIN)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+}
+
+/// Append-only access log: sign-ins and demo use. Nothing typed into a demo is stored.
+model AccessEvent {
+  id        String   @id @default(cuid())
+  at        DateTime @default(now())
+  type      String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  /// Kept after the user row is removed, and set for failed logins where no user matches.
+  email     String?
+  sessionId String?
+  runId     String?
+  vertical  String?
+  demo      String?
+  step      Int?
+  ip        String?
+  userAgent String?
+  meta      Json?
+
+  @@index([at])
+  @@index([userId, at])
+  @@index([type, at])
+}
+
+/// One user running one demo from start to finish. The id is generated in the browser.
+model DemoRun {
+  id           String    @id
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vertical     String
+  demo         String
+  startedAt    DateTime  @default(now())
+  lastEventAt  DateTime  @default(now())
+  endedAt      DateTime?
+  furthestStep Int       @default(0)
+  totalSteps   Int       @default(0)
+  completed    Boolean   @default(false)
+  resets       Int       @default(0)
+
+  @@index([userId, startedAt])
+  @@index([startedAt])
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  at          DateTime @default(now())
+  actorId     String?
+  actorEmail  String
+  action      String
+  targetId    String?
+  targetEmail String?
+  before      Json?
+  after       Json?
+
+  @@index([at])
+}
