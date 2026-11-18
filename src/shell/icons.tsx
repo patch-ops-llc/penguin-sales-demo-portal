@@ -63,6 +63,7 @@ const PATHS = {
   copy: "M9 9h11v11H9V9ZM5 15H4V4h11v1",
   download: "M12 4v11m0 0 4-4m-4 4-4-4M5 20h14",
   print: "M7 9V4h10v5M7 17H4v-7h16v7h-3M7 14h10v6H7v-6Z",
+  flag: "M5 21V4m0 1h13l-3 4 3 4H5",
   star4: "M12 3c.9 5.4 3.6 8.1 9 9-5.4.9-8.1 3.6-9 9-.9-5.4-3.6-8.1-9-9 5.4-.9 8.1-3.6 9-9Z",
 } as const;
 

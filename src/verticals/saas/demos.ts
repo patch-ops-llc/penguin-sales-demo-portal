@@ -144,6 +144,7 @@ export const demos: Pack["demos"] = {
     scriptedDiscountPct: 18,
     terms: {
       label: "Payment terms",
+      property: "Net payment terms",
       options: [
         { id: "net30", label: "Net 30", standard: true },
         { id: "net60", label: "Net 60", standard: false },

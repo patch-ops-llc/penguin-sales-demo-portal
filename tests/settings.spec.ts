@@ -14,48 +14,53 @@ async function openApprovalsPanel(page: Page, vertical: string) {
 }
 
 const RULES = [
-  { vertical: "manufacturing", filters: ["discount", "floor"], limit: "10%", approver: "Priya Nair", title: "Sales Director" },
-  { vertical: "saas", filters: ["discount", "floor", "terms"], limit: "10%", approver: "Mei Tanaka", title: "Deal Desk Manager" },
-  { vertical: "financial-services", filters: ["discount", "floor"], limit: "2%", approver: "Ruth Adeyemi", title: "Senior Credit Officer" },
-  { vertical: "professional-services", filters: ["discount", "floor"], limit: "10%" },
+  { vertical: "manufacturing", filters: ["discount", "floor"], limit: "10%", approver: "Priya Nair" },
+  { vertical: "saas", filters: ["discount", "floor", "terms"], limit: "10%", approver: "Mei Tanaka" },
+  { vertical: "financial-services", filters: ["discount", "floor"], limit: "2%", approver: "Ruth Adeyemi" },
+  { vertical: "professional-services", filters: ["discount", "floor"], limit: "10%", approver: "Omar Haddad" },
 ];
 
 for (const rule of RULES) {
-  test(`approval settings show the rule the Approvals panel checks: ${rule.vertical}`, async ({ page }) => {
+  test(`the approval workflow shows the rule the Approvals panel checks: ${rule.vertical}`, async ({ page }) => {
     await openApprovalsPanel(page, rule.vertical);
     const card = page.getByTestId("approval-card");
+    await expect(card.getByTestId("approval-rule-source")).toContainText("Advanced approval for quotes: the Quote Approval Workflow, turned on in Settings > Objects > Quotes > Approvals.");
     await expect(card.locator("[data-testid^=approval-condition-]")).toHaveCount(rule.filters.length);
     const note = (await card.getByTestId("approval-rule-note").textContent()) ?? "";
-    expect(note.length).toBeGreaterThan(20);
+    expect(note).toContain(rule.approver);
 
+    // Settings: advanced approvals are on, standard approvals are off, and Edit leads to the workflow.
     await card.getByTestId("approval-settings-link").click();
     await expect(page).toHaveURL(/\/settings\/objects\/quotes\/approvals\?from=q-\d+$/);
-    const summary = page.getByTestId("approval-rule-summary");
-    await expect(summary.locator("[data-testid^=settings-condition-]")).toHaveCount(rule.filters.length);
+    await expect(page.getByTestId("advanced-approvals-switch")).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByTestId("standard-approvals-switch")).toHaveAttribute("aria-checked", "false");
+    await page.getByTestId("advanced-approvals-edit").click();
+    await expect(page).toHaveURL(/\/workflows\/quote-approval\?from=q-\d+$/);
+
+    const workflow = page.getByTestId("approval-workflow");
+    await expect(workflow.locator("[data-testid^=aw-criteria-]")).toHaveCount(rule.filters.length);
     const sentences: Record<string, string> = {};
-    for (const id of rule.filters) sentences[id] = (await summary.getByTestId(`settings-condition-${id}`).textContent()) ?? "";
+    for (const id of rule.filters) sentences[id] = (await workflow.getByTestId(`aw-criteria-${id}`).textContent()) ?? "";
     expect(sentences.discount).toBe(`Total discount percent is greater than ${rule.limit}`);
     expect(sentences.floor).toBe("Line item: Below floor price is equal to True");
-    await expect(page.getByTestId("settings-approval-note")).toHaveText(note);
-    if (rule.approver) {
-      await expect(page.getByTestId("settings-approver")).toContainText(`${rule.approver}, ${rule.title}`);
-      expect(note).toContain(rule.approver);
-    }
+    await expect(workflow.getByTestId("aw-step-approver")).toHaveText(rule.approver);
+    await expect(workflow.getByTestId("aw-step-message")).toHaveText(note);
 
-    await page.getByTestId("standard-approvals-edit").click();
-    const panel = page.getByTestId("approval-rule-panel");
-    await expect(panel.locator("[data-testid^=settings-filter-]")).toHaveCount(rule.filters.length);
-    await expect(panel.getByTestId("settings-panel-note")).toHaveValue(note);
-    if (rule.approver) await expect(panel.getByTestId("settings-panel-approver")).toContainText(rule.approver);
-    await panel.getByTestId("approval-rule-close").click();
+    await workflow.getByTestId("aw-branch").click();
+    await expect(workflow.getByTestId("aw-panel").locator("[data-testid^=aw-group-]")).toHaveCount(rule.filters.length);
+    await workflow.getByTestId("aw-step").click();
+    await expect(workflow.getByTestId("aw-panel-message")).toHaveValue(note);
+    await expect(workflow.getByTestId("aw-panel-approver")).toContainText(rule.approver);
+    await workflow.getByTestId("aw-panel-close").click();
+    await expect(workflow.getByTestId("aw-panel")).toHaveCount(0);
 
-    await page.getByTestId("settings-back").click();
+    await workflow.getByTestId("aw-back-quote").click();
     await expect(page).toHaveURL(/\/approvals\/q-\d+$/);
     for (const id of rule.filters) await expect(page.getByTestId(`approval-condition-${id}`)).toContainText(sentences[id]);
   });
 }
 
-test("approval settings follow HubSpot's layout, with the Penguin marker only on the floor price flag", async ({ page }) => {
+test("approval settings follow HubSpot's layout: advanced approvals on, standard approvals not set up, no Penguin marker", async ({ page }) => {
   await openApprovalsPanel(page, "saas");
   await page.getByTestId("approval-settings-link").click();
   const settings = page.getByTestId("settings-page");
@@ -63,29 +68,80 @@ test("approval settings follow HubSpot's layout, with the Penguin marker only on
   await expect(settings.getByTestId("settings-object")).toHaveText("Quotes");
   await expect(settings.getByRole("tab", { name: "Approvals" })).toHaveAttribute("aria-selected", "true");
   await expect(settings.getByTestId("approvals-switch")).toHaveAttribute("aria-checked", "true");
-  await expect(settings.getByTestId("standard-approvals-switch")).toHaveAttribute("aria-checked", "true");
   await expect(settings.getByTestId("standard-approvals")).toContainText("Use automation to set up approval on quotes that meet your choice of criteria and approvers.");
-  await expect(settings.getByTestId("advanced-approvals").getByRole("switch")).toHaveAttribute("aria-checked", "false");
-  await expect(settings.getByTestId("settings-condition-terms")).toHaveText("Payment terms is none of Net 30");
-
-  // The rule is HubSpot's own. Only the filter that reads Penguin's line item flag is marked.
-  await expect(settings.locator("[data-ext]")).toHaveCount(1);
-  await expect(settings.locator("[data-ext=floor-price-rule]").getByTestId("settings-condition-floor")).toBeVisible();
+  await expect(settings.getByTestId("advanced-approvals")).toContainText("Use workflow automation for dynamic, property-driven logic, and sequential quote approval steps.");
+  await expect(settings.getByTestId("advanced-approvals-links")).toContainText("Team approver settings");
+  await expect(settings.getByTestId("approval-workflow-link")).toHaveText("Quote Approval Workflow");
+  // The settings name the workflow and hold none of the rule, so nothing here is Penguin's.
+  await expect(page.locator("[data-ext]")).toHaveCount(0);
 
   await settings.getByTestId("standard-approvals-edit").click();
-  const panel = page.getByTestId("approval-rule-panel");
-  for (const text of ["And these conditions are met", "Filters", "Then do this", "Approvers", "Approver requirements", "With this approval note", "Quote creators and approvers will see this note when an approval takes place."]) {
-    await expect(panel.getByText(text, { exact: true })).toBeVisible();
+  const standard = page.getByTestId("standard-approvals-panel");
+  for (const text of ["And these conditions are met", "Filters", "Add filter", "Then do this", "Approvers", "Approver requirements", "With this approval note"]) {
+    await expect(standard.getByText(text, { exact: true })).toBeVisible();
   }
-  await expect(panel.getByLabel("All approvers required")).toBeChecked();
-  await expect(panel.getByLabel("At least one approver required")).not.toBeChecked();
-  await expect(panel.getByLabel("Total discount percent value")).toHaveValue("10");
-  await expect(panel.locator("[data-ext]")).toHaveCount(1);
-  await expect(panel.getByTestId("settings-filter-floor").getByTestId("ext-pin-floor-price-rule")).toBeVisible();
-  await expect(page.locator("[data-ext]")).toHaveCount(1);
+  await expect(standard.getByTestId("standard-approvals-approvers")).toHaveText("");
+  await expect(standard.getByLabel("All approvers required")).not.toBeChecked();
+  await expect(standard.getByLabel("With this approval note")).toHaveValue("");
+  await standard.getByTestId("standard-approvals-close").click();
+
+  await settings.getByTestId("approval-workflow-link").click();
+  await expect(page).toHaveURL(/\/workflows\/quote-approval\?from=q-2087$/);
 });
 
-test("the settings gear opens approval settings from the shell without a server round trip", async ({ page }) => {
+test("the approval workflow follows HubSpot's layout, with the Penguin marker only on the floor price flag", async ({ page }) => {
+  await openApprovalsPanel(page, "saas");
+  await page.getByTestId("approval-workflow-link").click();
+  const workflow = page.getByTestId("approval-workflow");
+  await expect(workflow.getByRole("heading", { name: "Quote Approval Workflow" })).toBeVisible();
+  await expect(workflow.getByTestId("aw-trigger")).toContainText("Trigger enrollment for quotes");
+  await expect(workflow.getByTestId("aw-trigger")).toContainText("New value: Internal quote status is any of Pending approval");
+  await expect(workflow.getByTestId("aw-branch")).toContainText("1. Branch");
+  await expect(workflow.getByTestId("aw-branch")).toContainText("Go to Needs approval if these criteria are met:");
+  await expect(workflow.getByTestId("aw-criteria").getByText("or", { exact: true })).toHaveCount(2);
+  await expect(workflow.getByTestId("aw-criteria-terms")).toHaveText("Net payment terms is none of Net 30");
+  await expect(workflow.getByTestId("aw-branch-met")).toContainText("Needs approval");
+  await expect(workflow.getByTestId("aw-branch-none")).toHaveText("None met");
+  await expect(workflow.getByTestId("aw-step")).toContainText("2. Add quote approval step");
+  await expect(workflow.getByTestId("aw-step")).toContainText("Approval required from Mei Tanaka. Message:");
+  await expect(workflow.getByTestId("aw-goto")).toContainText("Go to 3. Start quote approval flow.");
+  await expect(workflow.getByTestId("aw-flow")).toContainText("Create approval flow using previously executed approval steps. If no steps were added this quote will be automatically approved");
+  await expect(workflow.getByText("3. End", { exact: true })).toBeVisible();
+
+  // The workflow is HubSpot's own. Only the criteria that read Penguin's line item flag are marked.
+  await expect(page.locator("[data-ext]")).toHaveCount(1);
+  await expect(workflow.locator("[data-ext=floor-price-rule]").getByTestId("aw-criteria-floor")).toBeVisible();
+
+  await workflow.getByTestId("aw-branch").click();
+  const panel = workflow.getByTestId("aw-panel");
+  await expect(panel).toHaveAttribute("data-panel", "branch");
+  for (const text of ["First, check if:", "Group 1", "Group 2", "Group 3", "If none of the criteria are met, go here:"]) {
+    await expect(panel.getByText(text, { exact: true })).toBeVisible();
+  }
+  await expect(panel.getByLabel("Branch name", { exact: true })).toHaveValue("Needs approval");
+  await expect(panel.getByText("or", { exact: true })).toHaveCount(2);
+  await expect(panel.getByLabel("Total discount percent value")).toHaveValue("10");
+  await expect(page.locator("[data-ext]")).toHaveCount(1);
+  await expect(panel.getByTestId("aw-group-floor").getByTestId("ext-pin-floor-price-rule")).toBeVisible();
+
+  await workflow.getByTestId("aw-step").click();
+  await expect(panel).toHaveAttribute("data-panel", "step");
+  for (const text of ["Quote *", "Enrolled quote", "Message to approver *", "Give the approver context on why they are approving this", "Approvers *", "Select the people to be added to the list of approvers", "Sequential approval priority"]) {
+    await expect(panel.getByText(text, { exact: true })).toBeVisible();
+  }
+  await workflow.getByTestId("aw-flow").click();
+  await expect(panel).toHaveAttribute("data-panel", "flow");
+  await expect(panel.getByLabel("All approvers")).toBeChecked();
+  await expect(panel.getByLabel("Any approvers")).not.toBeChecked();
+
+  await workflow.getByTestId("aw-back").click();
+  await expect(page).toHaveURL(/\/settings\/objects\/quotes\/approvals\?from=q-2087$/);
+  await page.getByTestId("settings-back").click();
+  await expect(page).toHaveURL(/\/approvals\/q-2087$/);
+  await expect(page.getByTestId("approval-card")).toBeVisible();
+});
+
+test("the settings gear opens approval settings and the workflow without a server round trip", async ({ page }) => {
   await openDemo(page, "discount-approval");
   for (let i = 0; i < 3; i += 1) await page.getByTestId("demo-next").click();
   await expect(page.getByTestId("index-table")).toBeVisible();
@@ -98,9 +154,13 @@ test("the settings gear opens approval settings from the shell without a server 
 
   await page.getByTestId("settings-gear").click();
   await expect(page).toHaveURL(/\/settings\/objects\/quotes\/approvals$/);
-  await expect(page.getByTestId("settings-condition-discount")).toHaveText("Total discount percent is greater than 10%");
-  await page.getByTestId("standard-approvals-edit").click();
-  await page.getByTestId("approval-rule-close").click();
+  await page.getByTestId("advanced-approvals-edit").click();
+  await expect(page).toHaveURL(/\/workflows\/quote-approval$/);
+  await expect(page.getByTestId("aw-criteria-discount")).toHaveText("Total discount percent is greater than 10%");
+  await expect(page.getByTestId("aw-back-quote")).toHaveCount(0);
+  await page.getByTestId("aw-branch").click();
+  await page.getByTestId("aw-panel-close").click();
+  await page.getByTestId("aw-back").click();
   await expect(page.getByTestId("settings-back")).toHaveText("Back to quotes");
   await page.getByTestId("settings-back").click();
   await expect(page.getByTestId("index-table")).toBeVisible();

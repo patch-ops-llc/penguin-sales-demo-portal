@@ -310,6 +310,8 @@ export type ApprovalLabels = {
 /** A second approval trigger that is a choice on the quote rather than a number, such as payment terms. */
 export type TermsRule = {
   label: string;
+  /** HubSpot's name for the quote property behind the choice, where it differs from the label on the quote. */
+  property?: string;
   options: { id: string; label: string; standard: boolean }[];
   /** The option a quote has until another is chosen. */
   defaultId: string;

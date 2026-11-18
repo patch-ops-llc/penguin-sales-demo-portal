@@ -1,6 +1,7 @@
 "use client";
 
 import { useShell } from "@/store/store";
+import { ApprovalWorkflowPage } from "./pages/approval-workflow";
 import { CompaniesIndex, ContactsIndex, DealsIndex, ProductsIndex, QuotesIndex, TasksIndex, WorkflowsIndex } from "./pages/lists";
 import { InboxPage } from "./pages/inbox";
 import { ProspectingPage } from "./pages/prospecting";
@@ -9,6 +10,7 @@ import { CompanyRecord, ContactRecord, DealRecord } from "./pages/records";
 import { SettingsPage } from "./pages/settings";
 import { SitePage } from "./pages/site";
 import { WorkflowPage } from "./pages/workflow";
+import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
 import { A, Card, Empty } from "./ui";
 
 /**
@@ -40,6 +42,7 @@ export function Routes() {
     case "products":
       return <ProductsIndex />;
     case "workflows":
+      if (id === APPROVAL_WORKFLOW_ID) return <ApprovalWorkflowPage />;
       return id ? <WorkflowPage key={id} id={id} /> : <WorkflowsIndex />;
     case "inbox":
       return <InboxPage />;

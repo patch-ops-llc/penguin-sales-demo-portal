@@ -129,7 +129,7 @@ test("approval conditions read as HubSpot's own approval rule, with the Penguin 
   await page.getByTestId("demo-next").click();
   await page.getByTestId("view-approval-conditions").click();
   const card = page.getByTestId("approval-card");
-  await expect(card.getByTestId("approval-rule-source")).toContainText("Standard approval rule for quotes, set in Settings > Objects > Quotes > Approvals.");
+  await expect(card.getByTestId("approval-rule-source")).toContainText("Advanced approval for quotes: the Quote Approval Workflow, turned on in Settings > Objects > Quotes > Approvals.");
   await expect(card.getByTestId("approval-condition-discount")).toContainText("Total discount percent is greater than 10%");
   await expect(card.getByTestId("approval-condition-discount")).toHaveAttribute("data-met", "true");
   await expect(card.getByTestId("approval-condition-floor")).toContainText("Line item: Below floor price is equal to True");

@@ -10,7 +10,7 @@ import { Ext } from "../ext";
 import { dateTime, money2, pct, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, Button, cx, Modal } from "../ui";
-import { APPROVAL_SETTINGS_TRAIL, approvalRuleOf, approvalSettingsFrom } from "./approval-rule";
+import { APPROVAL_SETTINGS_TRAIL, APPROVAL_WORKFLOW_NAME, approvalRuleOf, approvalSettingsFrom, approvalWorkflowFrom } from "./approval-rule";
 
 const DOT = { pending: "#f5c26b", approved: "#00bda5", changes: "#f2545b", none: "#b0b9c6" };
 
@@ -18,7 +18,7 @@ function Dot({ color }: { color: string }) {
   return <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />;
 }
 
-/** Penguin piece 1: each product's floor price and the check that flags lines below it. HubSpot's approval rule filters on that flag. */
+/** Penguin piece 1: each product's floor price and the check that flags lines below it. HubSpot's approval workflow filters on that flag. */
 export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems" | "discountPct">; className?: string }) {
   const { pack } = useShell();
   const rule = pack.demos.discountApproval;
@@ -251,14 +251,18 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
           <p className="flex items-start gap-2 text-[12.5px] text-ink-muted" data-testid="approval-rule-source">
             <Icon name="settings" size={14} className="mt-0.5 shrink-0" />
             <span>
-              <span className="font-semibold text-ink">Standard approval rule</span> for quotes, set in{" "}
+              <span className="font-semibold text-ink">Advanced approval</span> for quotes: the{" "}
+              <A to={approvalWorkflowFrom(quote.id)} className="hs-link" data-testid="approval-workflow-link">
+                {APPROVAL_WORKFLOW_NAME}
+              </A>
+              , turned on in{" "}
               <A to={approvalSettingsFrom(quote.id)} className="hs-link" data-testid="approval-settings-link">
                 {APPROVAL_SETTINGS_TRAIL}
               </A>
               .
             </span>
           </p>
-          <p className="mt-3 text-[12px] font-semibold">Approval is required when any of these conditions is met</p>
+          <p className="mt-3 text-[12px] font-semibold">The workflow asks for approval when any of these criteria is met</p>
           <ul className="mt-1.5 space-y-1.5 text-[12.5px]" data-testid="approval-reasons">
             {conditions.map((c) => (
               <li key={c.id} className={cx("rounded-[6px] border px-2.5 py-1.5", c.reason ? "border-[#f5c26b] bg-[#fef8f0]" : "border-line")} data-testid={`approval-condition-${c.id}`} data-met={Boolean(c.reason)}>
@@ -275,7 +279,7 @@ export function ApprovalsPanel({ quote, onClose }: { quote: Quote; onClose: () =
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[12px] font-semibold">Approval note</p>
+          <p className="mt-3 text-[12px] font-semibold">Message to approver</p>
           <p className="mt-0.5 text-[12.5px] text-ink-muted" data-testid="approval-rule-note">
             {approvalRuleOf(pack).note}
           </p>

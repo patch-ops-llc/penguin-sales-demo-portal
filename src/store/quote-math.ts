@@ -60,7 +60,7 @@ export function quoteTerms(quote: Pick<Quote, "termsId">, rule: DiscountApproval
   return rule.terms.options.find((o) => o.id === (quote.termsId ?? rule.terms!.defaultId));
 }
 
-/** One filter of the approval rule, as HubSpot's approval settings word it: property, operator, value. */
+/** One filter of the approval rule, as HubSpot words a filter: property, operator, value. */
 export type ApprovalFilter = {
   id: "discount" | "floor" | "terms";
   property: string;
@@ -74,10 +74,11 @@ export type ApprovalCondition = ApprovalFilter & {
 };
 
 /**
- * The filters of the quote approval rule. The rule is HubSpot's own standard approval, set in
- * Settings > Objects > Quotes > Approvals as filters on quote and line item properties; a quote that meets any of them
- * needs approval. What Penguin adds is the data one filter reads: each product's floor price and the "Below floor price"
- * flag on a line. The settings screen and the quote's Approvals panel both read this list.
+ * The filters of the quote approval rule. The rule is HubSpot's own advanced approval, turned on in
+ * Settings > Objects > Quotes > Approvals and held in the Quote Approval Workflow as filters on quote and line item
+ * properties; a quote that meets any of them needs approval. What Penguin adds is the data one filter reads: each
+ * product's floor price and the "Below floor price" flag on a line. The workflow and the quote's Approvals panel
+ * both read this list.
  */
 export function approvalFilters(rule: DiscountApprovalConfig): ApprovalFilter[] {
   const filters: ApprovalFilter[] = [
@@ -86,7 +87,7 @@ export function approvalFilters(rule: DiscountApprovalConfig): ApprovalFilter[] 
   ];
   if (rule.terms) {
     const standard = rule.terms.options.filter((o) => o.standard).map((o) => o.label);
-    filters.push({ id: "terms", property: rule.terms.label, operator: "is none of", value: standard.join(", ") });
+    filters.push({ id: "terms", property: rule.terms.property ?? rule.terms.label, operator: "is none of", value: standard.join(", ") });
   }
   return filters;
 }

@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ApprovalFilter } from "@/store/quote-math";
 import { useShell } from "@/store/store";
-import { Ext } from "../ext";
 import { Icon } from "../icons";
-import { approvalRuleOf, type ApprovalRule } from "../quote/approval-rule";
-import { A, Avatar, Button, cx, Empty, LineTabs } from "../ui";
+import { Picker, StillButton } from "../quote/approval-controls";
+import { APPROVAL_WORKFLOW_NAME, approvalWorkflowFrom } from "../quote/approval-rule";
+import { A, Button, cx, Empty, LineTabs } from "../ui";
 
 // HubSpot's settings menu, cut down to the headings around the one screen this portal simulates.
 const MENU: { group: string; items: string[] }[] = [
@@ -24,7 +23,6 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const VIEW_ONLY = "Super Admin permissions are required to change quote approvals.";
-const REQUIREMENT = "All approvers required";
 
 /** HubSpot's settings switch: a dark track with a check when on. Changing it takes Super Admin permissions, so it only shows its state. */
 function Switch({ on, label, testId }: { on: boolean; label: string; testId?: string }) {
@@ -45,115 +43,13 @@ function Switch({ on, label, testId }: { on: boolean; label: string; testId?: st
   );
 }
 
-/** A dropdown as HubSpot draws it, showing the saved choice. */
-function Picker({ children, testId, title = VIEW_ONLY }: { children: React.ReactNode; testId?: string; title?: string }) {
-  return (
-    <span title={title} data-testid={testId} className="flex min-h-9 w-full cursor-default items-center gap-2 rounded-[4px] border border-[#7c8a99] bg-white px-3 py-1.5 text-[13.5px]">
-      <span className="min-w-0 flex-1">{children}</span>
-      <span className="h-0 w-0 shrink-0 border-x-[5px] border-t-[6px] border-x-transparent border-t-ink" aria-hidden="true" />
-    </span>
-  );
-}
-
-const sentence = (f: ApprovalFilter) => (
-  <>
-    <span className="font-semibold">{f.property}</span> {f.operator} <span className="font-semibold">{f.value}</span>
-  </>
-);
-
-/** The filter that reads Penguin's line item flag carries the marker; the rule around it is HubSpot's own. */
-function Marked({ filter, marked, className, children }: { filter: ApprovalFilter; marked: boolean; className?: string; children: React.ReactNode }) {
-  if (filter.id !== "floor" || !marked) return <div className={className}>{children}</div>;
-  return (
-    <Ext id="floor-price-rule" className={cx(className, "pr-10")} pinClass="!right-1.5 !top-1.5">
-      {children}
-    </Ext>
-  );
-}
-
-/** What the saved rule says, under the Quotes row of Standard approvals. */
-function RuleSummary({ rule, marked }: { rule: ApprovalRule; marked: boolean }) {
-  const row = "grid grid-cols-[170px_1fr] gap-4 py-3";
-  return (
-    <dl className="divide-y divide-line-soft border-t border-line-soft px-4 text-[13.5px]" data-testid="approval-rule-summary">
-      <div className={row}>
-        <dt className="text-ink-muted">And these conditions are met</dt>
-        <dd>
-          <ul>
-            {rule.filters.map((f, i) => (
-              <li key={f.id}>
-                {i > 0 ? <p className="py-1 text-[12.5px] text-ink-muted">or</p> : null}
-                <Marked filter={f} marked={marked} className="rounded-[6px] bg-[#f5f5f5] px-3 py-1.5">
-                  <p data-testid={`settings-condition-${f.id}`}>{sentence(f)}</p>
-                </Marked>
-              </li>
-            ))}
-          </ul>
-        </dd>
-      </div>
-      <div className={row}>
-        <dt className="text-ink-muted">Approvers</dt>
-        <dd className="flex items-center gap-2.5" data-testid="settings-approver">
-          <Avatar name={rule.approver?.name ?? "?"} color={rule.approver?.color} size={28} />
-          <span>
-            <span className="font-semibold">{rule.approver?.name}</span>
-            <span className="text-ink-muted">, {rule.approver?.title}</span>
-          </span>
-        </dd>
-      </div>
-      <div className={row}>
-        <dt className="text-ink-muted">Approver requirements</dt>
-        <dd>{REQUIREMENT}</dd>
-      </div>
-      <div className={row}>
-        <dt className="text-ink-muted">With this approval note</dt>
-        <dd data-testid="settings-approval-note">{rule.note}</dd>
-      </div>
-    </dl>
-  );
-}
-
-/** One filter in the editor: property, operator, value, stacked as HubSpot stacks them. */
-function FilterGroup({ filter }: { filter: ApprovalFilter }) {
-  const percent = filter.value.endsWith("%");
-  return (
-    <div className="rounded-[12px] border border-line p-3" data-testid={`settings-filter-${filter.id}`}>
-      <Marked filter={filter} marked className="rounded-[6px] bg-[#f0f0f0] p-2.5">
-        <div className="flex items-start gap-2">
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <Picker>{filter.property}</Picker>
-            <Picker>{filter.operator}</Picker>
-            {percent ? (
-              <div className="flex items-center gap-2">
-                <input readOnly value={filter.value.slice(0, -1)} aria-label={`${filter.property} value`} title={VIEW_ONLY} className="h-9 min-w-0 flex-1 cursor-default rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13.5px] focus:outline-none" />
-                <span className="w-4 text-[13.5px]">%</span>
-              </div>
-            ) : (
-              <Picker>{filter.value}</Picker>
-            )}
-          </div>
-          <span className="mt-2 text-ink-muted" aria-hidden="true">
-            <Icon name="close" size={16} />
-          </span>
-        </div>
-      </Marked>
-      <p className="px-1 py-1.5 text-[13px]">and</p>
-      <div className="rounded-[6px] bg-[#f0f0f0] p-2.5">
-        <span className="inline-flex h-8 cursor-default items-center gap-1.5 rounded-[4px] border border-[#7c8a99] bg-white px-3 text-[13px] text-ink-muted" title={VIEW_ONLY}>
-          <Icon name="plus" size={13} /> Add filter
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/** The right panel behind Edit: the rule's filters, its approvers, and its approval note. */
-function RulePanel({ rule, onClose }: { rule: ApprovalRule; onClose: () => void }) {
+/** The right panel behind Edit on Standard approvals. No standard approval is set up, so it has no filters and no approvers. */
+function StandardPanel({ onClose }: { onClose: () => void }) {
   const label = "mb-1 block text-[12.5px] font-semibold";
   return (
     // Below the demo bar's layer, so the presenter can still step the demo with the panel open.
     <div className="fixed inset-0 z-50 flex justify-end bg-[rgba(20,20,20,0.4)]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside role="dialog" aria-label="Standard quote approvals" className="hs-slide-in mb-[60px] flex w-[520px] max-w-full flex-col bg-white shadow-[-8px_0_28px_rgba(20,20,20,0.2)]" data-testid="approval-rule-panel">
+      <aside role="dialog" aria-label="Standard quote approvals" className="hs-slide-in mb-[60px] flex w-[520px] max-w-full flex-col bg-white shadow-[-8px_0_28px_rgba(20,20,20,0.2)]" data-testid="standard-approvals-panel">
         <header className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-[17px] font-semibold">Standard quote approvals</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-ink-muted hover:bg-[#f0f0f0]">
@@ -162,20 +58,12 @@ function RulePanel({ rule, onClose }: { rule: ApprovalRule; onClose: () => void 
         </header>
         <div className="hs-scroll min-h-0 flex-1 overflow-y-auto px-6 py-5 text-[13.5px]">
           <h3 className="text-[15px] font-bold">And these conditions are met</h3>
-          <div className="mt-3 rounded-[10px] border border-line p-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[14px] font-bold">Filters</h4>
-              <span className="inline-flex h-7 cursor-default items-center rounded-[4px] border border-[#7c8a99] px-2.5 text-[12.5px] text-ink-muted" title={VIEW_ONLY}>
-                Discard
-              </span>
-            </div>
-            <div className="mt-3">
-              {rule.filters.map((f, i) => (
-                <div key={f.id}>
-                  {i > 0 ? <p className="px-1 py-2 text-[13px] font-semibold">or</p> : null}
-                  <FilterGroup filter={f} />
-                </div>
-              ))}
+          <div className="mt-3 rounded-[10px] border border-line p-4" data-testid="standard-approvals-filters">
+            <h4 className="text-[14px] font-bold">Filters</h4>
+            <div className="mt-3 rounded-[6px] bg-[#f0f0f0] p-2.5">
+              <StillButton title={VIEW_ONLY}>
+                <Icon name="plus" size={13} /> Add filter
+              </StillButton>
             </div>
           </div>
 
@@ -183,23 +71,21 @@ function RulePanel({ rule, onClose }: { rule: ApprovalRule; onClose: () => void 
           <div className="mt-3 space-y-4">
             <div>
               <p className={label}>Approvers</p>
-              <Picker testId="settings-panel-approver">
-                {rule.approver?.name} ({rule.approver?.email})
-              </Picker>
+              <Picker title={VIEW_ONLY} testId="standard-approvals-approvers" />
             </div>
             <fieldset>
               <legend className={label}>Approver requirements</legend>
-              {[REQUIREMENT, "At least one approver required"].map((option) => (
+              {["All approvers required", "At least one approver required"].map((option) => (
                 <label key={option} className="flex items-center gap-2 py-0.5" title={VIEW_ONLY}>
-                  <input type="radio" name="approver-requirement" checked={option === REQUIREMENT} readOnly className="accent-ink" /> {option}
+                  <input type="radio" name="approver-requirement" checked={false} readOnly className="accent-ink" /> {option}
                 </label>
               ))}
             </fieldset>
             <div>
-              <label className={label} htmlFor="approval-rule-note">
+              <label className={label} htmlFor="standard-approval-note">
                 With this approval note
               </label>
-              <textarea id="approval-rule-note" readOnly rows={3} value={rule.note} title={VIEW_ONLY} data-testid="settings-panel-note" className="w-full cursor-default resize-none rounded-[4px] border border-[#7c8a99] px-3 py-2 text-[13.5px] focus:outline-none" />
+              <textarea id="standard-approval-note" readOnly rows={3} value="" title={VIEW_ONLY} className="w-full cursor-default resize-none rounded-[4px] border border-[#7c8a99] px-3 py-2 text-[13.5px] focus:outline-none" />
               <p className="mt-1 text-[12.5px] text-ink-muted">Quote creators and approvers will see this note when an approval takes place.</p>
             </div>
           </div>
@@ -208,7 +94,7 @@ function RulePanel({ rule, onClose }: { rule: ApprovalRule; onClose: () => void 
           <Button variant="primary" disabled title={VIEW_ONLY}>
             Save
           </Button>
-          <Button onClick={onClose} data-testid="approval-rule-close">
+          <Button onClick={onClose} data-testid="standard-approvals-close">
             Cancel
           </Button>
           <p className="ml-auto max-w-[220px] text-right text-[12px] text-ink-muted">{VIEW_ONLY}</p>
@@ -218,13 +104,12 @@ function RulePanel({ rule, onClose }: { rule: ApprovalRule; onClose: () => void 
   );
 }
 
-function ApprovalsTab() {
-  const { pack } = useShell();
-  const rule = approvalRuleOf(pack);
+function ApprovalsTab({ from }: { from?: string }) {
   const [open, setOpen] = useState(true);
   const [editing, setEditing] = useState(false);
   const card = "rounded-[10px] border border-line bg-white p-6";
   const rowBox = "mt-4 rounded-[8px] border border-line";
+  const workflow = approvalWorkflowFrom(from);
   return (
     <div className="max-w-[920px] space-y-5" data-testid="settings-approvals">
       <section className={card}>
@@ -244,17 +129,14 @@ function ApprovalsTab() {
       <section className={card} data-testid="standard-approvals">
         <h2 className="text-[16px] font-bold">Standard approvals</h2>
         <p className="mt-1 text-[13.5px]">Use automation to set up approval on quotes that meet your choice of criteria and approvers. Standard quote approvals cannot be turned on at the same time as advanced quote approvals.</p>
-        <div className={rowBox}>
-          <div className="flex items-center gap-3 px-4 py-3">
-            <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2.5 text-left text-[14px] font-bold" data-testid="standard-approvals-toggle">
-              <Icon name={open ? "chevronDown" : "chevronRight"} size={16} /> Quotes
-            </button>
-            <Button size="sm" onClick={() => setEditing(true)} data-testid="standard-approvals-edit">
-              Edit
-            </Button>
-            <Switch on label="Standard approvals for quotes" testId="standard-approvals-switch" />
-          </div>
-          {open ? <RuleSummary rule={rule} marked={!editing} /> : null}
+        <div className={cx(rowBox, "flex items-center gap-3 px-4 py-3")}>
+          <span className="flex min-w-0 flex-1 items-center gap-2.5 text-[14px] font-bold">
+            <Icon name="chevronRight" size={16} /> Quotes
+          </span>
+          <Button size="sm" onClick={() => setEditing(true)} data-testid="standard-approvals-edit">
+            Edit
+          </Button>
+          <Switch on={false} label="Standard approvals for quotes" testId="standard-approvals-switch" />
         </div>
       </section>
 
@@ -264,25 +146,41 @@ function ApprovalsTab() {
         <p className="mt-3 text-[13.5px]">
           Learn more about creating and managing advanced quote approvals on our <span className="font-semibold text-link">Knowledge Base article</span> <Icon name="external" size={12} className="inline align-[-1px] text-link" /> .
         </p>
-        <div className={cx(rowBox, "flex items-center gap-3 px-4 py-3")}>
-          <span className="flex min-w-0 flex-1 items-center gap-2.5 text-[14px] font-bold">
-            <Icon name="chevronRight" size={16} /> Advanced quote approvals
-          </span>
-          <Button size="sm" disabled title="Standard approvals are turned on">
-            Edit
-          </Button>
-          <Switch on={false} label="Advanced quote approvals" />
+        <div className={rowBox}>
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2.5 text-left text-[14px] font-bold" data-testid="advanced-approvals-toggle">
+              <Icon name={open ? "chevronDown" : "chevronRight"} size={16} /> Advanced quote approvals
+            </button>
+            <A to={workflow} className="inline-flex h-8 shrink-0 items-center rounded-[6px] border border-ink bg-white px-3 text-[12.5px] font-semibold hover:bg-[#f5f5f5]" data-testid="advanced-approvals-edit">
+              Edit
+            </A>
+            <Switch on label="Advanced quote approvals" testId="advanced-approvals-switch" />
+          </div>
+          {open ? (
+            <ul className="space-y-3 border-t border-line-soft px-4 py-3.5 text-[13.5px] font-semibold" data-testid="advanced-approvals-links">
+              <li>
+                <span className="cursor-default text-link" title={VIEW_ONLY}>
+                  Team approver settings
+                </span>
+              </li>
+              <li>
+                <A to={workflow} className="inline-flex items-center gap-1.5 text-link hover:underline" data-testid="approval-workflow-link">
+                  {APPROVAL_WORKFLOW_NAME} <Icon name="external" size={12} />
+                </A>
+              </li>
+            </ul>
+          ) : null}
         </div>
       </section>
 
-      {editing ? <RulePanel rule={rule} onClose={() => setEditing(false)} /> : null}
+      {editing ? <StandardPanel onClose={() => setEditing(false)} /> : null}
     </div>
   );
 }
 
 /**
- * Settings > Objects > Quotes, with the Approvals tab where HubSpot keeps the standard quote approval rule.
- * It shows the rule the quote's Approvals panel checks against, read from the same place.
+ * Settings > Objects > Quotes, with the Approvals tab where HubSpot turns quote approvals on.
+ * Advanced approvals are on, and Edit leads to the workflow that holds the rule the quote's Approvals panel checks against.
  */
 export function SettingsPage() {
   const { world, route } = useShell();
@@ -321,7 +219,7 @@ export function SettingsPage() {
         <LineTabs tabs={[...TABS]} value={tab} onChange={setTab} className="mt-5" />
         <div className="mt-6">
           {tab === "approvals" ? (
-            <ApprovalsTab />
+            <ApprovalsTab from={from?.id} />
           ) : (
             <div className="max-w-[920px] rounded-[10px] border border-line bg-white">
               <Empty title="This tab is not part of this demo">
