@@ -288,6 +288,7 @@ export function QuotePage({ id }: { id: string }) {
                 ))}
               </tbody>
             </table>
+            <CostFeed className="mx-4 mb-3 mt-2" />
           </Card>
 
           <div className="grid grid-cols-2 gap-4">
@@ -475,16 +476,13 @@ export function BuyerPage({ id }: { id: string }) {
   );
 }
 
-/**
- * The two Penguin pieces of the approval rule, as one compact block: the per-product floor-price
- * check, and the unit cost it relies on, fed from the back office.
- */
+/** Penguin piece 1 of the approval rule: the per-product floor-price check. */
 function FloorCheck({ quote }: { quote: Quote }) {
   const { pack } = useShell();
   const rule = pack.demos.discountApproval;
   const below = linesBelowFloor(quote, rule);
   return (
-    <div className="mt-3 space-y-2" data-testid="floor-check">
+    <div className="mt-3" data-testid="floor-check">
       <Ext id="floor-price-rule" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
         <p className="text-[12.5px] font-semibold">
           Floor price check:{" "}
@@ -505,12 +503,19 @@ function FloorCheck({ quote }: { quote: Quote }) {
           </ul>
         ) : null}
       </Ext>
-      <Ext id="erp-cost-feed" className="rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9" pinClass="!right-2 !top-1.5">
-        <p className="text-[12px] text-ink-muted">
-          Unit cost on every line is synced from the {pack.terms.backOffice}. Last sync {relative(pack.demos.backOffice.syncedAt).toLowerCase()}.
-        </p>
-      </Ext>
     </div>
+  );
+}
+
+/** Penguin piece 2: where the unit cost behind the margin comes from. Kept apart from the floor check so the two callouts do not overlap. */
+function CostFeed({ className }: { className?: string }) {
+  const { pack } = useShell();
+  return (
+    <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-9", className)} pinClass="!right-2 !top-1.5">
+      <p className="text-[12px] text-ink-muted" data-testid="cost-feed">
+        Unit cost on every line is synced from the {pack.terms.backOffice}. Last sync {relative(pack.demos.backOffice.syncedAt).toLowerCase()}.
+      </p>
+    </Ext>
   );
 }
 
@@ -609,6 +614,7 @@ export function ApprovalPage({ id }: { id: string }) {
                   </A>
                 ) : null}
               </h3>
+              <CostFeed className="mt-3" />
             </div>
 
             <footer className="flex items-center gap-3 border-t border-line-soft bg-[#fafafa] px-5 py-3.5">

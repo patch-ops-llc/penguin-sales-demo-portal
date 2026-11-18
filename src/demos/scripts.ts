@@ -38,8 +38,8 @@ const guidedQuote: DemoScript = {
   steps: [
     {
       id: "open",
-      title: "Open Guided selling on the deal",
-      hint: "Click the Guided selling tab",
+      title: "Open Guided quote on the deal",
+      hint: "Click the Guided quote tab",
       path: ({ pack }) => `/deals/${pack.demos.guidedQuote.dealId}`,
       done: (c) => has(c, "gq.opened"),
       script: ({ pack }) => [{ t: "ui", k: `tab.${pack.demos.guidedQuote.dealId}`, v: "guided" }, flag("gq.opened")],
@@ -139,7 +139,7 @@ const discountApproval: DemoScript = {
     {
       id: "approve",
       title: "Approve in one click",
-      hint: "Discount, margin, and order history are on the card. Click Approve",
+      hint: "Discount, margin, and the floor-price check are on the request. Click Approve",
       path: ({ pack }) => `/approvals/${pack.demos.discountApproval.quoteId}`,
       after: ({ pack }) => `/approvals/${pack.demos.discountApproval.quoteId}`,
       done: ({ w, pack }) => w.quotes.some((q) => q.id === pack.demos.discountApproval.quoteId && (q.approval?.status === "approved" || q.status === "Sent")),
@@ -248,7 +248,7 @@ const leadCapture: DemoScript = {
       path: ({ w }) => `/contacts/${w.lc?.contactId ?? ""}`,
       after: ({ w }) => `/contacts/${w.lc?.contactId ?? ""}`,
       done: (c) => has(c, "lc.score"),
-      script: () => [flag("lc.score")],
+      script: () => [{ t: "ui", k: "score.open", v: "yes" }, flag("lc.score")],
     },
     {
       id: "workflow",

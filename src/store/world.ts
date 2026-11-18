@@ -204,7 +204,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         companyId: deal.companyId,
         contactId: config.contactId,
         lineItems: w.gq.lines,
-        origin: "Created from Guided selling",
+        origin: "Created from Guided quote",
         at: a.at,
       });
       deal.lineItems = quote.lineItems.map((l) => ({ ...l }));

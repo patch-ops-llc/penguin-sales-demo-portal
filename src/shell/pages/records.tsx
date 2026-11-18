@@ -276,7 +276,7 @@ export function ContactRecord({ id }: { id: string }) {
         <>
           {contact.title}
           {company ? ` at ${company.name}` : ""}
-          <span className="block">{contact.email}</span>
+          <span className="block break-all">{contact.email}</span>
         </>
       }
       ids={{ contactIds: [id], companyIds: company ? [company.id] : [], dealIds: [] }}
@@ -503,7 +503,7 @@ export function DealRecord({ id }: { id: string }) {
       tabs={[
         { id: "overview", label: "Overview", testId: "tab-overview" },
         { id: "activities", label: "Activities", testId: "tab-activities" },
-        ...(hero ? [{ id: "guided", label: "Guided selling", testId: "tab-guided" }] : []),
+        ...(hero ? [{ id: "guided", label: "Guided quote", testId: "tab-guided" }] : []),
       ]}
       tab={tab}
       onTab={setTab}
@@ -560,7 +560,7 @@ export function DealRecord({ id }: { id: string }) {
           <Card title={`Line items (${deal.lineItems.length})`} pad={false} testId="deal-line-items">
             {deal.lineItems.length === 0 ? (
               <p className="px-4 pb-4 pt-2 text-[13px] text-ink-muted">
-                No line items yet.{hero ? " Use the Guided selling tab to build them from the customer's requirements." : ""}
+                No line items yet.{hero ? " Use the Guided quote tab to build them from the customer's requirements." : ""}
               </p>
             ) : (
               <table className="mt-2 w-full text-[13px]">
