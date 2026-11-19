@@ -2,15 +2,28 @@ import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatDateTime, nowMs } from "@/lib/format";
+import { formatDateTimeUtc, nowMs } from "@/lib/format";
 import { DEMO_EVENTS, EVENT_LABELS, SIGN_IN_EVENTS } from "@/lib/log";
 import { DEMOS, getVertical, isDemoId } from "@/verticals/catalog";
+import { AdminTable, cell, cellNoWrap, Clip, EmptyRow, muted, type AdminColumn } from "../table";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 200;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const field = "rounded-md border border-[#cfcbe0] bg-white px-3 py-2 text-[13.5px] outline-none focus:border-penguin";
+
+/** An IPv6 address is shortened with the full value on hover; wrapping it would split it over three lines. */
+const COLUMNS: AdminColumn[] = [
+  { label: "Time (UTC)", width: 172 },
+  { label: "User", width: 250 },
+  { label: "Event", width: 156 },
+  { label: "Vertical", width: 146 },
+  { label: "Demo", width: 142 },
+  { label: "Step", width: 54 },
+  { label: "Detail" },
+  { label: "IP address", width: 138 },
+];
 
 const GROUPS: Record<string, { label: string; types: readonly string[] | null }> = {
   all: { label: "All events", types: null },
@@ -106,43 +119,24 @@ export default async function ActivityPage({ searchParams }: PageProps<"/admin/a
             {hasMore ? ", more available" : ""}
           </span>
         </form>
-        <table className="w-full text-left text-[13px]" data-testid="access-log">
-          <thead className="bg-[#faf9fd] text-[11.5px] uppercase tracking-wide text-[#5f5b73]">
-            <tr>
-              {["Time", "User", "Event", "Vertical", "Demo", "Step", "Detail", "IP address"].map((h) => (
-                <th key={h} className="whitespace-nowrap px-4 py-2.5 font-semibold">
-                  {h}
-                </th>
-              ))}
+        <AdminTable columns={COLUMNS} minWidth={1160} testId="access-log">
+          {rows.map((event) => (
+            <tr key={event.id} className="border-t border-[#eeecf5]">
+              <td className={cellNoWrap}>{formatDateTimeUtc(event.at)}</td>
+              <td className={cell}>
+                {event.user?.name ? <div className="font-medium">{event.user.name}</div> : null}
+                <Clip className={muted}>{event.email ?? "Unknown"}</Clip>
+              </td>
+              <td className={`${cell} font-medium ${event.type === "login_failed" ? "text-[#a11212]" : ""}`}>{EVENT_LABELS[event.type] ?? event.type}</td>
+              <td className={cell}>{event.vertical ? (getVertical(event.vertical)?.name ?? event.vertical) : ""}</td>
+              <td className={cell}>{event.demo ? (isDemoId(event.demo) ? DEMOS[event.demo].title : event.demo) : ""}</td>
+              <td className={cellNoWrap}>{event.step ?? ""}</td>
+              <td className={`${cell} ${muted}`}>{detail(event)}</td>
+              <td className={`${cell} tabular-nums`}>{event.ip ? <Clip className={muted}>{event.ip}</Clip> : null}</td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((event) => (
-              <tr key={event.id} className="border-t border-[#eeecf5]">
-                <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{formatDateTime(event.at)}</td>
-                <td className="px-4 py-2.5">
-                  {event.user?.name ? <div className="font-medium">{event.user.name}</div> : null}
-                  <div className="text-[#5f5b73]">{event.email ?? "Unknown"}</div>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className={event.type === "login_failed" ? "font-medium text-[#a11212]" : "font-medium"}>{EVENT_LABELS[event.type] ?? event.type}</span>
-                </td>
-                <td className="px-4 py-2.5">{event.vertical ? (getVertical(event.vertical)?.name ?? event.vertical) : ""}</td>
-                <td className="px-4 py-2.5">{event.demo ? (isDemoId(event.demo) ? DEMOS[event.demo].title : event.demo) : ""}</td>
-                <td className="px-4 py-2.5 tabular-nums">{event.step ?? ""}</td>
-                <td className="px-4 py-2.5 text-[#5f5b73]">{detail(event)}</td>
-                <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-[#5f5b73]">{event.ip ?? ""}</td>
-              </tr>
-            ))}
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#5f5b73]">
-                  No events match.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+          ))}
+          {rows.length === 0 ? <EmptyRow columns={COLUMNS.length}>No events match.</EmptyRow> : null}
+        </AdminTable>
         {hasMore ? (
           <div className="border-t border-[#e4e2ee] p-4 text-center">
             <Link href={`/admin/activity?${olderParams.toString()}`} className="text-[13.5px] font-medium text-penguin underline underline-offset-2">

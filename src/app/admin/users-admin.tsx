@@ -13,6 +13,7 @@ import {
   setStatusAction,
   type ActionResult,
 } from "./actions";
+import { AdminTable, cell, cellNoWrap, Clip, EmptyRow, muted, Pill, type AdminColumn } from "./table";
 
 export type UserRow = {
   id: string;
@@ -25,20 +26,27 @@ export type UserRow = {
   invitedAt: string | null;
   lastLoginAt: string | null;
   lastDemo: string | null;
+  lastDemoVertical: string | null;
   lastDemoAt: string | null;
   demos30d: number;
   isSelf: boolean;
 };
 
-const STATUS_STYLE: Record<UserRow["status"], string> = {
-  ACTIVE: "bg-[#e5f5ec] text-[#11603a]",
-  INVITED: "bg-[#fff4d9] text-[#7a5200]",
-  DISABLED: "bg-[#ececf1] text-[#55516b]",
-};
+/** The organization sits under the email, which leaves room for the action buttons on one or two full rows. */
+const COLUMNS: AdminColumn[] = [
+  { label: "User" },
+  { label: "Role", width: 70 },
+  { label: "Status", width: 96 },
+  { label: "Invited", width: 128 },
+  { label: "Last login", width: 130 },
+  { label: "Last demo", width: 196 },
+  { label: "Demos, 30 days", width: 78, wrapLabel: true },
+  { label: "Actions", width: 272 },
+];
 
 const field = "rounded-md border border-[#cfcbe0] bg-white px-3 py-2 text-[13.5px] outline-none focus:border-penguin focus:ring-2 focus:ring-penguin/20";
 const button = "rounded-md bg-penguin px-4 py-2 text-[13.5px] font-semibold text-white hover:bg-penguin-strong disabled:opacity-50";
-const ghost = "rounded-md border border-[#cfcbe0] bg-white px-2.5 py-1 text-[12.5px] font-medium text-[#2c2747] hover:border-penguin hover:text-penguin disabled:opacity-40";
+const ghost = "whitespace-nowrap rounded-md border border-[#cfcbe0] bg-white px-2 py-1 text-[12px] font-medium leading-[1.4] text-[#2c2747] hover:border-penguin hover:text-penguin disabled:opacity-40";
 
 function day(iso: string | null): string {
   if (!iso) return "";
@@ -112,7 +120,9 @@ export function UsersAdmin({ users, emailConfigured }: { users: UserRow[]; email
             <ul className="mt-3 space-y-2">
               {result.links.map((link) => (
                 <li key={link.url} className="flex items-center gap-3 rounded-md border border-[#d9e9df] bg-white px-3 py-2">
-                  <span className="w-56 shrink-0 truncate font-medium">{link.email}</span>
+                  <span className="w-56 shrink-0 truncate font-medium" title={link.email}>
+                    {link.email}
+                  </span>
                   <code data-testid="admin-link" className="min-w-0 flex-1 truncate text-[12px] text-[#3d3857]">
                     {link.url}
                   </code>
@@ -187,128 +197,101 @@ export function UsersAdmin({ users, emailConfigured }: { users: UserRow[]; email
             {visible.length} of {users.length}
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[13px]">
-            <thead className="bg-[#faf9fd] text-[11.5px] uppercase tracking-wide text-[#5f5b73]">
-              <tr>
-                {["User", "Organization", "Role", "Status", "Invited", "Last login", "Last demo", "Demos, 30 days", "Actions"].map((h) => (
-                  <th key={h} className="whitespace-nowrap px-4 py-2.5 font-semibold">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((u) => (
-                <tr key={u.id} data-testid={`user-row-${u.email}`} className="border-t border-[#eeecf5] align-top">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">
-                      {u.name ?? "Name not set"}
-                      {u.isSelf ? <span className="ml-2 rounded bg-penguin-soft px-1.5 py-0.5 text-[11px] font-semibold text-penguin">You</span> : null}
-                    </div>
-                    <div className="text-[#5f5b73]">{u.email}</div>
-                  </td>
-                  <td className="px-4 py-3">{u.organization ?? ""}</td>
-                  <td className="px-4 py-3">{u.role === "ADMIN" ? "Admin" : "Rep"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-semibold ${STATUS_STYLE[u.status]}`}>
-                      {u.status === "ACTIVE" ? "Active" : u.status === "INVITED" ? "Invited" : "Disabled"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {u.invitedAt ? (
-                      <>
-                        <div>{day(u.invitedAt)}</div>
-                        <div className="text-[#5f5b73]">by {u.invitedBy ?? "a removed user"}</div>
-                      </>
-                    ) : (
-                      <span className="text-[#5f5b73]">Seeded</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{dayTime(u.lastLoginAt)}</td>
-                  <td className="px-4 py-3">
-                    {u.lastDemo ? (
-                      <>
-                        <div>{u.lastDemo}</div>
-                        <div className="text-[#5f5b73]">{dayTime(u.lastDemoAt)}</div>
-                      </>
-                    ) : (
-                      <span className="text-[#5f5b73]">None yet</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">{u.demos30d}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex max-w-[300px] flex-wrap gap-1.5">
-                      <Link href={`/admin/activity?user=${encodeURIComponent(u.email)}`} className={ghost}>
-                        View log
-                      </Link>
-                      {u.status === "INVITED" ? (
-                        <>
-                          <button type="button" disabled={pending} className={ghost} onClick={() => run(() => resendInviteAction(u.id))}>
-                            Resend invite
-                          </button>
-                          <button
-                            type="button"
-                            disabled={pending}
-                            className={ghost}
-                            onClick={() => run(() => revokeInviteAction(u.id), `Revoke the invite for ${u.email}?`)}
-                          >
-                            Revoke
-                          </button>
-                        </>
-                      ) : null}
-                      {u.status === "ACTIVE" && !u.isSelf ? (
-                        <>
-                          <button
-                            type="button"
-                            disabled={pending}
-                            className={ghost}
-                            onClick={() => run(() => setRoleAction(u.id, u.role === "ADMIN" ? "REP" : "ADMIN"))}
-                          >
-                            {u.role === "ADMIN" ? "Make rep" : "Make admin"}
-                          </button>
-                          <button type="button" disabled={pending} className={ghost} onClick={() => run(() => sendPasswordResetAction(u.id))}>
-                            Reset password
-                          </button>
-                          <button
-                            type="button"
-                            disabled={pending}
-                            className={ghost}
-                            onClick={() => run(() => setStatusAction(u.id, true), `Disable ${u.email}? They are signed out at once.`)}
-                          >
-                            Disable
-                          </button>
-                        </>
-                      ) : null}
-                      {u.status === "DISABLED" ? (
-                        <button type="button" disabled={pending} className={ghost} onClick={() => run(() => setStatusAction(u.id, false))}>
-                          Enable
-                        </button>
-                      ) : null}
-                      {u.status !== "INVITED" && !u.isSelf ? (
-                        <button
-                          type="button"
-                          disabled={pending}
-                          className={ghost}
-                          onClick={() => run(() => removeUserAction(u.id), `Remove ${u.email}? Their demo runs are deleted. Access log rows are kept.`)}
-                        >
-                          Remove
-                        </button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {visible.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-[#5f5b73]">
-                    No users match.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
+        <AdminTable columns={COLUMNS} minWidth={1200}>
+          {visible.map((u) => (
+            <tr key={u.id} data-testid={`user-row-${u.email}`} className="border-t border-[#eeecf5]">
+              <td className={cell}>
+                <div className="font-medium">
+                  {u.name ?? "Name not set"}
+                  {u.isSelf ? <span className="ml-2 inline-block rounded bg-penguin-soft px-1.5 py-0.5 align-[1px] text-[11px] font-semibold leading-none text-penguin">You</span> : null}
+                </div>
+                <Clip className={muted}>{u.email}</Clip>
+                {u.organization ? <div className={muted}>{u.organization}</div> : null}
+              </td>
+              <td className={cellNoWrap}>{u.role === "ADMIN" ? "Admin" : "Rep"}</td>
+              <td className={cellNoWrap}>
+                <Pill tone={u.status === "ACTIVE" ? "green" : u.status === "INVITED" ? "amber" : "gray"}>
+                  {u.status === "ACTIVE" ? "Active" : u.status === "INVITED" ? "Invited" : "Disabled"}
+                </Pill>
+              </td>
+              <td className={cell}>
+                {u.invitedAt ? (
+                  <>
+                    <div className="whitespace-nowrap">{day(u.invitedAt)}</div>
+                    <Clip className={muted}>{`by ${u.invitedBy ?? "a removed user"}`}</Clip>
+                  </>
+                ) : (
+                  <span className={muted}>Seeded</span>
+                )}
+              </td>
+              <td className={cellNoWrap}>{dayTime(u.lastLoginAt)}</td>
+              <td className={cell}>
+                {u.lastDemo ? (
+                  <>
+                    <div>{u.lastDemo}</div>
+                    {u.lastDemoVertical ? <div className={muted}>{u.lastDemoVertical}</div> : null}
+                    <div className={`whitespace-nowrap ${muted}`}>{dayTime(u.lastDemoAt)}</div>
+                  </>
+                ) : (
+                  <span className={muted}>None yet</span>
+                )}
+              </td>
+              <td className={cellNoWrap}>{u.demos30d}</td>
+              <td className={cell}>
+                {/* Ordered so the buttons fill at most two even rows: three short ones, then the two that are left. */}
+                <div className="flex flex-wrap gap-1.5">
+                  <Link href={`/admin/activity?user=${encodeURIComponent(u.email)}`} className={ghost}>
+                    View log
+                  </Link>
+                  {u.status === "INVITED" ? (
+                    <>
+                      <button type="button" disabled={pending} className={ghost} onClick={() => run(() => resendInviteAction(u.id))}>
+                        Resend invite
+                      </button>
+                      <button type="button" disabled={pending} className={ghost} onClick={() => run(() => revokeInviteAction(u.id), `Revoke the invite for ${u.email}?`)}>
+                        Revoke
+                      </button>
+                    </>
+                  ) : null}
+                  {u.status === "ACTIVE" && !u.isSelf ? (
+                    <>
+                      <button type="button" disabled={pending} className={ghost} onClick={() => run(() => setRoleAction(u.id, u.role === "ADMIN" ? "REP" : "ADMIN"))}>
+                        {u.role === "ADMIN" ? "Make rep" : "Make admin"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending}
+                        className={ghost}
+                        onClick={() => run(() => setStatusAction(u.id, true), `Disable ${u.email}? They are signed out at once.`)}
+                      >
+                        Disable
+                      </button>
+                      <button type="button" disabled={pending} className={ghost} onClick={() => run(() => sendPasswordResetAction(u.id))}>
+                        Reset password
+                      </button>
+                    </>
+                  ) : null}
+                  {u.status === "DISABLED" ? (
+                    <button type="button" disabled={pending} className={ghost} onClick={() => run(() => setStatusAction(u.id, false))}>
+                      Enable
+                    </button>
+                  ) : null}
+                  {u.status !== "INVITED" && !u.isSelf ? (
+                    <button
+                      type="button"
+                      disabled={pending}
+                      className={ghost}
+                      onClick={() => run(() => removeUserAction(u.id), `Remove ${u.email}? Their demo runs are deleted. Access log rows are kept.`)}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              </td>
+            </tr>
+          ))}
+          {visible.length === 0 ? <EmptyRow columns={COLUMNS.length}>No users match.</EmptyRow> : null}
+        </AdminTable>
       </section>
     </div>
   );

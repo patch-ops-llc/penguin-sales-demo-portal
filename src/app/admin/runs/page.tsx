@@ -1,9 +1,21 @@
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatDateTime, formatDuration } from "@/lib/format";
+import { formatDateTimeUtc, formatDuration } from "@/lib/format";
 import { DEMOS, getVertical, isDemoId } from "@/verticals/catalog";
+import { AdminTable, cell, cellNoWrap, Clip, EmptyRow, muted, Pill, type AdminColumn } from "../table";
 
 export const dynamic = "force-dynamic";
+
+const COLUMNS: AdminColumn[] = [
+  { label: "Started (UTC)", width: 172 },
+  { label: "User", width: 256 },
+  { label: "Vertical" },
+  { label: "Demo" },
+  { label: "Furthest step", width: 128 },
+  { label: "Length", width: 84 },
+  { label: "Resets", width: 76 },
+  { label: "Outcome", width: 124 },
+];
 
 export default async function RunsPage() {
   await requireAdmin();
@@ -16,47 +28,28 @@ export default async function RunsPage() {
         <p className="mt-1 text-[13.5px] text-[#5f5b73]">One row per user per demo, from start to the last step reached. The latest 300 are shown.</p>
       </div>
       <section className="rounded-xl border border-[#e4e2ee] bg-white">
-        <table className="w-full text-left text-[13px]" data-testid="demo-runs">
-          <thead className="bg-[#faf9fd] text-[11.5px] uppercase tracking-wide text-[#5f5b73]">
-            <tr>
-              {["Started", "User", "Vertical", "Demo", "Furthest step", "Length", "Resets", "Outcome"].map((h) => (
-                <th key={h} className="whitespace-nowrap px-4 py-2.5 font-semibold">
-                  {h}
-                </th>
-              ))}
+        <AdminTable columns={COLUMNS} minWidth={1160} testId="demo-runs">
+          {runs.map((run) => (
+            <tr key={run.id} className="border-t border-[#eeecf5]">
+              <td className={cellNoWrap}>{formatDateTimeUtc(run.startedAt)}</td>
+              <td className={cell}>
+                {run.user.name ? <div className="font-medium">{run.user.name}</div> : null}
+                <Clip className={muted}>{run.user.email}</Clip>
+              </td>
+              <td className={cell}>{getVertical(run.vertical)?.name ?? run.vertical}</td>
+              <td className={cell}>{isDemoId(run.demo) ? DEMOS[run.demo].title : run.demo}</td>
+              <td className={cellNoWrap}>
+                {run.furthestStep} of {run.totalSteps}
+              </td>
+              <td className={cellNoWrap}>{formatDuration(run.lastEventAt.getTime() - run.startedAt.getTime())}</td>
+              <td className={cellNoWrap}>{run.resets}</td>
+              <td className={cellNoWrap}>
+                <Pill tone={run.completed ? "green" : "gray"}>{run.completed ? "Completed" : "Not finished"}</Pill>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {runs.map((run) => (
-              <tr key={run.id} className="border-t border-[#eeecf5]">
-                <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{formatDateTime(run.startedAt)}</td>
-                <td className="px-4 py-2.5">
-                  {run.user.name ? <div className="font-medium">{run.user.name}</div> : null}
-                  <div className="text-[#5f5b73]">{run.user.email}</div>
-                </td>
-                <td className="px-4 py-2.5">{getVertical(run.vertical)?.name ?? run.vertical}</td>
-                <td className="px-4 py-2.5">{isDemoId(run.demo) ? DEMOS[run.demo].title : run.demo}</td>
-                <td className="px-4 py-2.5 tabular-nums">
-                  {run.furthestStep} of {run.totalSteps}
-                </td>
-                <td className="px-4 py-2.5 tabular-nums">{formatDuration(run.lastEventAt.getTime() - run.startedAt.getTime())}</td>
-                <td className="px-4 py-2.5 tabular-nums">{run.resets}</td>
-                <td className="px-4 py-2.5">
-                  <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-semibold ${run.completed ? "bg-[#e5f5ec] text-[#11603a]" : "bg-[#ececf1] text-[#55516b]"}`}>
-                    {run.completed ? "Completed" : "Not finished"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {runs.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#5f5b73]">
-                  No demo runs yet.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+          ))}
+          {runs.length === 0 ? <EmptyRow columns={COLUMNS.length}>No demo runs yet.</EmptyRow> : null}
+        </AdminTable>
       </section>
     </div>
   );

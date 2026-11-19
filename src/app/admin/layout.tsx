@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className="min-h-screen bg-[#f6f5fb] font-penguin text-[#16122b]">
       <header className="border-b border-[#e4e2ee] bg-white">
-        <div className="mx-auto flex max-w-[1240px] items-center gap-6 px-6 py-3">
+        <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-6 py-3">
           <PenguinLogo height={30} />
           <span className="rounded bg-penguin-soft px-2 py-0.5 text-[12px] font-semibold text-penguin">Demo Portal Admin</span>
           <AdminNav />
@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-[1240px] px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-[1400px] px-6 py-8">{children}</main>
     </div>
   );
 }

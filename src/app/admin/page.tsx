@@ -34,9 +34,8 @@ export default async function AdminUsersPage() {
       invitedBy: u.invitedBy ? (u.invitedBy.name ?? u.invitedBy.email) : null,
       invitedAt: u.invitedAt?.toISOString() ?? null,
       lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
-      lastDemo: run
-        ? `${isDemoId(run.demo) ? DEMOS[run.demo].title : run.demo} (${getVertical(run.vertical)?.name ?? run.vertical})`
-        : null,
+      lastDemo: run ? (isDemoId(run.demo) ? DEMOS[run.demo].title : run.demo) : null,
+      lastDemoVertical: run ? (getVertical(run.vertical)?.name ?? run.vertical) : null,
       lastDemoAt: run?.startedAt.toISOString() ?? null,
       demos30d: runCount.get(u.id) ?? 0,
       isSelf: u.id === admin.id,
