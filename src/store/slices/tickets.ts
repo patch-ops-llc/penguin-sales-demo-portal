@@ -175,12 +175,21 @@ export function applyTickets(w: World, a: TicketsAction, pack: Pack): void {
       } else if (cfg.mode === "sla" && cfg.offPlatform.sla) {
         const s = cfg.offPlatform.sla;
         pushTimeline(w, run, {
-          at,
+          at: iso(a.at - 4_000),
           kind: "trigger",
           title: `${s.channel} complaint logged (${s.referenceId})`,
           body: `${s.fromName}: "${s.subject}". Categorized as ${s.category} with ${cfg.sla?.targetLabel ?? "priority SLA"}.`,
           actor: s.fromName,
         });
+        if (cfg.workflowNote) {
+          pushTimeline(w, run, {
+            at,
+            kind: "workflow",
+            title: `Automated 24h acknowledgement sent & SLA started (${cfg.ticket.number})`,
+            body: `${cfg.workflowNote.name}: ${cfg.workflowNote.action}`,
+            actor: "HubSpot Service Automation",
+          });
+        }
         addActivity(w, {
           at,
           type: "workflow",
@@ -263,6 +272,15 @@ export function applyTickets(w: World, a: TicketsAction, pack: Pack): void {
     case "tk.openTicket": {
       run.ticketOpened = true;
       if (!run.stageId) run.stageId = cfg.ticket.initialStageId;
+      if (cfg.mode === "checklist" && run.timeline.length === 0 && cfg.workflowNote) {
+        pushTimeline(w, run, {
+          at: new Date().toISOString(),
+          kind: "workflow",
+          title: `${cfg.workflowNote.name} (${cfg.ticket.number})`,
+          body: `${cfg.workflowNote.trigger} — ${cfg.workflowNote.action}`,
+          actor: "HubSpot Service Automation",
+        });
+      }
       return;
     }
 

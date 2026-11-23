@@ -34,7 +34,15 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "customer-agent" || section === "service" || section === "service-app" || section === "service-dashboard") {
     tasks.push(preloadService());
   }
-  if (demo === "post-visit-feedback" || demo === "incident-comms" || demo === "customer-onboarding" || section === "tickets" || section === "ticket-app") {
+  if (
+    demo === "post-visit-feedback" ||
+    demo === "incident-comms" ||
+    demo === "customer-onboarding" ||
+    demo === "client-onboarding" ||
+    demo === "complaint-sla" ||
+    section === "tickets" ||
+    section === "ticket-app"
+  ) {
     tasks.push(preloadTickets());
   }
   if (

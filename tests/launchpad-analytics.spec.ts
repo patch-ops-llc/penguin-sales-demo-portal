@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openDemo, signIn } from "./helpers";
+import { openDemo, signIn, VERTICAL_DEMOS } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await signIn(page);
@@ -27,11 +27,13 @@ test("launchpad: Hub filter pills, AI / Breeze toggle, client-side search, flags
   await expect(page.getByTestId("demo-customer-agent").getByTestId("badge-flagship")).toBeVisible();
   await expect(page.getByTestId("demo-customer-agent").getByTestId("badge-ai")).toBeVisible();
 
-  // Hub filter: Service & CS shows only Customer agent
+  // Hub filter: Service & CS shows Customer agent, Client onboarding, and Complaint SLA
   await page.getByTestId("hub-filter-service").click();
   await expect(page.getByTestId("hub-filter-service")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(1);
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(3);
   await expect(page.getByTestId("demo-customer-agent")).toBeVisible();
+  await expect(page.getByTestId("demo-client-onboarding")).toBeVisible();
+  await expect(page.getByTestId("demo-complaint-sla")).toBeVisible();
 
   // Hub filter: Sales & CPQ shows 3 demos
   await page.getByTestId("hub-filter-sales").click();
@@ -61,7 +63,7 @@ test("launchpad: Hub filter pills, AI / Breeze toggle, client-side search, flags
   await page.getByTestId("launchpad-search").fill("nonexistent-xyz-term");
   await expect(page.getByTestId("launchpad-empty")).toBeVisible();
   await page.getByTestId("launchpad-clear-filters").click();
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(7);
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(VERTICAL_DEMOS["financial-services"].length);
 
   // Switch to SaaS: Marketing Studio is first flagship with AI badge
   await page.getByTestId("vertical-saas").click();

@@ -223,3 +223,5 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
 export const postVisitFeedback = createTicketsScript("post-visit-feedback", "feedback");
 export const incidentComms = createTicketsScript("incident-comms", "incident");
 export const customerOnboarding = createTicketsScript("customer-onboarding", "checklist");
+export const clientOnboarding = createTicketsScript("client-onboarding", "checklist");
+export const complaintSla = createTicketsScript("complaint-sla", "sla");

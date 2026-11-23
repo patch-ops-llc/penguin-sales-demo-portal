@@ -1,4 +1,6 @@
 import type { GqOption, Pack } from "../types";
+import { clientOnboardingConfig } from "./client-onboarding";
+import { complaintSlaConfig } from "./complaint-sla";
 import { customerAgent } from "./customer-agent";
 import { docFee, factor, INSPECTION_FROM, LINE_RATE, monthlyPayment, TERMS, TIER_RATE, usd } from "./rates";
 
@@ -540,4 +542,10 @@ export const demos: Pack["demos"] = {
 
   // ---------- Customer agent (chat, email, voice) ----------
   customerAgent,
+
+  // ---------- Service Hub tickets: Client onboarding (KYC/KYB) & Regulatory complaint SLA ----------
+  tickets: {
+    "client-onboarding": clientOnboardingConfig,
+    "complaint-sla": complaintSlaConfig,
+  },
 };

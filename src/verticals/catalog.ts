@@ -20,7 +20,9 @@ export type DemoId =
   | "customer-onboarding"
   | "premium-to-subscription"
   | "renewal-churn-risk"
-  | "contract-renewal";
+  | "contract-renewal"
+  | "client-onboarding"
+  | "complaint-sla";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -235,6 +237,24 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "sales",
     tags: ["msp", "it services", "contract", "renewal", "qbr", "psa", "arr", "managed services"],
   },
+  "client-onboarding": {
+    id: "client-onboarding",
+    title: "Client onboarding and document collection",
+    minutes: 4,
+    summary: "Closed-won facility opens a Service Hub KYC/KYB onboarding ticket with document checklist, off-platform upload portal, automated 48h reminders, compliance approval, and onboarding reporting.",
+    takeaway: "Commercial borrowers complete KYC/KYB document collection and compliance approval inside a 5-day SLA without spreadsheet chasing or manual status updates.",
+    hub: "service",
+    tags: ["fintech", "onboarding", "kyc", "kyb", "compliance", "documents", "checklist", "service", "tickets"],
+  },
+  "complaint-sla": {
+    id: "complaint-sla",
+    title: "Regulatory complaint handling with SLA",
+    minutes: 4,
+    summary: "Complaint email opens an Urgent Service Hub ticket, auto-sends a 24h written acknowledgement, runs an SLA escalation timer to compliance leadership, logs the resolution letter, and reports SLA compliance.",
+    takeaway: "Every regulated complaint gets an automated 24h written acknowledgement, manager escalation before SLA breach, an exam-ready audit trail, and live SLA compliance reporting.",
+    hub: "service",
+    tags: ["fintech", "complaint", "sla", "regulatory", "compliance", "escalation", "audit", "service", "tickets"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -290,7 +310,17 @@ export const VERTICALS: VerticalTile[] = [
     company: "Fernhill Capital",
     blurb: "Equipment finance for mid-size businesses, direct and through vendors and brokers.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent"],
+    demos: [
+      "guided-quote",
+      "discount-approval",
+      "back-office",
+      "lead-capture",
+      "email-to-deal",
+      "ai-prospecting",
+      "customer-agent",
+      "client-onboarding",
+      "complaint-sla",
+    ],
     tiles: {
       "guided-quote": {
         title: "Guided financing proposal",

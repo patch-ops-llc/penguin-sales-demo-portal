@@ -126,4 +126,29 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Custom security connector that verifies authorized signers against Fernhill's identity store, unlocks MFA lockouts, and places protective wire and card holds on suspected fraud.",
     },
   ],
+  "client-onboarding": [
+    { id: "closed-won-onboarding-workflow", name: "Closed-won facility workflow & automated 48h document reminders", by: "native" },
+    { id: "kyc-onboarding-ticket", name: "Service Hub Client Onboarding ticket pipeline & KYC/KYB checklist", by: "native" },
+    { id: "document-collection-emails", name: "Document request portal emails & compliance approval sign-off", by: "native" },
+    { id: "onboarding-analytics", name: "Client Onboarding Time & KYC Completion native report", by: "native" },
+    {
+      id: "kyc-verification-connector",
+      name: "KYC / KYB Document Verification Connector",
+      by: "penguin",
+      note: "Custom compliance connector that reads live external KYC/KYB identity, FinCEN beneficial-ownership, and OFAC sanctions verification results directly onto the Service Hub onboarding ticket.",
+    },
+  ],
+  "complaint-sla": [
+    { id: "complaint-intake-ticket", name: "Dedicated complaint email intake & Service Hub categorization", by: "native" },
+    { id: "auto-24h-acknowledgement", name: "Automated 24-hour regulatory written acknowledgement email", by: "native" },
+    { id: "priority-sla-escalation", name: "Priority SLA countdown timer & overdue manager escalation workflow", by: "native" },
+    { id: "resolution-letter-audit", name: "Formal written resolution letter & HubSpot ticket audit timeline", by: "native" },
+    { id: "complaint-sla-analytics", name: "Complaints by Type, Resolution Time & SLA Compliance native report", by: "native" },
+    {
+      id: "complaint-register-export",
+      name: "Regulatory Complaint Register Export & Audit Feed",
+      by: "penguin",
+      note: "Custom compliance archive bridge that exports immutable complaint timestamps, root-cause codes, escalation records, and resolution letters to Fernhill's exam-ready regulatory register.",
+    },
+  ],
 };

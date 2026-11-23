@@ -1,4 +1,6 @@
 import type { Activity, Company, Contact, Deal, LineItem, Pack, Product, Quote, Task } from "../types";
+import { clientOnboardingReport } from "./client-onboarding";
+import { complaintSlaReport } from "./complaint-sla";
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
@@ -514,6 +516,54 @@ export const financialServicesPack: Pack = {
     "ai-prospecting": {
       send: { hint: "Nothing goes out until a person approves it. Click Approve and send" },
     },
+    "client-onboarding": {
+      "open-onboarding-ticket": {
+        title: "Open closed-won KYC onboarding ticket",
+        hint: "Service Hub Tickets: closed-won workflow opened KYC-4812 for Kelbrook Waste Services — click to open",
+      },
+      "offplatform-intake": {
+        title: "Client uploads KYC/KYB docs (off-platform)",
+        hint: "Off-platform document portal: automated 48h reminder prompts Clyde Kelbrook to upload all 4 KYC/KYB files",
+      },
+      "verify-checklist": {
+        title: "Verify KYC/KYB checklist & connector",
+        hint: "Ticket workspace: inspect the custom KYC/KYB Verification Connector and verify all 4 checklist items",
+      },
+      "signoff-resolve": {
+        title: "Approve compliance & complete onboarding",
+        hint: "Ticket workspace: send compliance approval email and mark KYC-4812 Onboarding Complete",
+      },
+      "analytics-report": {
+        title: "Review onboarding time & completion report",
+        hint: "Reports: filter KYC turnaround time and open documents by financing program, then click Complete review",
+      },
+    },
+    "complaint-sla": {
+      "complaint-intake": {
+        title: "Log regulatory complaint (off-platform)",
+        hint: "Off-platform email: Marisol Quint reports a duplicate $685 late fee — ingest to open ticket & send 24h auto-ack",
+      },
+      "open-sla-ticket": {
+        title: "Open ticket & inspect 24h ack + SLA",
+        hint: "Service Hub Tickets: confirm automated 24h acknowledgement email & Urgent SLA timer, then open CMP-7304",
+      },
+      "escalate-overdue": {
+        title: "Escalate overdue SLA to compliance lead",
+        hint: "Ticket workspace: trigger overdue SLA escalation to Senior Credit & Compliance Officer Ruth Adeyemi",
+      },
+      "send-resolution-letter": {
+        title: "Send resolution letter & archive audit",
+        hint: "Ticket workspace: send formal written resolution letter, preview off-platform copy, and close CMP-7304",
+      },
+      "analytics-report": {
+        title: "Review SLA compliance & resolution report",
+        hint: "Reports: filter complaint volume, 24h ack rate, and SLA compliance by category, then click Complete review",
+      },
+    },
+  },
+  reports: {
+    "fintech-client-onboarding": clientOnboardingReport,
+    "fintech-complaint-sla": complaintSlaReport,
   },
   demos,
 };

@@ -113,7 +113,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
             <div className="flex items-center justify-between gap-2 text-[12px]">
               <span className="font-semibold text-ink">Service SLA</span>
               <span className={cx("font-semibold", run.resolved ? "text-[#0b5b2b]" : slaOverdue ? "text-[#99201a]" : "text-[#0b4a78]")}>
-                {run.resolved ? "Met within SLA" : cfg.sla.dueLabel}
+                {run.resolved ? "Met within SLA" : run.escalated ? "Escalated to Manager" : cfg.sla.dueLabel}
               </span>
             </div>
             <p className="mt-0.5 text-[11.5px] text-ink-muted">{cfg.sla.targetLabel}</p>
@@ -313,7 +313,13 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
                 </Button>
               )}
               {cfg.secondaryOffPlatform ? (
-                <Button variant="secondary" size="sm" icon="external" onClick={() => navigate(`/ticket-app/${cfg.demoId}/outreach`)}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon="external"
+                  data-testid="sla-preview-letter"
+                  onClick={() => navigate(`/ticket-app/${cfg.demoId}/outreach`)}
+                >
                   Preview resolution letter
                 </Button>
               ) : null}
@@ -468,7 +474,9 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[12.5px] text-ink-muted">
                   {cfg.secondaryOffPlatform && !run.secondarySeen
-                    ? "Customer survey logged — review CSAT response or open HubSpot Reporting."
+                    ? cfg.secondaryOffPlatform.csatSurvey
+                      ? "Customer survey logged — review CSAT response or open HubSpot Reporting."
+                      : "Written notice ready — preview customer communication or open HubSpot Reporting."
                     : "Ready to review live metrics in HubSpot Reporting."}
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
@@ -541,7 +549,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
           ) : null}
         </Card>
 
-        <Card title={cfg.mode === "incident" ? "Company (1)" : "Company / Clinic (1)"}>
+        <Card title={cfg.mode === "feedback" ? "Company / Clinic (1)" : "Company (1)"}>
           {company ? (
             <div className="text-[13px]">
               <A to={`/companies/${company.id}`} className="hs-link">

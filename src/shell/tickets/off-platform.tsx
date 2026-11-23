@@ -301,6 +301,12 @@ function ChecklistIntakeBody({ cfg }: { cfg: TicketsDemoConfig }) {
   return (
     <div className="min-h-full bg-[#f6f8fa] px-6 py-6">
       <div className="mx-auto max-w-[920px] space-y-4">
+        {cfg.offPlatform.complianceNote ? (
+          <div className="flex items-center gap-2.5 rounded-[10px] border border-[#cde6df] bg-[#f1faf7] px-4 py-2.5 text-[12.5px] text-[#0c5649]" data-testid="ticket-compliance-banner">
+            <Icon name="shield" size={16} className="shrink-0" />
+            <span>{cfg.offPlatform.complianceNote}</span>
+          </div>
+        ) : null}
         <Card testId="checklist-offplatform-card">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft pb-4">
             <div>
@@ -367,11 +373,18 @@ function SlaIntakeBody({ cfg }: { cfg: TicketsDemoConfig }) {
   return (
     <div className="min-h-full bg-[#f6f8fa] px-6 py-6">
       <div className="mx-auto max-w-[920px] space-y-4">
+        {cfg.offPlatform.complianceNote ? (
+          <div className="flex items-center gap-2.5 rounded-[10px] border border-[#cde6df] bg-[#f1faf7] px-4 py-2.5 text-[12.5px] text-[#0c5649]" data-testid="ticket-compliance-banner">
+            <Icon name="shield" size={16} className="shrink-0" />
+            <span>{cfg.offPlatform.complianceNote}</span>
+          </div>
+        ) : null}
         <Card testId="sla-offplatform-card">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line-soft pb-4">
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-wide text-link">{s.channel} Intake &middot; {s.referenceId}</p>
               <h1 className="mt-1 text-[20px] font-bold">{s.subject}</h1>
+              {cfg.offPlatform.intro ? <p className="mt-1 text-[13px] text-ink-muted">{cfg.offPlatform.intro}</p> : null}
             </div>
             <Tag tone="amber">{s.category}</Tag>
           </div>
