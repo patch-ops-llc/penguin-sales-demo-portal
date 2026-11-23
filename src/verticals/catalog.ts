@@ -12,12 +12,25 @@ export type DemoId =
   | "social-ads"
   | "marketing-studio";
 
+export type DemoHub = "marketing" | "sales" | "service" | "ops";
+
+export const DEMO_HUBS: readonly { id: DemoHub; label: string }[] = [
+  { id: "marketing", label: "Marketing" },
+  { id: "sales", label: "Sales & CPQ" },
+  { id: "service", label: "Service & CS" },
+  { id: "ops", label: "Ops & RevOps" },
+];
+
 export type DemoTile = {
   id: DemoId;
   title: string;
   minutes: number;
   summary: string;
   takeaway: string;
+  hub: DemoHub;
+  ai?: boolean;
+  flagship?: boolean;
+  tags?: string[];
 };
 
 export type VerticalTile = {
@@ -38,6 +51,9 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 4,
     summary: "Pick requirements, line items generate, quote preview, send.",
     takeaway: "A rep who does not know the catalogue produces a correct quote in under a minute.",
+    hub: "sales",
+    flagship: true,
+    tags: ["cpq", "quote", "pricing", "line items", "proposal"],
   },
   "discount-approval": {
     id: "discount-approval",
@@ -45,6 +61,8 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 3,
     summary: "A discount over the threshold routes to the approver, one click approves, the quote unlocks.",
     takeaway: "Discount control that does not slow the deal.",
+    hub: "sales",
+    tags: ["cpq", "approval", "discount", "margin", "floor", "deal desk"],
   },
   "back-office": {
     id: "back-office",
@@ -52,6 +70,8 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 4,
     summary: "Open a company, see orders, balance and stock from the ERP, build a quote from them.",
     takeaway: "What did they buy, what do they owe, can we ship: answered without leaving HubSpot.",
+    hub: "ops",
+    tags: ["erp", "billing", "psa", "sync", "revops", "invoices", "stock"],
   },
   "lead-capture": {
     id: "lead-capture",
@@ -59,6 +79,9 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 5,
     summary: "Form submitted, company enriched and scored with reasons, routed by territory, rep gets a task and an alert.",
     takeaway: "A web lead reaches the right rep in seconds, and the rep can see why it is worth the call.",
+    hub: "marketing",
+    flagship: true,
+    tags: ["forms", "enrichment", "lead scoring", "routing", "workflow", "inbound"],
   },
   "email-to-deal": {
     id: "email-to-deal",
@@ -66,6 +89,8 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 4,
     summary: "An RFQ or PO email arrives, gets parsed, and becomes a deal with line items.",
     takeaway: "RFQs and POs stop being re-keyed. A person only looks where the parser is unsure.",
+    hub: "ops",
+    tags: ["rfq", "po", "inbox", "parser", "intake", "automation"],
   },
   "ai-prospecting": {
     id: "ai-prospecting",
@@ -73,6 +98,9 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 4,
     summary: "An account shows a buying signal, the buying group appears, outreach is drafted, rep approves and sends.",
     takeaway: "Reps approve instead of researching, and nothing goes out without a human click.",
+    hub: "sales",
+    ai: true,
+    tags: ["breeze", "ai", "signals", "buying group", "outreach", "prospecting"],
   },
   "customer-agent": {
     id: "customer-agent",
@@ -80,6 +108,10 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 6,
     summary: "Breeze Customer Agent handles chat, email, and voice queries, hands complex fraud to a human, and reports resolution and credits.",
     takeaway: "Over 70% of routine inquiries resolve autonomously across chat, email, and voice, while complex cases reach reps with full context.",
+    hub: "service",
+    ai: true,
+    flagship: true,
+    tags: ["breeze", "ai", "service", "chat", "email", "voice", "help desk", "credits", "resolution"],
   },
   "social-ads": {
     id: "social-ads",
@@ -87,6 +119,9 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 5,
     summary: "Plan social posts on a calendar, run paid search and social ads, follow a hiring manager from ad click to contact, reply in one social inbox, and measure campaign ROI.",
     takeaway: "Every ad click, social post, form submission, comment reply, and placement pipeline dollar tied together in HubSpot, with simulated campaign data ready to demo live.",
+    hub: "marketing",
+    flagship: true,
+    tags: ["social", "paid ads", "campaigns", "calendar", "roi", "staffing"],
   },
   "marketing-studio": {
     id: "marketing-studio",
@@ -94,6 +129,10 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 6,
     summary: "ICP match to campaign brief, plan, one brand voice, one ebook remixed into four formats, tailored outreach, conversion, meeting booked, and credits-to-pipeline dashboard.",
     takeaway: "One marketer takes a single asset from brief to booked meetings and pipeline, with HubSpot Credits tied directly to revenue outcomes.",
+    hub: "marketing",
+    ai: true,
+    flagship: true,
+    tags: ["breeze", "ai", "icp", "campaign", "brand voice", "remix", "credits", "outreach"],
   },
 };
 
@@ -222,9 +261,20 @@ export function getVertical(id: string): VerticalTile | undefined {
   return VERTICALS.find((v) => v.id === id);
 }
 
+export function hubLabel(hub: DemoHub): string {
+  return DEMO_HUBS.find((h) => h.id === hub)?.label ?? hub;
+}
+
 /** A demo's tile as one vertical words it. */
 export function demoTile(verticalId: string, id: DemoId): DemoTile {
-  return { ...DEMOS[id], ...getVertical(verticalId)?.tiles?.[id] };
+  const base = DEMOS[id];
+  const override = getVertical(verticalId)?.tiles?.[id];
+  if (!override) return base;
+  return {
+    ...base,
+    ...override,
+    tags: override.tags ? [...(base.tags ?? []), ...override.tags] : base.tags,
+  };
 }
 
 export const LIVE_VERTICALS = VERTICALS.filter((v) => v.status === "live").map((v) => v.id);

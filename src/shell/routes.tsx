@@ -1,6 +1,7 @@
 "use client";
 
 import { useShell } from "@/store/store";
+import { AnalyticsRoutes } from "./analytics/lazy";
 import { LazyMarketingView } from "./marketing/lazy";
 import { LazyApprovalWorkflowPage, LazySettingsPage } from "./pages/approval-settings-lazy";
 import { CompaniesIndex, ContactsIndex, DealsIndex, ProductsIndex, QuotesIndex, TasksIndex, WorkflowsIndex } from "./pages/lists";
@@ -72,6 +73,8 @@ export function Routes() {
     case "insights":
     case "offplatform":
       return <SocialRoutes section={section} id={id} />;
+    case "reports":
+      return <AnalyticsRoutes reportId={id} />;
     case undefined:
       return null;
     default:

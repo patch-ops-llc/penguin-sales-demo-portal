@@ -1,5 +1,21 @@
 import type { SocialAdsConfig } from "@/shell/social/types";
+import type { AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
+
+export type {
+  AnalyticsBreakdownPanel,
+  AnalyticsBreakdownRow,
+  AnalyticsCreditsBreakdownRow,
+  AnalyticsCreditsOutcome,
+  AnalyticsFilterGroup,
+  AnalyticsFilterOption,
+  AnalyticsKpi,
+  AnalyticsReportSpec,
+  AnalyticsTable,
+  AnalyticsTableColumn,
+  AnalyticsTableRow,
+  AnalyticsTone,
+} from "./analytics-types";
 
 /**
  * A vertical pack is plain JSON: everything a vertical needs to flavor the six demo templates.
@@ -978,6 +994,8 @@ export type Pack = {
   labels?: DeepPartial<PackLabels>;
   /** Presenter wording per demo and step id, where the shared storyboard's wording does not fit the vertical. */
   stepNotes?: Partial<Record<DemoId, Record<string, StepNote>>>;
+  /** Declarative JSON specs for shared `/reports/:reportId` analytics dashboards (zero vertical hardcoding). */
+  reports?: Record<string, AnalyticsReportSpec>;
   demos: {
     guidedQuote: GuidedQuoteConfig;
     discountApproval: DiscountApprovalConfig;

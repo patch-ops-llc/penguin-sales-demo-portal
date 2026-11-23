@@ -6,11 +6,12 @@ import { clearSession, loadSession, type Saved } from "@/store/session";
 import { resolveDates } from "@/store/dates";
 import { parseLocation, useLocation } from "@/store/router";
 import { ShellProvider, useShell } from "@/store/store";
-import { getVertical } from "@/verticals/catalog";
+import { getVertical, isDemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
 import { Chrome } from "./chrome";
 import { DemoBar } from "./demo-bar";
 import { EndCard } from "./end-card";
+import { preloadAnalytics } from "./analytics/lazy";
 import { preloadMarketing } from "./marketing/lazy";
 import { preloadApprovalSettings } from "./pages/approval-settings-lazy";
 import { preloadSite } from "./pages/site-lazy";
@@ -44,7 +45,20 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "back-office") {
     tasks.push(preloadErpCard());
   }
+  if (section === "reports") {
+    tasks.push(preloadAnalytics());
+  }
   return tasks.length > 0 ? Promise.all(tasks) : Promise.resolve();
+}
+
+function shouldPreloadAnalytics(pack: Pack, verticalId: string, location: string): boolean {
+  const reports = pack.reports;
+  if (!reports) return false;
+  const parsed = parseLocation(location);
+  if (parsed.segments[0] === "reports") return true;
+  const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
+  if (!demo || !isDemoId(demo)) return false;
+  return Object.values(reports).some((r) => r.demoId === demo || r.demoIds?.includes(demo));
 }
 
 type Loaded = { vertical: string; pack: Pack; saved: Saved | null; location: string };
@@ -109,9 +123,14 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
       window.history.replaceState(null, "", url.pathname + url.search);
     }
     const initialLocation = window.location.pathname + window.location.search;
-    const preload = preloaded.current ? Promise.resolve() : ((preloaded.current = true), preloadForInitialEntry(verticalId, initialLocation));
+    const isInitialMount = !preloaded.current;
+    preloaded.current = true;
+    const preload = isInitialMount ? preloadForInitialEntry(verticalId, initialLocation) : Promise.resolve();
     Promise.all([loadPack(verticalId, packVersion), preload])
-      .then(([pack]) => {
+      .then(async ([pack]) => {
+        if (isInitialMount && shouldPreloadAnalytics(pack, verticalId, initialLocation)) {
+          await preloadAnalytics();
+        }
         if (cancelled) return;
         setLoaded({ vertical: verticalId, pack, saved: loadSession(verticalId, packVersion), location: window.location.pathname + window.location.search });
       })

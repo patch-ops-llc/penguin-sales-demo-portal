@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { PenguinMark } from "@/components/brand";
 import { stepText } from "@/demos/scripts";
 import { useShell } from "@/store/store";
-import { demoTile, getVertical } from "@/verticals/catalog";
-import { Icon } from "./icons";
+import { DEMO_HUBS, demoTile, getVertical } from "@/verticals/catalog";
+import { Icon, Sparkle } from "./icons";
 import { cx, Menu, MenuItem } from "./ui";
 
 const barButton = "inline-flex h-10 shrink-0 items-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-white/90 hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent";
@@ -33,6 +33,12 @@ export function DemoBar() {
   const step = stepIndex < total ? script.steps[stepIndex] : null;
   const text = step ? stepText(demo, step, { w: world, pack }) : null;
   const demos = getVertical(vertical)?.demos ?? [];
+  const groupedDemos = DEMO_HUBS.map((hub) => ({
+    hub,
+    items: demos
+      .map((id) => demoTile(vertical, id))
+      .filter((tile) => tile.hub === hub.id),
+  })).filter((group) => group.items.length > 0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -74,8 +80,10 @@ export function DemoBar() {
 
       <Menu
         up
-        width={300}
+        width={320}
         className={cx("flex min-w-[120px]", yieldNext)}
+        menuClassName="hs-scroll max-h-[420px] overflow-y-auto"
+        menuTestId="demo-switcher-menu"
         button={({ toggle }) => (
           <button type="button" onClick={toggle} title="Switch demo" className={cx(barButton, "min-w-0 !shrink border border-white/30 bg-white/[0.14] !text-white hover:!bg-white/20")} data-testid="demo-switcher">
             <span className="max-w-[210px] min-w-0 truncate">{demoTile(vertical, demo).title}</span> <Icon name="chevronDown" size={16} className="shrink-0" />
@@ -83,18 +91,31 @@ export function DemoBar() {
         )}
       >
         {(close) =>
-          demos.map((id, i) => (
-            <MenuItem
-              key={id}
-              active={id === demo}
-              testId={`switch-${id}`}
-              onClick={() => {
-                close();
-                switchDemo(id);
-              }}
-            >
-              <span className="text-ink-muted">{i + 1}.</span> {demoTile(vertical, id).title}
-            </MenuItem>
+          groupedDemos.map((group, groupIndex) => (
+            <div key={group.hub.id} data-testid={`switcher-group-${group.hub.id}`} className={groupIndex > 0 ? "mt-1 border-t border-line-soft pt-1" : undefined}>
+              <p className="px-3.5 pb-1 pt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-ink-muted">{group.hub.label}</p>
+              {group.items.map((tile) => (
+                <MenuItem
+                  key={tile.id}
+                  active={tile.id === demo}
+                  testId={`switch-${tile.id}`}
+                  onClick={() => {
+                    close();
+                    switchDemo(tile.id);
+                  }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate">{tile.title}</span>
+                    {tile.ai ? (
+                      <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[#f3e8ff] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[#6d28d9]">
+                        <Sparkle size={8} />
+                        AI
+                      </span>
+                    ) : null}
+                  </span>
+                </MenuItem>
+              ))}
+            </div>
           ))
         }
       </Menu>

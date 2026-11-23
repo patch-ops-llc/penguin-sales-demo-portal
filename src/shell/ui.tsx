@@ -203,6 +203,8 @@ export function Menu({
   up = false,
   width = 240,
   className,
+  menuClassName,
+  menuTestId,
 }: {
   button: (props: { open: boolean; toggle: () => void }) => React.ReactNode;
   children: (close: () => void) => React.ReactNode;
@@ -210,6 +212,8 @@ export function Menu({
   up?: boolean;
   width?: number;
   className?: string;
+  menuClassName?: string;
+  menuTestId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -220,7 +224,8 @@ export function Menu({
       {button({ open, toggle: () => setOpen((o) => !o) })}
       {open ? (
         <div
-          className={cx("hs-pop absolute z-[70] rounded-[8px] border border-line bg-white py-1.5 text-ink shadow-[0_8px_28px_rgba(20,20,20,0.18)]", align === "right" ? "right-0" : "left-0", up ? "bottom-full mb-2" : "top-full mt-1.5")}
+          data-testid={menuTestId}
+          className={cx("hs-pop absolute z-[70] rounded-[8px] border border-line bg-white py-1.5 text-ink shadow-[0_8px_28px_rgba(20,20,20,0.18)]", align === "right" ? "right-0" : "left-0", up ? "bottom-full mb-2" : "top-full mt-1.5", menuClassName)}
           style={{ width }}
         >
           {children(close)}

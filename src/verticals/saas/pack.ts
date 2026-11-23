@@ -2,6 +2,7 @@ import type { Activity, Company, Contact, Deal, LineItem, Pack, Product, Quote, 
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
+import { reports } from "./reports";
 
 // SaaS and software pack: Lumenstack, a B2B analytics platform sold by plan, seats, and add-ons.
 // Every company, person, and number here is invented sample data.
@@ -487,5 +488,6 @@ export const saasPack: Pack = {
       form: { title: "Submit the demo request", hint: "Pick one of the three leads, then Request a demo" },
     },
   },
+  reports,
   demos,
 };
