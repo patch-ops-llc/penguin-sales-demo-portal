@@ -76,4 +76,30 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Syncs non-PHI last-visit-bucket and annual-visit-overdue flags from practice management into HubSpot so dynamic segments stay current without storing clinical notes or MRNs.",
     },
   ],
+  "referral-intake": [
+    { id: "referral-form", name: "Referring-clinic intake form and contact/deal capture", by: "native" },
+    { id: "referral-pipeline", name: "Specialty clinic referral deal pipeline and intake stages", by: "native" },
+    { id: "referral-routing", name: "Automated location and specialty routing workflow to intake coordinator", by: "native" },
+    { id: "coordinator-outreach", name: "Coordinator outreach email and patient self-scheduling link", by: "native" },
+    { id: "referral-analytics", name: "Native HubSpot referral-to-appointment funnel report by specialty & location", by: "native" },
+    {
+      id: "ehr-referral-sync",
+      name: "Referring-Provider Directory & EHR Referral Sync",
+      by: "penguin",
+      note: "Validates referring clinician NPI and practice status from the provider directory, then syncs non-PHI scheduled appointment status back to the referring clinic's EHR.",
+    },
+  ],
+  "staffing-job-orders": [
+    { id: "staffing-form", name: "Hospital travel-RN staffing request form and job-order capture", by: "native" },
+    { id: "job-order-pipeline", name: "Healthcare staffing job-order deal pipeline and placement revenue tracking", by: "native" },
+    { id: "recruiter-routing", name: "Automated specialty routing and task assignment to healthcare recruiter", by: "native" },
+    { id: "shortlist-outreach", name: "Recruiter shortlist email outreach and hiring-manager selection timeline", by: "native" },
+    { id: "staffing-analytics", name: "Native HubSpot fill-rate and time-to-fill analytics report by specialty", by: "native" },
+    {
+      id: "ats-shortlist-card",
+      name: "ATS / VMS Shortlist & Credentialing Card",
+      by: "penguin",
+      note: "Pulls pre-credentialed travel-RN profiles, Joint Commission & license verification, and shift availability from Bullhorn ATS / VMS directly onto the HubSpot job-order deal.",
+    },
+  ],
 };

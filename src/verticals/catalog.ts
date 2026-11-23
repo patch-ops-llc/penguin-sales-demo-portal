@@ -12,7 +12,9 @@ export type DemoId =
   | "social-ads"
   | "marketing-studio"
   | "post-visit-feedback"
-  | "patient-reactivation";
+  | "patient-reactivation"
+  | "referral-intake"
+  | "staffing-job-orders";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -154,6 +156,24 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "marketing",
     tags: ["segment", "dynamic list", "email series", "reactivation", "annual visit", "hipaa", "clinic"],
   },
+  "referral-intake": {
+    id: "referral-intake",
+    title: "Referral intake and routing",
+    minutes: 5,
+    summary: "Referring clinic submits a non-PHI referral, HubSpot creates a specialty deal routed by location, coordinator sends a scheduling link, patient books, and referral funnel updates.",
+    takeaway: "Every specialty referral is routed to the right clinic location in seconds, tracked through booking, and synced back to the referring practice without storing clinical PHI.",
+    hub: "ops",
+    tags: ["healthcare", "referral", "intake", "routing", "scheduling", "clinic", "ehr", "hipaa"],
+  },
+  "staffing-job-orders": {
+    id: "staffing-job-orders",
+    title: "Healthcare staffing job orders",
+    minutes: 5,
+    summary: "Hospital submits a travel-RN request, HubSpot creates a job-order deal, recruiter shares pre-credentialed ATS shortlist, manager selects nurses, and placement revenue is recorded.",
+    takeaway: "Hospital staffing requests flow straight from intake to ATS shortlist, hiring-manager selection, placed revenue, and fill-rate analytics without leaving HubSpot.",
+    hub: "sales",
+    tags: ["healthcare", "staffing", "travel rn", "job order", "ats", "vms", "shortlist", "fill rate"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -273,7 +293,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Crestline Clinical Staffing & Specialty Clinics",
     blurb: "Travel nursing, allied health staffing, and multi-location specialty clinics.",
     status: "live",
-    demos: ["social-ads", "ai-prospecting", "patient-reactivation", "post-visit-feedback"],
+    demos: ["social-ads", "ai-prospecting", "patient-reactivation", "post-visit-feedback", "referral-intake", "staffing-job-orders"],
     tiles: {
       "ai-prospecting": {
         title: "Referral-source outreach",

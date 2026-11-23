@@ -18,7 +18,8 @@ const WEEK = 7 * 86_400_000;
 export const ownerName = (pack: Pack, id: string | null | undefined) => pack.personas.find((p) => p.id === id)?.name ?? "Unassigned";
 export const companyOf = (w: World, id: string | null | undefined) => w.companies.find((c) => c.id === id);
 export const contactName = (c: Contact | undefined) => (c ? `${c.firstName} ${c.lastName}` : "");
-export const stageOf = (pack: Pack, id: string) => pack.stages.find((s) => s.id === id);
+export const stageOf = (pack: Pack, id: string, deal?: Pick<Deal, "pipelineStages">) =>
+  deal?.pipelineStages?.find((s) => s.id === id) ?? pack.stages.find((s) => s.id === id);
 
 function ownerFilter<T>(pack: Pack, get: (row: T) => string | null | undefined): Filter<T> {
   return { id: "owner", label: "Owner", options: pack.personas.map((p) => ({ value: p.id, label: p.name })), test: (row, value) => get(row) === value };
@@ -214,7 +215,7 @@ export function DealsIndex() {
         </span>
       ),
     },
-    { id: "stage", label: "Deal stage", cell: (d) => stageOf(pack, d.stage)?.label, sort: (d) => pack.stages.findIndex((s) => s.id === d.stage) },
+    { id: "stage", label: "Deal stage", cell: (d) => stageOf(pack, d.stage, d)?.label, sort: (d) => (d.pipelineStages ?? pack.stages).findIndex((s) => s.id === d.stage) },
     { id: "amount", label: "Amount", align: "right", cell: (d) => money(d.amount), sort: (d) => d.amount },
     { id: "close", label: "Close date", cell: (d) => date(d.closeDate), sort: (d) => d.closeDate },
     { id: "owner", label: "Deal owner", cell: (d) => ownerName(pack, d.ownerId), sort: (d) => ownerName(pack, d.ownerId) },
@@ -224,7 +225,7 @@ export function DealsIndex() {
   const views: View<Deal>[] = [
     { id: "all", label: "All deals", filter: () => true },
     { id: "mine", label: "My deals", filter: (d) => d.ownerId === persona.id },
-    { id: "open", label: "Open deals", filter: (d) => !stageOf(pack, d.stage)?.closed },
+    { id: "open", label: "Open deals", filter: (d) => !stageOf(pack, d.stage, d)?.closed },
   ];
   return (
     <IndexPage
@@ -255,7 +256,7 @@ export function DealsIndex() {
         <PreviewShell title={d.name} subtitle={companyOf(world, d.companyId)?.name} to={`/deals/${d.id}`} onClose={close}>
           <dl>
             <Prop label="Amount">{money(d.amount)}</Prop>
-            <Prop label="Deal stage">{stageOf(pack, d.stage)?.label}</Prop>
+            <Prop label="Deal stage">{stageOf(pack, d.stage, d)?.label}</Prop>
             <Prop label="Close date">{date(d.closeDate)}</Prop>
             <Prop label="Deal owner">{ownerName(pack, d.ownerId)}</Prop>
             <Prop label="Deal type">{d.type}</Prop>

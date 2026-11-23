@@ -12,6 +12,7 @@ import { Chrome } from "./chrome";
 import { DemoBar } from "./demo-bar";
 import { EndCard } from "./end-card";
 import { preloadAnalytics } from "./analytics/lazy";
+import { preloadIntake } from "./intake/lazy";
 import { preloadMarketing } from "./marketing/lazy";
 import { preloadApprovalSettings } from "./pages/approval-settings-lazy";
 import { preloadSite } from "./pages/site-lazy";
@@ -56,6 +57,9 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   }
   if (demo === "back-office") {
     tasks.push(preloadErpCard());
+  }
+  if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || section === "intake") {
+    tasks.push(preloadIntake());
   }
   if (section === "reports") {
     tasks.push(preloadAnalytics());

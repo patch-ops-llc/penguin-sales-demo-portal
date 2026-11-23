@@ -2,6 +2,7 @@ import type { Pack } from "@/verticals/types";
 import {
   applyCore,
   applyCustomerAgent,
+  applyIntake,
   applyMarketingStudio,
   applyPatientReactivation,
   applyQuoting,
@@ -9,6 +10,7 @@ import {
   applySocialAds,
   applyTickets,
   isCustomerAgentAction,
+  isIntakeAction,
   isMarketingStudioAction,
   isPatientReactivationAction,
   isQuotingAction,
@@ -20,6 +22,7 @@ import {
   seedCustomerAgent,
   seedEmailToDeal,
   seedGuidedQuote,
+  seedIntake,
   seedLeadCapture,
   seedMarketingStudio,
   seedPatientReactivation,
@@ -43,6 +46,9 @@ export {
   type CustomerAgentState,
   type EmailToDealState,
   type GuidedQuoteState,
+  type IntakeAction,
+  type IntakeDemoState,
+  type IntakeState,
   type LeadCaptureState,
   type MarketingStudioAction,
   type MarketingStudioState,
@@ -82,6 +88,7 @@ export function seedWorld(pack: Pack): World {
     ms: seedMarketingStudio(pack),
     tk: seedTickets(),
     pr: seedPatientReactivation(),
+    intake: seedIntake(pack),
     approvalRule: {},
     seq: 0,
   };
@@ -96,6 +103,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isMarketingStudioAction(a)) return applyMarketingStudio(w, a, pack);
   if (isTicketsAction(a)) return applyTickets(w, a, pack);
   if (isPatientReactivationAction(a)) return applyPatientReactivation(w, a, pack);
+  if (isIntakeAction(a)) return applyIntake(w, a, pack);
   return applyCore(w, a, pack);
 }
 

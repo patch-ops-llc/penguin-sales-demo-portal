@@ -3,6 +3,7 @@ import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
 import { patientSatisfactionReport } from "./post-visit-feedback";
+import { healthcareReports } from "./intake-reports";
 import { reports } from "./reports";
 
 // Healthcare vertical pack: Crestline Clinical Staffing.
@@ -297,6 +298,76 @@ export const healthcarePack: Pack = {
         { id: "fb-sla", kind: "action", label: "Start 4-hour first-response SLA & notify manager", detail: "In-app alert + follow-up email task" },
       ],
     },
+    {
+      id: "wf-referral-routing",
+      name: "Clinic Intake | Route Specialty Referrals by Location",
+      object: "Deal",
+      status: "On",
+      enrolled: 234,
+      createdAt: "@-150d",
+      updatedAt: "@-3d",
+      description: "Routes incoming non-PHI specialty referrals to the matching clinic location's intake coordinator and creates a same-day scheduling outreach task.",
+      trunk: [
+        { id: "ref-trigger", kind: "trigger", label: "Deal enrollment trigger", detail: "Referring Clinic Portal form submitted (Specialty Clinic Referral Intake)" },
+        { id: "ref-branch", kind: "branch", label: "Branch by clinic location & specialty", detail: "Scottsdale North · Phoenix West · Tempe Specialty Center" },
+      ],
+      branches: [
+        {
+          id: "scottsdale",
+          label: "Scottsdale North · Cardiology",
+          rule: "Location = Scottsdale North Clinic AND Specialty = Cardiology",
+          nodes: [
+            { id: "ref-sc-owner", kind: "action", label: "Assign deal to Devon Patel", detail: "Scottsdale North Intake Coordinator" },
+            { id: "ref-sc-task", kind: "action", label: "Create same-day intake task & Slack alert", detail: "Post to #clinic-intake-scottsdale" },
+            { id: "ref-sc-end", kind: "end", label: "Track through Scheduled stage" },
+          ],
+        },
+        {
+          id: "other-sites",
+          label: "Phoenix West & Tempe Clinics",
+          rule: "All other clinic locations & specialties",
+          nodes: [
+            { id: "ref-ot-owner", kind: "action", label: "Rotate to site intake desk", detail: "Location coordinator queue" },
+            { id: "ref-ot-end", kind: "end", label: "Track through Scheduled stage" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "wf-job-order-routing",
+      name: "Staffing Ops | Route Hospital Job Orders by Specialty",
+      object: "Deal",
+      status: "On",
+      enrolled: 118,
+      createdAt: "@-180d",
+      updatedAt: "@-2d",
+      description: "Assigns incoming hospital travel-RN job orders to the specialty recruiter, opens a 48-hour shortlist task, and alerts #staffing-critical-care.",
+      trunk: [
+        { id: "jo-trigger", kind: "trigger", label: "Deal enrollment trigger", detail: "Hospital Staffing Portal job order submitted" },
+        { id: "jo-branch", kind: "branch", label: "Branch by clinical specialty", detail: "ICU / ER Critical Care vs Telemetry & Allied Health" },
+      ],
+      branches: [
+        {
+          id: "critical-care",
+          label: "ICU & ER Critical Care",
+          rule: "Specialty is any of ICU Travel RN, ER Travel RN",
+          nodes: [
+            { id: "jo-cc-owner", kind: "action", label: "Assign job order to Marcus Delgado", detail: "Healthcare Staffing AE — Critical Care" },
+            { id: "jo-cc-task", kind: "action", label: "Create 48-hr shortlist task & Slack alert", detail: "Post to #staffing-critical-care" },
+            { id: "jo-cc-end", kind: "end", label: "Advance to Placed upon selection" },
+          ],
+        },
+        {
+          id: "allied",
+          label: "Telemetry, PACU & Allied Health",
+          rule: "All other specialties",
+          nodes: [
+            { id: "jo-al-owner", kind: "action", label: "Assign job order to Devon Patel", detail: "Allied & Specialty Clinics Recruiting" },
+            { id: "jo-al-end", kind: "end", label: "Advance to Placed upon selection" },
+          ],
+        },
+      ],
+    },
   ],
   signals: [
     {
@@ -373,6 +444,7 @@ export const healthcarePack: Pack = {
   },
   reports: {
     ...reports,
+    ...healthcareReports,
     "patient-satisfaction": patientSatisfactionReport,
   },
   demos,

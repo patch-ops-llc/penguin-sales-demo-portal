@@ -1,7 +1,10 @@
+import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
 import type { PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
 import type { TicketsDemoConfig } from "@/shell/tickets/types";
 import type { AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
+
+export type { IntakeDemoId, IntakeFlowConfig, IntakeFollowupOption, IntakeFormField, IntakeMode, IntakeReviewItem, IntakeTone } from "@/shell/intake/types";
 
 export type {
   TicketChecklistItem,
@@ -132,6 +135,9 @@ export type Deal = {
   type: string;
   lineItems: LineItem[];
   source?: string;
+  /** Optional custom pipeline label and stages for multi-pipeline verticals (e.g. Specialty Referral Intake). */
+  pipelineName?: string;
+  pipelineStages?: DealStage[];
   isNew?: boolean;
 };
 
@@ -1046,5 +1052,6 @@ export type Pack = {
     patientReactivation?: PatientReactivationConfig;
     /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
+    intake?: Partial<Record<IntakeDemoId, IntakeFlowConfig>>;
   };
 };

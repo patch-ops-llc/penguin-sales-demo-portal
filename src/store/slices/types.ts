@@ -1,6 +1,7 @@
 import type { Activity, ApprovalFilterId, Company, Contact, Deal, InboxThread, Notification, Quote, Task } from "@/verticals/types";
 import type { CoreAction } from "./core";
 import type { CustomerAgentAction, CustomerAgentState } from "./customer-agent";
+import type { IntakeAction, IntakeState } from "./intake";
 import type { MarketingStudioAction, MarketingStudioState } from "./marketing-studio";
 import type { PatientReactivationAction, PatientReactivationState } from "./patient-reactivation";
 import type { GuidedQuoteState, QuotingAction } from "./quoting";
@@ -47,9 +48,10 @@ export type World = {
   ms: MarketingStudioState;
   tk: TicketsState;
   pr: PatientReactivationState;
+  intake: IntakeState;
   /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
   approvalRule: ApprovalRuleEdit;
   seq: number;
 };
 
-export type Action = CoreAction | QuotingAction | SalesAction | CustomerAgentAction | SocialAdsAction | MarketingStudioAction | TicketsAction | PatientReactivationAction;
+export type Action = CoreAction | QuotingAction | SalesAction | CustomerAgentAction | SocialAdsAction | MarketingStudioAction | TicketsAction | PatientReactivationAction | IntakeAction;

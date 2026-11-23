@@ -1,6 +1,7 @@
 export { applyCore, type CoreAction } from "./core";
 export { applyCustomerAgent, isCustomerAgentAction, seedCustomerAgent, type CustomerAgentAction, type CustomerAgentState } from "./customer-agent";
 export { nextDealQuoteId, quoteName, ruleOf } from "./helpers";
+export { applyIntake, isIntakeAction, seedIntake, type IntakeAction, type IntakeDemoState, type IntakeState } from "./intake";
 export { applyMarketingStudio, isMarketingStudioAction, seedMarketingStudio, type MarketingStudioAction, type MarketingStudioState } from "./marketing-studio";
 export {
   applyPatientReactivation,

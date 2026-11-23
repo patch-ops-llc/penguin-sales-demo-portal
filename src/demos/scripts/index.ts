@@ -1,6 +1,7 @@
 import type { DemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
 import { customerAgent } from "./customer-agent";
+import { referralIntake, staffingJobOrders } from "./intake";
 import { marketingStudio } from "./marketing-studio";
 import { patientReactivation } from "./patient-reactivation";
 import { discountApproval, guidedQuote } from "./quoting";
@@ -24,6 +25,8 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "marketing-studio": marketingStudio,
   "post-visit-feedback": postVisitFeedback,
   "patient-reactivation": patientReactivation,
+  "referral-intake": referralIntake,
+  "staffing-job-orders": staffingJobOrders,
 };
 
 /** Resolves a demo script for one pack, filtering out steps whose `when(pack)` is false. */

@@ -13,6 +13,7 @@ import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
+import { IntakeDealPanel } from "../intake/lazy";
 import { IcpMatchCard, MarketingContactBanner, MarketingDealBanner } from "../marketing/lazy";
 import { DealQuotesCard } from "../quote/deal-quotes";
 import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/lazy";
@@ -322,7 +323,7 @@ export function ContactRecord({ id }: { id: string }) {
           </Assoc>
           <Assoc title="Deals" count={deals.length}>
             {deals.map((d) => (
-              <AssocRow key={d.id} to={`/deals/${d.id}`} title={d.name} lines={[`Amount: ${money(d.amount)}`, `Stage: ${stageOf(pack, d.stage)?.label}`]} />
+              <AssocRow key={d.id} to={`/deals/${d.id}`} title={d.name} lines={[`Amount: ${money(d.amount)}`, `Stage: ${stageOf(pack, d.stage, d)?.label}`]} />
             ))}
           </Assoc>
         </>
@@ -445,7 +446,7 @@ export function CompanyRecord({ id }: { id: string }) {
           </Assoc>
           <Assoc title="Deals" count={deals.length}>
             {deals.map((d) => (
-              <AssocRow key={d.id} to={`/deals/${d.id}`} title={d.name} lines={[`Amount: ${money(d.amount)}`, `Stage: ${stageOf(pack, d.stage)?.label}`]} />
+              <AssocRow key={d.id} to={`/deals/${d.id}`} title={d.name} lines={[`Amount: ${money(d.amount)}`, `Stage: ${stageOf(pack, d.stage, d)?.label}`]} />
             ))}
           </Assoc>
           <Assoc title="Quotes" count={quotes.length}>
@@ -504,8 +505,9 @@ export function DealRecord({ id }: { id: string }) {
   const company = companyOf(world, deal.companyId);
   const contacts = world.contacts.filter((c) => deal.contactIds.includes(c.id));
   const quotes = world.quotes.filter((q) => q.dealId === id);
-  const stage = stageOf(pack, deal.stage);
-  const open = pack.stages.filter((s) => !s.closed || s.id === deal.stage);
+  const stages = deal.pipelineStages ?? pack.stages;
+  const stage = stageOf(pack, deal.stage, deal);
+  const open = stages.filter((s) => !s.closed || s.id === deal.stage);
   const stageIndex = open.findIndex((s) => s.id === deal.stage);
   const match = (a: Activity) => Boolean(a.dealIds?.includes(id));
   const canQuoteFromEmail = emailThread && !world.ed.quotes[emailThread];
@@ -534,7 +536,7 @@ export function DealRecord({ id }: { id: string }) {
           <Prop label="Deal owner">{ownerName(pack, deal.ownerId)}</Prop>
           <Prop label="Amount">{money(deal.amount)}</Prop>
           <Prop label="Close date">{date(deal.closeDate)}</Prop>
-          <Prop label="Pipeline">{labelsOf(pack).pack.pipeline}</Prop>
+          <Prop label="Pipeline">{deal.pipelineName ?? labelsOf(pack).pack.pipeline}</Prop>
           <Prop label="Deal stage">{stage?.label}</Prop>
           <Prop label="Deal type">{deal.type}</Prop>
           <Prop label="Original source">{deal.source}</Prop>
@@ -595,6 +597,7 @@ export function DealRecord({ id }: { id: string }) {
               ))}
             </ol>
           </Card>
+          <IntakeDealPanel dealId={id} />
           <Card title={`Line items (${deal.lineItems.length})`} pad={false} testId="deal-line-items">
             {deal.lineItems.length === 0 ? (
               <p className="px-4 pb-4 pt-2 text-[13px] text-ink-muted">
