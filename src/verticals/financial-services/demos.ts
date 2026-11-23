@@ -1,7 +1,9 @@
 import type { GqOption, Pack } from "../types";
+import { branchLaunchConfig } from "./branch-launch";
 import { clientOnboardingConfig } from "./client-onboarding";
 import { complaintSlaConfig } from "./complaint-sla";
 import { customerAgent } from "./customer-agent";
+import { loanApplicationPipelineConfig } from "./loan-pipeline";
 import { docFee, factor, INSPECTION_FROM, LINE_RATE, monthlyPayment, TERMS, TIER_RATE, usd } from "./rates";
 
 // Per-demo content for Financial services and fintech: hero records, pricing rules, presets, and prepared output.
@@ -538,6 +540,48 @@ export const demos: Pack["demos"] = {
       ],
     },
     followUp: { title: "Follow up with the Tidewater Cold Storage buying group", dueInDays: 3 },
+    offPlatformMeeting: {
+      inboxEmail: "amara.nwosu@tidewatercoldstorage.example",
+      recipientName: "Amara Nwosu",
+      recipientTitle: "Chief Financial Officer",
+      practiceName: "Tidewater Cold Storage (Savannah Port Facilities)",
+      senderName: "Dana Whitlock",
+      senderTitle: "Relationship Manager, East · Fernhill Capital",
+      meetingTitle: "Second Warehouse Equipment & Master Line Review",
+      meetingLocation: "Zoom Video Call (with Senior Credit Officer Ruth Adeyemi)",
+      meetingDuration: "30 minutes",
+      bookingUrl: "meetings.fernhillcapital.example/dana-whitlock/warehouse-financing-review",
+      agenda: [
+        "Confirm final 3 payments and lien release timeline on the $1.2M refrigeration plant facility (matures in 74 days)",
+        "Structure a $1.45M master credit line for the 180,000 sq ft Savannah warehouse refrigeration & racking deliveries",
+        "Review Tier A indicative fixed-rate payment schedules ahead of vendor purchase orders",
+      ],
+      slots: [
+        { id: "slot-tue", day: "Tue, Nov 24", time: "10:30 AM", tz: "ET" },
+        { id: "slot-wed", day: "Wed, Nov 25", time: "2:00 PM", tz: "ET" },
+        { id: "slot-thu", day: "Thu, Nov 26", time: "11:30 AM", tz: "ET" },
+      ],
+      defaultSlotId: "slot-tue",
+      complianceNote:
+        "Booked through HubSpot Meetings — logs calendar invite on Amara Nwosu, notifies Dana Whitlock, and opens the $1.45M warehouse financing deal in Credit Review. Subject to credit approval.",
+      channelLabel: "CFO Inbox & Meeting Confirmation",
+      mailClientName: "Tidewater Mail",
+      inboxBreadcrumb: "Tidewater Executive Inbox · Commercial Equipment Finance",
+      openButtonLabel: "View CFO reply & meeting booking",
+      bookedButtonLabel: "Meeting confirmed — view CFO inbox",
+      slotHeading: "Pick a slot on Dana Whitlock's HubSpot calendar",
+      confirmButtonLabel: "Confirm financing review meeting",
+      confirmedHeadline: "Financing review confirmed & synced to HubSpot",
+      bookingForLabel: "Booked for",
+      dealCreated: {
+        id: "dl-tidewater-warehouse",
+        name: "Tidewater Cold Storage: Second Warehouse Refrigeration & Racking Line",
+        amount: 1_450_000,
+        stage: "qualified",
+      },
+    },
+    reportId: "fintech-signal-pipeline",
+    reportLabel: "View Signal-to-Pipeline Attribution",
   },
 
   // ---------- Customer agent (chat, email, voice) ----------
@@ -548,4 +592,12 @@ export const demos: Pack["demos"] = {
     "client-onboarding": clientOnboardingConfig,
     "complaint-sla": complaintSlaConfig,
   },
+
+  // ---------- Intake: Fintech #2 (Loan Application Pipeline & Automated Document Follow-up) ----------
+  intake: {
+    "loan-application-pipeline": loanApplicationPipelineConfig,
+  },
+
+  // ---------- Regional Branch Launch: Fintech #5 (Multi-Channel Marketing Studio Campaign) ----------
+  branchLaunch: branchLaunchConfig,
 };

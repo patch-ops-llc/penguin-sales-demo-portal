@@ -1,6 +1,6 @@
 import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
 import type { RenewalFlowConfig, RenewalsDemoId } from "@/shell/renewals/types";
-import type { PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
+import type { BranchLaunchConfig, PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
 import type { TicketsDemoConfig } from "@/shell/tickets/types";
 import type { AnalyticsCreditsOutcome, AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
@@ -1339,6 +1339,7 @@ export type Pack = {
     socialAds?: SocialAdsConfig;
     marketingStudio?: MarketingStudioConfig;
     patientReactivation?: PatientReactivationConfig;
+    branchLaunch?: BranchLaunchConfig;
     pqlTrial?: PqlTrialConfig;
     /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;

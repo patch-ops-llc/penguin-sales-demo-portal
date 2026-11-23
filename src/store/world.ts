@@ -1,5 +1,6 @@
 import type { Pack } from "@/verticals/types";
 import {
+  applyBranchLaunch,
   applyCore,
   applyCustomerAgent,
   applyIntake,
@@ -10,6 +11,7 @@ import {
   applySales,
   applySocialAds,
   applyTickets,
+  isBranchLaunchAction,
   isCustomerAgentAction,
   isIntakeAction,
   isMarketingStudioAction,
@@ -21,6 +23,7 @@ import {
   isTicketsAction,
   seedAiProspecting,
   seedBackOffice,
+  seedBranchLaunch,
   seedCustomerAgent,
   seedEmailToDeal,
   seedGuidedQuote,
@@ -45,6 +48,8 @@ export {
   type AiProspectingState,
   type ApprovalRuleEdit,
   type BackOfficeState,
+  type BranchLaunchAction,
+  type BranchLaunchState,
   type CoreAction,
   type CustomerAgentAction,
   type CustomerAgentState,
@@ -97,6 +102,7 @@ export function seedWorld(pack: Pack): World {
     ms: seedMarketingStudio(pack),
     tk: seedTickets(),
     pr: seedPatientReactivation(),
+    bl: seedBranchLaunch(),
     intake: seedIntake(pack),
     renewals: seedRenewals(pack),
     approvalRule: {},
@@ -113,6 +119,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isMarketingStudioAction(a)) return applyMarketingStudio(w, a, pack);
   if (isTicketsAction(a)) return applyTickets(w, a, pack);
   if (isPatientReactivationAction(a)) return applyPatientReactivation(w, a, pack);
+  if (isBranchLaunchAction(a)) return applyBranchLaunch(w, a, pack);
   if (isIntakeAction(a)) return applyIntake(w, a, pack);
   if (isRenewalsAction(a)) return applyRenewals(w, a, pack);
   return applyCore(w, a, pack);

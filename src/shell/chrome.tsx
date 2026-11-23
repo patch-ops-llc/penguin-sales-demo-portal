@@ -81,6 +81,9 @@ function Sidebar() {
         ...(pack.demos.patientReactivation
           ? [{ group: "Marketing" as const, items: [{ to: "/reactivation/segment", label: "Reactivation", icon: "lifecycle" as IconName }] }]
           : []),
+        ...(pack.demos.branchLaunch
+          ? [{ group: "Marketing" as const, items: [{ to: "/branch-launch/segment", label: "Branch Launch", icon: "megaphone" as IconName }] }]
+          : []),
         ...(pack.demos.marketingStudio
           ? [{ group: "Marketing" as const, items: [{ to: "/marketing", label: "Marketing Studio", icon: "megaphone" as IconName }] }]
           : []),
@@ -107,7 +110,7 @@ function Sidebar() {
           ? [{ group: "Reporting" as const, items: [{ to: "/reports", label: "Reports", icon: "chart" as IconName }] }]
           : []),
       ]),
-    [pack.demos.socialAds, pack.demos.patientReactivation, pack.demos.marketingStudio, pack.demos.customerAgent, hasTickets, hasRenewals, hasReports],
+    [pack.demos.socialAds, pack.demos.patientReactivation, pack.demos.branchLaunch, pack.demos.marketingStudio, pack.demos.customerAgent, hasTickets, hasRenewals, hasReports],
   );
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";

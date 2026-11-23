@@ -1,6 +1,6 @@
 import type { DealStage, ExtraProp, LineItem } from "@/verticals/types";
 
-export type IntakeDemoId = "referral-intake" | "staffing-job-orders";
+export type IntakeDemoId = "referral-intake" | "staffing-job-orders" | "loan-application-pipeline";
 
 export type IntakeMode = "scheduling" | "shortlist" | "documents";
 

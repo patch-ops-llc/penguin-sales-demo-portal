@@ -22,7 +22,9 @@ export type DemoId =
   | "renewal-churn-risk"
   | "contract-renewal"
   | "client-onboarding"
-  | "complaint-sla";
+  | "complaint-sla"
+  | "loan-application-pipeline"
+  | "branch-launch-campaign";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -255,6 +257,24 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "service",
     tags: ["fintech", "complaint", "sla", "regulatory", "compliance", "escalation", "audit", "service", "tickets"],
   },
+  "loan-application-pipeline": {
+    id: "loan-application-pipeline",
+    title: "Loan application pipeline",
+    minutes: 5,
+    summary: "Online commercial loan application opens a pipeline deal with LOS document-completeness tracking, enrolls the borrower in an automated missing-doc sequence, clears underwriting approval, and updates conversion reporting.",
+    takeaway: "Borrowers submit applications and missing documents online while HubSpot automates follow-ups, underwriting assignment, and application-to-funded conversion reporting.",
+    hub: "sales",
+    tags: ["fintech", "loan", "application", "pipeline", "underwriting", "documents", "los", "sequence"],
+  },
+  "branch-launch-campaign": {
+    id: "branch-launch-campaign",
+    title: "Regional branch launch campaign",
+    minutes: 5,
+    summary: "Sync non-balance geo-eligibility flags into a regional segment, preview and launch email, paid local ads, and social calendar posts, book a branch appointment, and measure campaign attribution.",
+    takeaway: "One multi-channel HubSpot campaign connects geo-targeted segments, email, local ads, social posts, branch appointments, and new-account attribution end to end.",
+    hub: "marketing",
+    tags: ["fintech", "branch", "launch", "campaign", "geo-targeted", "social", "ads", "attribution"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -320,6 +340,8 @@ export const VERTICALS: VerticalTile[] = [
       "customer-agent",
       "client-onboarding",
       "complaint-sla",
+      "loan-application-pipeline",
+      "branch-launch-campaign",
     ],
     tiles: {
       "guided-quote": {
@@ -345,8 +367,9 @@ export const VERTICALS: VerticalTile[] = [
         takeaway: "Funding requests stop being re-keyed. A person only looks where the parser is unsure.",
       },
       "ai-prospecting": {
-        summary: "A facility nears maturity and the customer announces an expansion, the buying group appears, outreach is drafted, rep approves and sends.",
-        takeaway: "Reps approve instead of researching, and no regulated outreach goes out without a human click.",
+        summary: "Facility maturity, expansion, and executive signals surface the buying group, draft compliant outreach, book a CFO financing review, and report Signal-to-Pipeline Attribution.",
+        takeaway: "Relationship managers approve instead of researching, with servicing signals tied directly to meetings, financing deals, and Signal-to-Pipeline Attribution.",
+        tags: ["maturity", "cfo", "funding", "attribution", "fintech"],
       },
       "customer-agent": {
         title: "Customer agent (chat, email, voice)",

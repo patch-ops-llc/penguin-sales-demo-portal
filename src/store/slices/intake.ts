@@ -65,6 +65,7 @@ export function seedIntake(pack: Pack): IntakeState {
   return {
     "referral-intake": build("referral-intake"),
     "staffing-job-orders": build("staffing-job-orders"),
+    "loan-application-pipeline": build("loan-application-pipeline"),
   };
 }
 

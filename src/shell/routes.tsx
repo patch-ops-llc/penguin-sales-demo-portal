@@ -82,6 +82,7 @@ export function Routes() {
     case "insights":
     case "offplatform":
     case "reactivation":
+    case "branch-launch":
       return <SocialRoutes section={section} id={id} />;
     case "intake":
       return <IntakeRoutes demoId={id} view={sub} />;

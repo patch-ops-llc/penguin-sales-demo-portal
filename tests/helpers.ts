@@ -6,7 +6,7 @@ export const DEMOS = ["guided-quote", "discount-approval", "back-office", "lead-
 export const VERTICAL_DEMOS: Record<string, readonly string[]> = {
   manufacturing: DEMOS,
   saas: [...DEMOS.filter((demo) => demo !== "email-to-deal"), "marketing-studio", "pql-trial-prospecting", "customer-onboarding", "premium-to-subscription", "renewal-churn-risk"],
-  "financial-services": [...DEMOS, "customer-agent", "client-onboarding", "complaint-sla"],
+  "financial-services": [...DEMOS, "customer-agent", "client-onboarding", "complaint-sla", "loan-application-pipeline", "branch-launch-campaign"],
   "professional-services": [...DEMOS, "customer-agent", "incident-comms", "contract-renewal"],
   healthcare: ["social-ads", "customer-agent", "ai-prospecting", "patient-reactivation", "post-visit-feedback", "referral-intake", "staffing-job-orders"],
   aec: DEMOS,

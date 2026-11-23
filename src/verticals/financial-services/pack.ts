@@ -5,6 +5,7 @@ import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
 import { docFee, FUNDING_COST, INSPECTION_FROM, monthlyPayment, usd } from "./rates";
+import { fintechGrowthReports } from "./reports-growth";
 
 // Financial services and fintech pack: Fernhill Capital, an equipment finance lender that sells
 // direct and through equipment vendors and brokers.
@@ -428,11 +429,47 @@ export const financialServicesPack: Pack = {
     { id: "wf-proposal-followup", name: "Proposal Sent | Proposal follow-up", object: "Deal", status: "On", enrolled: 644, createdAt: "@-360d", updatedAt: "@-28d", description: "Creates a follow-up task three days after a financing proposal is sent." },
     { id: "wf-nurture", name: "Marketing | Financing guide nurture", object: "Contact", status: "On", enrolled: 5120, createdAt: "@-610d", updatedAt: "@-70d", description: "Sends the equipment financing guide to contacts who are not ready to apply." },
     { id: "wf-maturity", name: "Servicing | 120-day maturity notice", object: "Company", status: "On", enrolled: 188, createdAt: "@-290d", updatedAt: "@-104d", description: "Notifies the owner and creates a task 120 days before a facility matures." },
-    { id: "wf-documents", name: "Documentation | Missing document reminder", object: "Deal", status: "On", enrolled: 97, createdAt: "@-330d", updatedAt: "@-52d", description: "Reminds the borrower and the owner when a document is still outstanding after five days." },
+    {
+      id: "wf-documents",
+      name: "Documentation | Missing document reminder",
+      object: "Deal",
+      status: "On",
+      enrolled: 97,
+      createdAt: "@-330d",
+      updatedAt: "@-52d",
+      description: "Assigns >$500K commercial loan applications to a senior credit officer, sends automated missing-document reminders, and auto-unenrolls borrowers on upload.",
+      trunk: [
+        { id: "d-trigger", kind: "trigger", label: "Deal enrollment trigger", detail: "Pipeline: Commercial Loan Origination · Stage: Application Received" },
+        { id: "d-consent", kind: "action", label: "Verify consent & LOS packet", detail: "Confirm credit-check consent timestamp and check LOS document completeness" },
+        { id: "d-branch", kind: "branch", label: "Branch on loan amount & missing documents" },
+      ],
+      branches: [
+        {
+          id: "high-amount",
+          label: "High-Amount (>$500K)",
+          rule: "Loan amount > $500,000",
+          nodes: [
+            { id: "dh-owner", kind: "action", label: "Assign senior underwriter", detail: "Owner: Ruth Adeyemi (Senior Credit Officer)" },
+            { id: "dh-seq", kind: "action", label: "Enroll in doc-reminder sequence", detail: "Day 0 request -> Day 3 reminder -> Day 5 underwriter alert; auto-unenrolls on upload" },
+            { id: "dh-slack", kind: "action", label: "Notify #credit-underwriting-east", detail: "Post masked application ref, missing docs, and SLA timer" },
+          ],
+        },
+        {
+          id: "standard",
+          label: "Standard (<=$500K)",
+          rule: "Loan amount <= $500,000",
+          nodes: [
+            { id: "ds-owner", kind: "action", label: "Assign regional credit desk", detail: "Rotate among regional credit analysts" },
+            { id: "ds-seq", kind: "action", label: "Enroll in doc-reminder sequence", detail: "Automated borrower checklist reminders until packet is complete" },
+          ],
+        },
+      ],
+    },
     { id: "wf-consent", name: "Compliance | Annual consent review", object: "Contact", status: "Off", enrolled: 41, createdAt: "@-470d", updatedAt: "@-190d", description: "Flags contacts whose consent to contact is more than 12 months old." },
   ],
   signals: [
     { id: "sg-tidewater", companyId: "co-tidewater", title: "Facility maturing and an expansion announced", source: "Loan servicing and company news", at: "@-1d", strength: "High", summary: "The refrigeration plant facility matures in 74 days, with 3 payments left. A second warehouse was announced last week.", hero: true },
+    { id: "sg-lindenhurst", companyId: "co-lindenhurst", title: "New CFO appointed & Series B expansion", source: "Executive & funding news", at: "@-1d", strength: "High", summary: "Named a new CFO following a $18M Series B to add two outpatient imaging suites." },
     { id: "sg-northmere", companyId: "co-northmere", title: "Proposal viewed four times", source: "Quote activity", at: "@-2d", strength: "Medium", summary: "Q-3182 was opened by two new viewers." },
     { id: "sg-tallgrass", companyId: "co-tallgrass", title: "Payment calculator visits", source: "Website activity", at: "@-2d", strength: "Medium", summary: "Two contacts used the payment calculator this week." },
     { id: "sg-copperline", companyId: "co-copperline", title: "Hiring machine operators", source: "Job postings", at: "@-4d", strength: "Medium", summary: "Six open operator roles mention a second shift and new laser equipment." },
@@ -515,6 +552,14 @@ export const financialServicesPack: Pack = {
     },
     "ai-prospecting": {
       send: { hint: "Nothing goes out until a person approves it. Click Approve and send" },
+      meeting: {
+        title: "Book CFO financing review",
+        hint: "Off-platform CFO inbox: review Amara Nwosu's reply, pick a slot, and click Confirm financing review meeting",
+      },
+      report: {
+        title: "Review signal attribution",
+        hint: "Reports: filter financing pipeline by buying signal and inspect Credits-to-Outcome ROI, then click Complete review",
+      },
     },
     "client-onboarding": {
       "open-onboarding-ticket": {
@@ -564,6 +609,7 @@ export const financialServicesPack: Pack = {
   reports: {
     "fintech-client-onboarding": clientOnboardingReport,
     "fintech-complaint-sla": complaintSlaReport,
+    ...fintechGrowthReports,
   },
   demos,
 };

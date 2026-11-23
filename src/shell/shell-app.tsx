@@ -48,12 +48,14 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (
     demo === "social-ads" ||
     demo === "patient-reactivation" ||
+    demo === "branch-launch-campaign" ||
     demo === "pql-trial-prospecting" ||
     section === "campaigns" ||
     section === "social" ||
     section === "insights" ||
     section === "offplatform" ||
-    section === "reactivation"
+    section === "reactivation" ||
+    section === "branch-launch"
   ) {
     tasks.push(preloadSocial());
   }

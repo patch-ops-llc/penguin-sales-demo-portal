@@ -100,11 +100,43 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
     { id: "why-now", name: "Why now summary: Reason To Reach Out and Signals Summary", by: "native" },
     { id: "buying-group", name: "Buying group and buying roles", by: "native" },
     { id: "outreach-drafts", name: "Outreach drafts, with nothing sent until a person approves", by: "native" },
+    { id: "meeting-booking", name: "HubSpot meeting link confirmation and automatic deal creation", by: "native" },
+    { id: "signal-pipeline-report", name: "Signal-to-Pipeline Attribution report", by: "native" },
     {
       id: "erp-signal",
       name: "Maturity signal from loan servicing",
       by: "penguin",
       note: "A buying signal HubSpot cannot see by itself: a facility nearing maturity, fed in from the loan servicing system.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits-to-Outcome Attribution Panel",
+      by: "penguin",
+      note: "Connects Breeze Prospecting Agent credit spend directly to executive meetings booked and commercial financing pipeline created.",
+    },
+  ],
+  "loan-application-pipeline": [
+    { id: "loan-application-form", name: "Online commercial loan application form with explicit consent capture", by: "native" },
+    { id: "loan-origination-pipeline", name: "Commercial Loan Origination pipeline, stage routing, and underwriter assignment", by: "native" },
+    { id: "missing-doc-sequence", name: "Automated borrower missing-document reminder sequence with auto-unenrollment", by: "native" },
+    { id: "loan-conversion-report", name: "Application-to-Funded Conversion & Pipeline analytics report", by: "native" },
+    {
+      id: "los-document-completeness",
+      name: "Loan Origination System (LOS) & Document Completeness Card",
+      by: "penguin",
+      note: "Reads live underwriting packet completeness, bureau pre-checks, and missing-document status from Fernhill's Commercial LOS directly inside the HubSpot Deal.",
+    },
+  ],
+  "branch-launch-campaign": [
+    { id: "geo-segment", name: "Dynamic geo-targeted commercial segment (<= 25 mi radius)", by: "native" },
+    { id: "marketing-studio", name: "HubSpot Marketing Studio email, local paid ads, and social calendar", by: "native" },
+    { id: "branch-landing-page", name: "UTM-attributed branch appointment landing page and RM task creation", by: "native" },
+    { id: "branch-attribution-report", name: "Campaign Attribution & New Accounts marketing analytics report", by: "native" },
+    {
+      id: "core-banking-geo-sync",
+      name: "Core-Banking Geo-Eligibility & Product-Holding Segment Sync",
+      by: "penguin",
+      note: "Syncs non-balance branch proximity and commercial product-eligibility flags from Fernhill's core banking platform into HubSpot lists — zero balances or PII exposed.",
     },
   ],
   "customer-agent": [

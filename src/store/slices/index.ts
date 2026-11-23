@@ -1,3 +1,10 @@
+export {
+  applyBranchLaunch,
+  isBranchLaunchAction,
+  seedBranchLaunch,
+  type BranchLaunchAction,
+  type BranchLaunchState,
+} from "./branch-launch";
 export { applyCore, type CoreAction } from "./core";
 export { applyCustomerAgent, isCustomerAgentAction, seedCustomerAgent, type CustomerAgentAction, type CustomerAgentState } from "./customer-agent";
 export { nextDealQuoteId, quoteName, ruleOf } from "./helpers";

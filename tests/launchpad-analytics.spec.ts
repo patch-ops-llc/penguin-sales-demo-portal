@@ -35,12 +35,13 @@ test("launchpad: Hub filter pills, AI / Breeze toggle, client-side search, flags
   await expect(page.getByTestId("demo-client-onboarding")).toBeVisible();
   await expect(page.getByTestId("demo-complaint-sla")).toBeVisible();
 
-  // Hub filter: Sales & CPQ shows 3 demos
+  // Hub filter: Sales & CPQ shows 4 demos
   await page.getByTestId("hub-filter-sales").click();
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(3);
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(4);
   await expect(page.getByTestId("demo-guided-quote")).toBeVisible();
   await expect(page.getByTestId("demo-discount-approval")).toBeVisible();
   await expect(page.getByTestId("demo-ai-prospecting")).toBeVisible();
+  await expect(page.getByTestId("demo-loan-application-pipeline")).toBeVisible();
 
   // AI / Breeze toggle combined with Sales & CPQ shows only AI prospecting
   await page.getByTestId("filter-ai-toggle").click();

@@ -114,3 +114,18 @@ export const staffingJobOrders: DemoScript = makeIntakeScript("staffing-job-orde
   reportTitle: "Review fill-rate analytics",
   reportHint: "Analytics: filter fill rate & time to fill by specialty, then click Complete review",
 });
+
+export const loanApplicationPipeline: DemoScript = makeIntakeScript("loan-application-pipeline", {
+  submitTitle: "Submit loan application form",
+  submitHint: "Off-platform portal: review borrower details & consent, then click Submit loan application",
+  reviewTitle: "Review LOS checklist & routing",
+  reviewHint: "HubSpot Deal: inspect underwriter assignment & LOS missing docs, then click Confirm LOS checklist",
+  outreachTitle: "Start doc-reminder sequence",
+  outreachHint: "Borrower follow-up: review automated missing-doc email and click Start doc-reminder sequence",
+  followupTitle: "Borrower uploads missing docs",
+  followupHint: "Off-platform inbox: attach financial statements & invoice, then click Submit docs & accept terms",
+  verifyTitle: "Confirm funded loan stage",
+  verifyHint: "Back in HubSpot: verify Approved & Funded stage ($640,000), then click Open conversion report",
+  reportTitle: "Review conversion report",
+  reportHint: "Analytics: filter Application-to-Funded Conversion by loan tier, then click Complete review",
+});

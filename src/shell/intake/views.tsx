@@ -8,7 +8,7 @@ import type { IntakeDemoId } from "./types";
 export { IntakeDealPanel };
 
 function isIntakeDemoId(value: string | undefined): value is IntakeDemoId {
-  return value === "referral-intake" || value === "staffing-job-orders";
+  return value === "referral-intake" || value === "staffing-job-orders" || value === "loan-application-pipeline";
 }
 
 export function IntakeRouteView({ demoId, view }: { demoId?: string; view?: string }) {

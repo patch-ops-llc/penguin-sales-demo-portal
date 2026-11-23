@@ -5,7 +5,7 @@ import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
  * - H2 (`referral-intake`): Specialty clinic referral intake & routing (100% fictional, zero PHI).
  * - H6 (`staffing-job-orders`): Travel-RN hospital job orders & ATS/VMS shortlist placement.
  */
-export const healthcareIntakeConfigs: Record<IntakeDemoId, IntakeFlowConfig> = {
+export const healthcareIntakeConfigs: Partial<Record<IntakeDemoId, IntakeFlowConfig>> = {
   "referral-intake": {
     demoId: "referral-intake",
     mode: "scheduling",
