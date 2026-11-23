@@ -2,6 +2,7 @@ import type { Activity, Company, Contact, Deal, LineItem, Pack, Product, Quote, 
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
+import { patientSatisfactionReport } from "./post-visit-feedback";
 
 // Healthcare vertical pack: Crestline Clinical Staffing.
 // Covers healthcare staffing (travel RNs, ICU/ER nurses, allied health) and specialty clinic networks.
@@ -87,22 +88,31 @@ const contactSeeds: ContactSeed[] = [
   ["ct-samuel", "Samuel", "Whitaker", "Clinical Recruiting Lead", "co-oakridge-clinic", "Lead", "Open", 19, 6, "Paid Social"],
   ["ct-miriam", "Miriam", "Goldstein", "VP Nursing Workforce", "co-harborview-peds", "Customer", "Connected", 610, 7, "Referral"],
   ["ct-derek", "Derek", "Lindstrom", "Workforce Staffing Coordinator", "co-prairie-oncology", "Lead", "New", 27, 3, "Organic Social"],
+  ["ct-jordan-vance", "Jordan", "Vance", "Clinic Visitor · Scottsdale Location", "co-ridgecrest", "Customer", "Connected", 120, 0, "Post-Visit Survey"],
 ];
 
 const contacts: Contact[] = contactSeeds.map(([id, firstName, lastName, title, companyId, lifecycle, leadStatus, created, last, source], i) => ({
   id,
   firstName,
   lastName,
-  email: `${firstName}.${lastName}@${company(companyId).domain}`.toLowerCase(),
+  email: id === "ct-jordan-vance" ? "jordan.vance@desertmesa.example" : `${firstName}.${lastName}@${company(companyId).domain}`.toLowerCase(),
   phone: `(555) 01${String(80 + i).padStart(2, "0")}-${String(5100 + i * 37).slice(0, 4)}`,
   title,
   companyId,
-  ownerId: company(companyId).ownerId,
+  ownerId: id === "ct-jordan-vance" ? "valerie" : company(companyId).ownerId,
   lifecycle,
   leadStatus,
   createdAt: `@-${created}d`,
   lastActivityAt: `@-${last}d`,
   source,
+  ...(id === "ct-jordan-vance"
+    ? {
+        extra: [
+          { label: "Clinic location", value: "Scottsdale Orthopedic Center (AZ-04)" },
+          { label: "Data boundary", value: "Service experience only · Zero PHI" },
+        ],
+      }
+    : {}),
 }));
 
 type DealSeed = [id: string, name: string, companyId: string, contactId: string, stage: string, closeInDays: number, createdDaysAgo: number, type: string, source: string, lines: LineItem[]];
@@ -188,17 +198,18 @@ const activities: Activity[] = [
 export const healthcarePack: Pack = {
   vertical: { id: "healthcare", name: "Healthcare" },
   portal: {
-    company: "Crestline Clinical Staffing",
+    company: "Crestline Clinical Staffing & Specialty Clinics",
     domain: "crestlineclinical.example",
     hubId: "54208139",
     currency: "USD",
-    address: ["Crestline Clinical Staffing LLC", "1640 Blake St, Suite 420", "Denver, CO 80202"],
+    address: ["Crestline Clinical Staffing & Specialty Clinics LLC", "1640 Blake St, Suite 420", "Denver, CO 80202"],
   },
   personas: [
     { id: "claire", name: "Claire Bennett", title: "Marketing Manager", email: "claire.bennett@crestlineclinical.example", viewAs: "Marketer", color: "#0b6e6e" },
     { id: "marcus", name: "Marcus Delgado", title: "Healthcare Staffing Account Executive", email: "marcus.delgado@crestlineclinical.example", viewAs: "Marcus, Staffing AE", color: "#b8500a" },
     { id: "naomi", name: "Naomi Okafor", title: "VP of Recruiting & Operations", email: "naomi.okafor@crestlineclinical.example", viewAs: "VP Recruiting", color: "#8a3ffc" },
     { id: "devon", name: "Devon Patel", title: "Clinical Account Manager", email: "devon.patel@crestlineclinical.example", viewAs: "Devon, Clinical AM", color: "#1565c0" },
+    { id: "valerie", name: "Valerie Chen", title: "Clinic Location Manager — Scottsdale", email: "valerie.chen@crestlineclinical.example", viewAs: "Valerie, Clinic Manager", color: "#0b7a4b" },
   ],
   defaultPersonaId: "claire",
   terms: { quote: "Staffing Proposal", product: "Staffing Package", backOffice: "ATS / VMS", request: "Job Order" },
@@ -241,6 +252,22 @@ export const healthcarePack: Pack = {
     },
     { id: "wf-cred-alert", name: "Operations | 48-Hour Credentialing SLA", object: "Deal", status: "On", enrolled: 84, createdAt: "@-210d", updatedAt: "@-19d", description: "Alerts the recruiting desk if a staffing shortlist is not sent within 24 hours." },
     { id: "wf-ats-sync", name: "Attribution | ATS Placed-Shift Revenue Sync", object: "Deal", status: "On", enrolled: 52, createdAt: "@-95d", updatedAt: "@-2d", description: "Updates HubSpot campaign ROI when a travel nurse placement starts in Bullhorn ATS / VMS." },
+    {
+      id: "wf-feedback-ticket",
+      name: "Service | Low Post-Visit CSAT -> Location Manager Ticket",
+      object: "Ticket",
+      status: "On",
+      enrolled: 31,
+      createdAt: "@-140d",
+      updatedAt: "@-1d",
+      description: "Opens a High-priority Service Hub ticket when a non-PHI post-visit CSAT survey scores <= 3/5 and routes it to the clinic location manager with a 4-hour response SLA.",
+      trunk: [
+        { id: "fb-trigger", kind: "trigger", label: "Post-visit CSAT survey submitted", detail: "Score <= 3 of 5 (service experience only, zero PHI)" },
+        { id: "fb-ticket", kind: "action", label: "Create Service Hub ticket", detail: "Pipeline: Clinic Experience & Feedback · Priority: High" },
+        { id: "fb-route", kind: "action", label: "Assign to Clinic Location Manager", detail: "Route by clinic site code (AZ-04 -> Valerie Chen)" },
+        { id: "fb-sla", kind: "action", label: "Start 4-hour first-response SLA & notify manager", detail: "In-app alert + follow-up email task" },
+      ],
+    },
   ],
   signals: [
     { id: "sg-cascadia", companyId: "co-cascadia-med", title: "18-bed ICU expansion approved", source: "Health system news", at: "@-2d", strength: "High", summary: "Cascadia Regional Medical announced an 18-bed critical care wing opening next quarter.", hero: true },
@@ -264,6 +291,9 @@ export const healthcarePack: Pack = {
       openBalance: "Open Staffing Balance",
       status: "Account Status",
     },
+  },
+  reports: {
+    "patient-satisfaction": patientSatisfactionReport,
   },
   demos,
 };

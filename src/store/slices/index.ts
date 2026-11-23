@@ -17,4 +17,5 @@ export {
   type SalesAction,
 } from "./sales";
 export { applySocialAds, isSocialAdsAction, seedSocialAds, type SocialAdsAction, type SocialAdsState } from "./social-ads";
+export { applyTickets, getTicketRun, isTicketsAction, seedTickets, type TicketRunState, type TicketsAction, type TicketsState, type TicketTimelineItem } from "./tickets";
 export { APPROVERS_REQUIRED, type Action, type ApprovalRuleEdit, type World } from "./types";

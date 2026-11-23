@@ -68,6 +68,7 @@ function Sidebar() {
   const [pinned, setPinned] = useState(false);
   const section = `/${route.segments[0] ?? ""}`;
   const hasReports = Boolean(pack.reports && Object.keys(pack.reports).length > 0);
+  const hasTickets = Boolean(pack.demos.tickets && Object.keys(pack.demos.tickets).length > 0);
   const navGroups = useMemo(
     () =>
       mergeNavGroups([
@@ -87,11 +88,19 @@ function Sidebar() {
               },
             ]
           : []),
+        ...(hasTickets
+          ? [
+              {
+                group: "Service" as const,
+                items: [{ to: "/tickets", label: "Tickets", icon: "ticket" as IconName }],
+              },
+            ]
+          : []),
         ...(hasReports
           ? [{ group: "Reporting" as const, items: [{ to: "/reports", label: "Reports", icon: "chart" as IconName }] }]
           : []),
       ]),
-    [pack.demos.socialAds, pack.demos.marketingStudio, pack.demos.customerAgent, hasReports],
+    [pack.demos.socialAds, pack.demos.marketingStudio, pack.demos.customerAgent, hasTickets, hasReports],
   );
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";

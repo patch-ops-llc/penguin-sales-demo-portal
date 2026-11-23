@@ -15,6 +15,7 @@ import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
 import { LazyBuyerPage } from "./quote/buyer-lazy";
 import { ServiceRoutes } from "./service/lazy";
 import { SocialRoutes } from "./social/lazy";
+import { TicketsRoutes } from "./tickets/lazy";
 import { A, Card, Empty } from "./ui";
 
 /**
@@ -26,6 +27,7 @@ export function isOutsideHubSpot(segments: string[]): boolean {
     ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) ||
     segments[0] === "site" ||
     segments[0] === "service-app" ||
+    segments[0] === "ticket-app" ||
     segments[0] === "offplatform" ||
     (segments[0] === "marketing" && segments[1] === "off-platform")
   );
@@ -66,6 +68,9 @@ export function Routes() {
     case "service":
     case "service-dashboard":
       return <ServiceRoutes section={section} id={id} sub={sub} />;
+    case "tickets":
+    case "ticket-app":
+      return <TicketsRoutes section={section} id={id} sub={sub} />;
     case "settings":
       return <LazySettingsPage />;
     case "campaigns":

@@ -4,8 +4,10 @@ import { marketingStudio } from "./marketing-studio";
 import { discountApproval, guidedQuote } from "./quoting";
 import { aiProspecting, backOffice, emailToDeal, leadCapture } from "./sales";
 import { socialAds } from "./social-ads";
+import { postVisitFeedback } from "./tickets";
 import type { DemoScript } from "./types";
 
+export { createTicketsScript, ticketReportFlag } from "./tickets";
 export { currentStep, hintOf, requiredSteps, stepText, type DemoScript, type Step, type StepCtx } from "./types";
 
 export const SCRIPTS: Record<DemoId, DemoScript> = {
@@ -18,4 +20,5 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "customer-agent": customerAgent,
   "social-ads": socialAds,
   "marketing-studio": marketingStudio,
+  "post-visit-feedback": postVisitFeedback,
 };

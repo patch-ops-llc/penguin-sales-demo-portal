@@ -20,6 +20,7 @@ import { preloadQuoteEditorPanels } from "./quote/editor-lazy";
 import { isOutsideHubSpot, Routes } from "./routes";
 import { preloadService } from "./service/lazy";
 import { preloadSocial } from "./social/lazy";
+import { preloadTickets } from "./tickets/lazy";
 import { cx } from "./ui";
 
 function preloadForInitialEntry(verticalId: string, location: string): Promise<unknown> {
@@ -29,6 +30,9 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   const tasks: Promise<unknown>[] = [];
   if (demo === "customer-agent" || section === "service" || section === "service-app" || section === "service-dashboard") {
     tasks.push(preloadService());
+  }
+  if (demo === "post-visit-feedback" || section === "tickets" || section === "ticket-app") {
+    tasks.push(preloadTickets());
   }
   if (demo === "social-ads" || section === "campaigns" || section === "social" || section === "insights" || section === "offplatform") {
     tasks.push(preloadSocial());
@@ -49,6 +53,16 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
     tasks.push(preloadAnalytics());
   }
   return tasks.length > 0 ? Promise.all(tasks) : Promise.resolve();
+}
+
+function shouldPreloadTickets(pack: Pack, verticalId: string, location: string): boolean {
+  const tickets = pack.demos.tickets;
+  if (!tickets) return false;
+  const parsed = parseLocation(location);
+  if (parsed.segments[0] === "tickets" || parsed.segments[0] === "ticket-app") return true;
+  const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
+  if (!demo || !isDemoId(demo)) return false;
+  return Boolean(tickets[demo]);
 }
 
 function shouldPreloadAnalytics(pack: Pack, verticalId: string, location: string): boolean {
@@ -128,8 +142,11 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
     const preload = isInitialMount ? preloadForInitialEntry(verticalId, initialLocation) : Promise.resolve();
     Promise.all([loadPack(verticalId, packVersion), preload])
       .then(async ([pack]) => {
-        if (isInitialMount && shouldPreloadAnalytics(pack, verticalId, initialLocation)) {
-          await preloadAnalytics();
+        if (isInitialMount) {
+          const postPreloads: Promise<unknown>[] = [];
+          if (shouldPreloadAnalytics(pack, verticalId, initialLocation)) postPreloads.push(preloadAnalytics());
+          if (shouldPreloadTickets(pack, verticalId, initialLocation)) postPreloads.push(preloadTickets());
+          if (postPreloads.length > 0) await Promise.all(postPreloads);
         }
         if (cancelled) return;
         setLoaded({ vertical: verticalId, pack, saved: loadSession(verticalId, packVersion), location: window.location.pathname + window.location.search });

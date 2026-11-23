@@ -1,14 +1,17 @@
 import type { Pack } from "../types";
+import { postVisitFeedbackConfig } from "./post-visit-feedback";
 import { socialAdsConfig } from "./social";
 
-// Demo configurations for Healthcare (Crestline Clinical Staffing).
-// Flow 3 (socialAds) is the live flagship demo for this vertical.
+// Demo configurations for Healthcare (Crestline Clinical Staffing & Specialty Clinics).
+// Includes Flow 3 (socialAds) and Healthcare #5 (post-visit-feedback via reusable Tickets workspace).
 // Minimal valid configurations for the shared shell screens keep Companies, Deals, Quotes,
-// Settings > Approvals, Inbox, and Prospecting working cleanly without missing defaults,
-// and leave room to add the remaining Healthcare use cases from Doc 3 later.
+// Settings > Approvals, Inbox, and Prospecting working cleanly without missing defaults.
 
 export const demos: Pack["demos"] = {
   socialAds: socialAdsConfig,
+  tickets: {
+    "post-visit-feedback": postVisitFeedbackConfig,
+  },
   guidedQuote: {
     dealId: "dl-mercy-icu",
     contactId: "ct-karen",

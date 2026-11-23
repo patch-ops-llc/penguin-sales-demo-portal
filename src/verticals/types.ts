@@ -1,6 +1,21 @@
 import type { SocialAdsConfig } from "@/shell/social/types";
+import type { TicketsDemoConfig } from "@/shell/tickets/types";
 import type { AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
+
+export type {
+  TicketChecklistItem,
+  TicketExternalCard,
+  TicketImpactedAccount,
+  TicketMode,
+  TicketOffPlatformScreen,
+  TicketPriority,
+  TicketQueueSeed,
+  TicketsDemoConfig,
+  TicketSecondaryOffPlatform,
+  TicketSlaInfo,
+  TicketStage,
+} from "@/shell/tickets/types";
 
 export type {
   AnalyticsBreakdownPanel,
@@ -1006,5 +1021,7 @@ export type Pack = {
     customerAgent?: CustomerAgentConfig;
     socialAds?: SocialAdsConfig;
     marketingStudio?: MarketingStudioConfig;
+    /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
+    tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
   };
 };

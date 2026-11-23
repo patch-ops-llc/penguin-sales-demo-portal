@@ -30,4 +30,17 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Syncs filled travel-RN shifts, billable hours, and net placement margin from Bullhorn/VMS back into HubSpot campaign ROI so marketing sees verified placement revenue alongside pipeline.",
     },
   ],
+  "post-visit-feedback": [
+    { id: "post-visit-survey", name: "Post-visit CSAT feedback survey (service experience only, zero PHI)", by: "native" },
+    { id: "low-score-workflow", name: "Low-score automation workflow (CSAT <= 3 opens Service Hub ticket)", by: "native" },
+    { id: "service-hub-ticket", name: "Service Hub ticket pipeline, SLA tracking, and location-manager assignment", by: "native" },
+    { id: "manager-outreach", name: "Location manager outreach email, follow-up notes, and ticket resolution", by: "native" },
+    { id: "satisfaction-analytics", name: "Native Service Hub Analytics report: satisfaction & resolution speed by location", by: "native" },
+    {
+      id: "ehr-visit-trigger",
+      name: "EHR Visit-Completion Trigger",
+      by: "penguin",
+      note: "Listens for outpatient checkout events in the practice management / EHR system (non-PHI site code and checkout token only) and triggers the HubSpot post-visit CSAT survey automatically.",
+    },
+  ],
 };

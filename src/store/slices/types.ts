@@ -5,6 +5,7 @@ import type { MarketingStudioAction, MarketingStudioState } from "./marketing-st
 import type { GuidedQuoteState, QuotingAction } from "./quoting";
 import type { AiProspectingState, BackOfficeState, EmailToDealState, LeadCaptureState, SalesAction } from "./sales";
 import type { SocialAdsAction, SocialAdsState } from "./social-ads";
+import type { TicketsAction, TicketsState } from "./tickets";
 
 /** What the approval flow can ask of a step's approvers. The first is HubSpot's wording for every approver. */
 export const APPROVERS_REQUIRED = ["All approvers", "Any approvers", "Sequential"];
@@ -43,9 +44,10 @@ export type World = {
   ca: CustomerAgentState;
   sa: SocialAdsState;
   ms: MarketingStudioState;
+  tk: TicketsState;
   /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
   approvalRule: ApprovalRuleEdit;
   seq: number;
 };
 
-export type Action = CoreAction | QuotingAction | SalesAction | CustomerAgentAction | SocialAdsAction | MarketingStudioAction;
+export type Action = CoreAction | QuotingAction | SalesAction | CustomerAgentAction | SocialAdsAction | MarketingStudioAction | TicketsAction;

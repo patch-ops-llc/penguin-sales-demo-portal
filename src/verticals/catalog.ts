@@ -10,7 +10,8 @@ export type DemoId =
   | "discount-approval"
   | "customer-agent"
   | "social-ads"
-  | "marketing-studio";
+  | "marketing-studio"
+  | "post-visit-feedback";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -134,6 +135,15 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     flagship: true,
     tags: ["breeze", "ai", "icp", "campaign", "brand voice", "remix", "credits", "outreach"],
   },
+  "post-visit-feedback": {
+    id: "post-visit-feedback",
+    title: "Post-visit feedback to service ticket",
+    minutes: 4,
+    summary: "Checkout triggers a non-PHI post-visit CSAT survey; a low score opens a Service Hub ticket routed to the clinic location manager for empathetic outreach, resolution, and location reporting.",
+    takeaway: "Low-score clinic feedback turns into same-day manager outreach inside Service Hub, with zero PHI stored and satisfaction tracked by location.",
+    hub: "service",
+    tags: ["service", "tickets", "csat", "feedback", "survey", "sla", "healthcare", "clinic"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -250,10 +260,10 @@ export const VERTICALS: VerticalTile[] = [
   {
     id: "healthcare",
     name: "Healthcare",
-    company: "Crestline Clinical Staffing",
-    blurb: "Travel nursing, allied health staffing, and specialty clinic workforce solutions.",
+    company: "Crestline Clinical Staffing & Specialty Clinics",
+    blurb: "Travel nursing, allied health staffing, and specialty clinic operations.",
     status: "live",
-    demos: ["social-ads"],
+    demos: ["social-ads", "post-visit-feedback"],
   },
 ];
 

@@ -6,11 +6,13 @@ import {
   applyQuoting,
   applySales,
   applySocialAds,
+  applyTickets,
   isCustomerAgentAction,
   isMarketingStudioAction,
   isQuotingAction,
   isSalesAction,
   isSocialAdsAction,
+  isTicketsAction,
   seedAiProspecting,
   seedBackOffice,
   seedCustomerAgent,
@@ -19,6 +21,7 @@ import {
   seedLeadCapture,
   seedMarketingStudio,
   seedSocialAds,
+  seedTickets,
   type Action,
   type World,
 } from "./slices";
@@ -44,6 +47,10 @@ export {
   type SalesAction,
   type SocialAdsAction,
   type SocialAdsState,
+  type TicketRunState,
+  type TicketsAction,
+  type TicketsState,
+  type TicketTimelineItem,
   type World,
 } from "./slices";
 
@@ -68,6 +75,7 @@ export function seedWorld(pack: Pack): World {
     ca: seedCustomerAgent(),
     sa: seedSocialAds(),
     ms: seedMarketingStudio(pack),
+    tk: seedTickets(),
     approvalRule: {},
     seq: 0,
   };
@@ -80,6 +88,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isCustomerAgentAction(a)) return applyCustomerAgent(w, a, pack);
   if (isSocialAdsAction(a)) return applySocialAds(w, a, pack);
   if (isMarketingStudioAction(a)) return applyMarketingStudio(w, a, pack);
+  if (isTicketsAction(a)) return applyTickets(w, a, pack);
   return applyCore(w, a, pack);
 }
 
