@@ -11,7 +11,11 @@ import { APPROVAL_SETTINGS_PATH } from "./quote/approval-rule";
 import { A, Avatar, cx, Menu, MenuItem, Tag, useClickOutside } from "./ui";
 
 type NavItem = { to: string; label: string; icon: IconName };
-const NAV: { group: string; items: NavItem[] }[] = [
+const NAV_GROUP_ORDER = ["CRM", "Marketing", "Sales", "Revenue", "Service", "Automation", "Reporting"] as const;
+type NavGroupName = (typeof NAV_GROUP_ORDER)[number];
+type NavGroup = { group: NavGroupName; items: NavItem[] };
+
+const NAV: NavGroup[] = [
   {
     group: "CRM",
     items: [
@@ -22,6 +26,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/tasks", label: "Tasks", icon: "task" },
     ],
   },
+  { group: "Sales", items: [{ to: "/prospecting", label: "Prospecting", icon: "target" }] },
   {
     group: "Revenue",
     items: [
@@ -29,11 +34,10 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/products", label: "Products", icon: "product" },
     ],
   },
-  { group: "Sales", items: [{ to: "/prospecting", label: "Prospecting", icon: "target" }] },
   { group: "Automation", items: [{ to: "/workflows", label: "Workflows", icon: "workflow" }] },
 ];
 
-const MARKETING_NAV: { group: string; items: NavItem[] } = {
+const SOCIAL_MARKETING_NAV: NavGroup = {
   group: "Marketing",
   items: [
     { to: "/campaigns", label: "Campaigns", icon: "megaphone" },
@@ -42,28 +46,49 @@ const MARKETING_NAV: { group: string; items: NavItem[] } = {
   ],
 };
 
+function mergeNavGroups(groups: NavGroup[]): NavGroup[] {
+  const byGroup = new Map<NavGroupName, NavItem[]>();
+  for (const { group, items } of groups) {
+    const existing = byGroup.get(group) ?? [];
+    for (const item of items) {
+      if (!existing.some((x) => x.to === item.to)) existing.push(item);
+    }
+    byGroup.set(group, existing);
+  }
+  const ordered: NavGroup[] = [];
+  for (const group of NAV_GROUP_ORDER) {
+    const items = byGroup.get(group);
+    if (items && items.length > 0) ordered.push({ group, items });
+  }
+  return ordered;
+}
+
 function Sidebar() {
   const { route, pack } = useShell();
   const [pinned, setPinned] = useState(false);
   const section = `/${route.segments[0] ?? ""}`;
-  const navGroups = [
-    ...(pack.demos.socialAds ? [MARKETING_NAV] : []),
-    ...NAV,
-    ...(pack.demos.marketingStudio
-      ? [{ group: "Marketing", items: [{ to: "/marketing", label: "Marketing Studio", icon: "megaphone" as IconName }] }]
-      : []),
-    ...(pack.demos.customerAgent
-      ? [
-          {
-            group: "Service",
-            items: [
-              { to: "/service", label: "Help Desk", icon: "chat" as IconName },
-              { to: "/service-dashboard", label: "Service Dashboard", icon: "chart" as IconName },
-            ],
-          },
-        ]
-      : []),
-  ];
+  const navGroups = useMemo(
+    () =>
+      mergeNavGroups([
+        ...NAV,
+        ...(pack.demos.socialAds ? [SOCIAL_MARKETING_NAV] : []),
+        ...(pack.demos.marketingStudio
+          ? [{ group: "Marketing" as const, items: [{ to: "/marketing", label: "Marketing Studio", icon: "megaphone" as IconName }] }]
+          : []),
+        ...(pack.demos.customerAgent
+          ? [
+              {
+                group: "Service" as const,
+                items: [
+                  { to: "/service", label: "Help Desk", icon: "chat" as IconName },
+                  { to: "/service-dashboard", label: "Service Dashboard", icon: "chart" as IconName },
+                ],
+              },
+            ]
+          : []),
+      ]),
+    [pack.demos.socialAds, pack.demos.marketingStudio, pack.demos.customerAgent],
+  );
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";
   return (

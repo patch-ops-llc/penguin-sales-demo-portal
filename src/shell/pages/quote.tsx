@@ -8,20 +8,17 @@ import { quoteName, ruleOf } from "@/store/world";
 import type { Quote } from "@/verticals/types";
 import { date, dateTime, relative } from "../format";
 import { Icon, type IconName } from "../icons";
-import { ApprovalsPanel, RequestApprovalDialog } from "../quote/approvals";
-import { BuyerView } from "../quote/buyer";
-import { ClosingAgentLauncher } from "../quote/closing-agent";
-import { ClosingAgentStatus, ClosingAgentSettings } from "../quote/closing-agent-settings";
+import { LazyBuyerView } from "../quote/buyer-lazy";
+import { ClosingAgentLauncher } from "../quote/closing-agent-launcher";
+import { ClosingAgentStatus } from "../quote/closing-agent-status";
 import { QuoteDocument } from "../quote/document";
-import { LineItemsEditor } from "../quote/line-items-editor";
+import { LazyClosingAgentSettings, LazyEditorSidebar, LazyLineItemsEditor } from "../quote/editor-lazy";
 import type { ModuleId } from "../quote/settings";
 import { ShareDialog } from "../quote/share-dialog";
 import { QuoteStatus } from "../quote/status";
-import { EditorSidebar } from "../quote/sidebar";
 import { A, Card, cx, Empty, Menu, Prop, Toast } from "../ui";
+import { LazyApprovalsPanel, LazyRequestApprovalDialog } from "./approval-settings-lazy";
 import { companyOf, contactName, ownerName } from "./lists";
-
-export { BuyerPage } from "../quote/buyer";
 
 function NotFound() {
   return (
@@ -195,7 +192,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
       </header>
 
       {view === "lines" ? (
-        <LineItemsEditor quote={quote} onClose={() => setView("edit")} />
+        <LazyLineItemsEditor quote={quote} onClose={() => setView("edit")} />
       ) : (
         <>
           <div className="relative flex h-11 shrink-0 items-center border-b border-line bg-white px-4">
@@ -248,7 +245,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
 
           {view === "preview" ? (
             <div className="hs-scroll min-h-0 flex-1 overflow-y-auto" data-testid="quote-preview-modal">
-              <BuyerView quote={quote} narrow={device === "mobile"} />
+              <LazyBuyerView quote={quote} narrow={device === "mobile"} />
             </div>
           ) : (
             <div className="relative flex min-h-0 flex-1">
@@ -265,7 +262,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
                   <RailButton icon="siteTree" label="Quote sections" active={sidebar} onClick={() => setSidebar((open) => !open)} testId="quote-modules" />
                 </nav>
               ) : null}
-              {editable && sidebar ? <EditorSidebar quote={quote} module={module} onSelect={setModule} onClose={() => setSidebar(false)} onEditLines={() => setView("lines")} /> : null}
+              {editable && sidebar ? <LazyEditorSidebar quote={quote} module={module} onSelect={setModule} onClose={() => setSidebar(false)} onEditLines={() => setView("lines")} /> : null}
 
               <div className="relative flex min-w-0 flex-1">
                 <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto px-6 py-6">
@@ -314,11 +311,11 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
                 </div>
                 </main>
                 {final ? null : <ClosingAgentLauncher quote={quote} test />}
-                {agentPanel && !panel ? <ClosingAgentSettings quote={quote} onClose={() => setAgentPanel(false)} /> : null}
+                {agentPanel && !panel ? <LazyClosingAgentSettings quote={quote} onClose={() => setAgentPanel(false)} /> : null}
               </div>
 
               {panel ? (
-                <ApprovalsPanel quote={quote} onClose={() => setPanel(false)} />
+                <LazyApprovalsPanel quote={quote} onClose={() => setPanel(false)} />
               ) : (
                 <div className="pointer-events-none absolute right-4 top-4 z-10 flex flex-col gap-1 rounded-[8px] border border-line bg-white p-1 shadow-[0_2px_10px_rgba(20,20,20,0.12)] [&>*]:pointer-events-auto" aria-label="Collaboration">
                   <RailButton icon="grid" label="Collaboration" />
@@ -331,7 +328,7 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
         </>
       )}
 
-      {requesting && locked ? <RequestApprovalDialog quote={quote} onClose={() => setRequesting(false)} /> : null}
+      {requesting && locked ? <LazyRequestApprovalDialog quote={quote} onClose={() => setRequesting(false)} /> : null}
       {sharing && final ? (
         <ShareDialog
           quote={quote}

@@ -2,22 +2,17 @@
 
 import { useShell } from "@/store/store";
 import { LazyMarketingView } from "./marketing/lazy";
-import { ApprovalWorkflowPage } from "./pages/approval-workflow";
+import { LazyApprovalWorkflowPage, LazySettingsPage } from "./pages/approval-settings-lazy";
 import { CompaniesIndex, ContactsIndex, DealsIndex, ProductsIndex, QuotesIndex, TasksIndex, WorkflowsIndex } from "./pages/lists";
 import { InboxPage } from "./pages/inbox";
 import { ProspectingPage } from "./pages/prospecting";
-import { ApprovalPage, BuyerPage, QuotePage } from "./pages/quote";
+import { ApprovalPage, QuotePage } from "./pages/quote";
 import { CompanyRecord, ContactRecord, DealRecord } from "./pages/records";
-import { SettingsPage } from "./pages/settings";
-import { SitePage } from "./pages/site";
+import { LazySitePage } from "./pages/site-lazy";
 import { WorkflowPage } from "./pages/workflow";
 import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
-import { ServiceDashboardPage } from "./service/dashboard";
-import { HelpDeskPage } from "./service/help-desk";
-import { OffplatformChatPage } from "./service/offplatform-chat";
-import { OffplatformEmailPage } from "./service/offplatform-email";
-import { OffplatformPhonePage } from "./service/offplatform-phone";
-import { TicketRecordPage } from "./service/ticket";
+import { LazyBuyerPage } from "./quote/buyer-lazy";
+import { ServiceRoutes } from "./service/lazy";
 import { SocialRoutes } from "./social/lazy";
 import { A, Card, Empty } from "./ui";
 
@@ -47,7 +42,7 @@ export function Routes() {
     case "deals":
       return id ? <DealRecord key={id} id={id} /> : <DealsIndex />;
     case "quotes":
-      if (id && sub === "buyer") return <BuyerPage key={id} id={id} />;
+      if (id && sub === "buyer") return <LazyBuyerPage key={id} id={id} />;
       return id ? <QuotePage key={id} id={id} /> : <QuotesIndex />;
     case "approvals":
       return id ? <ApprovalPage key={id} id={id} /> : <QuotesIndex />;
@@ -56,7 +51,7 @@ export function Routes() {
     case "products":
       return <ProductsIndex />;
     case "workflows":
-      if (id === APPROVAL_WORKFLOW_ID) return <ApprovalWorkflowPage />;
+      if (id === APPROVAL_WORKFLOW_ID) return <LazyApprovalWorkflowPage />;
       return id ? <WorkflowPage key={id} id={id} /> : <WorkflowsIndex />;
     case "inbox":
       return <InboxPage />;
@@ -65,18 +60,13 @@ export function Routes() {
     case "marketing":
       return <LazyMarketingView id={id} sub={sub} />;
     case "site":
-      return <SitePage />;
+      return <LazySitePage />;
     case "service-app":
-      if (id === "email") return <OffplatformEmailPage />;
-      if (id === "phone") return <OffplatformPhonePage />;
-      return <OffplatformChatPage />;
     case "service":
-      if (id === "tickets" && sub) return <TicketRecordPage key={sub} id={sub} />;
-      return <HelpDeskPage />;
     case "service-dashboard":
-      return <ServiceDashboardPage />;
+      return <ServiceRoutes section={section} id={id} sub={sub} />;
     case "settings":
-      return <SettingsPage />;
+      return <LazySettingsPage />;
     case "campaigns":
     case "social":
     case "insights":

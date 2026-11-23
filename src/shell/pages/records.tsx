@@ -2,7 +2,7 @@
 
 import { nowMs } from "@/lib/format";
 import { useState } from "react";
-import { ErpCard } from "@/demos/back-office/erp-card";
+import { LazyErpCard } from "@/demos/back-office/erp-card-lazy";
 import { GuidedSellingPanel } from "@/demos/guided-quote/panel";
 import { WhyThisScoreCard } from "@/demos/lead-capture/score-card";
 import { quoteStatusLabel, quoteTotals } from "@/store/quote-math";
@@ -15,7 +15,7 @@ import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
 import { IcpMatchCard, MarketingContactBanner, MarketingDealBanner } from "../marketing/lazy";
 import { DealQuotesCard } from "../quote/deal-quotes";
-import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/attribution-card";
+import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/lazy";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
 const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync", chat: "chat" };
@@ -468,7 +468,7 @@ export function CompanyRecord({ id }: { id: string }) {
               {company.description ? <p className="mt-2 text-[13px] text-ink-muted">{company.description}</p> : null}
             </Card>
           ) : null}
-          {id === config.companyId ? <ErpCard company={company} /> : null}
+          {id === config.companyId ? <LazyErpCard company={company} /> : null}
           <IcpMatchCard companyId={id} />
           {!company.enrichedAt && company.description ? (
             <Card title="About">

@@ -8,7 +8,8 @@ import { money2 } from "../format";
 import { Icon } from "../icons";
 import { contactName } from "../pages/lists";
 import { cx, LineTabs } from "../ui";
-import { BuyerView, quoteLink } from "./buyer";
+import { LazyBuyerView } from "./buyer-lazy";
+import { quoteLink } from "./link";
 
 const field = "h-9 w-full rounded-[4px] border border-line bg-white px-3 text-[13.5px] focus:border-ink focus:outline-none";
 const label = "mb-1 block text-[12.5px] font-semibold";
@@ -176,7 +177,7 @@ export function ShareDialog({ quote, onClose, onSent }: { quote: Quote; onClose:
                 </p>
                 <div className="h-[400px] overflow-hidden">
                   <div className="pointer-events-none w-[200%] origin-top-left scale-50" inert>
-                    <BuyerView quote={quote} />
+                    <LazyBuyerView quote={quote} />
                   </div>
                 </div>
               </div>

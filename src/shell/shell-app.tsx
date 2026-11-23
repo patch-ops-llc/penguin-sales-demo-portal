@@ -1,16 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { preloadErpCard } from "@/demos/back-office/erp-card-lazy";
 import { clearSession, loadSession, type Saved } from "@/store/session";
 import { resolveDates } from "@/store/dates";
 import { parseLocation, useLocation } from "@/store/router";
 import { ShellProvider, useShell } from "@/store/store";
+import { getVertical } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
 import { Chrome } from "./chrome";
 import { DemoBar } from "./demo-bar";
 import { EndCard } from "./end-card";
+import { preloadMarketing } from "./marketing/lazy";
+import { preloadApprovalSettings } from "./pages/approval-settings-lazy";
+import { preloadSite } from "./pages/site-lazy";
+import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
+import { preloadQuoteEditorPanels } from "./quote/editor-lazy";
 import { isOutsideHubSpot, Routes } from "./routes";
+import { preloadService } from "./service/lazy";
+import { preloadSocial } from "./social/lazy";
 import { cx } from "./ui";
+
+function preloadForInitialEntry(verticalId: string, location: string): Promise<unknown> {
+  const parsed = parseLocation(location);
+  const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
+  const section = parsed.segments[0];
+  const tasks: Promise<unknown>[] = [];
+  if (demo === "customer-agent" || section === "service" || section === "service-app" || section === "service-dashboard") {
+    tasks.push(preloadService());
+  }
+  if (demo === "social-ads" || section === "campaigns" || section === "social" || section === "insights" || section === "offplatform") {
+    tasks.push(preloadSocial());
+  }
+  if (demo === "marketing-studio" || section === "marketing") {
+    tasks.push(preloadMarketing());
+  }
+  if (demo === "lead-capture" || section === "site") {
+    tasks.push(preloadSite());
+  }
+  if (demo === "discount-approval" || section === "settings" || (section === "workflows" && parsed.segments[1] === APPROVAL_WORKFLOW_ID)) {
+    tasks.push(preloadApprovalSettings(), preloadQuoteEditorPanels());
+  }
+  if (demo === "back-office") {
+    tasks.push(preloadErpCard());
+  }
+  return tasks.length > 0 ? Promise.all(tasks) : Promise.resolve();
+}
 
 type Loaded = { vertical: string; pack: Pack; saved: Saved | null; location: string };
 
@@ -63,6 +98,7 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
   const packVersion = packVersions[verticalId];
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failed, setFailed] = useState(false);
+  const preloaded = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,8 +108,10 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
       url.searchParams.delete("fresh");
       window.history.replaceState(null, "", url.pathname + url.search);
     }
-    loadPack(verticalId, packVersion)
-      .then((pack) => {
+    const initialLocation = window.location.pathname + window.location.search;
+    const preload = preloaded.current ? Promise.resolve() : ((preloaded.current = true), preloadForInitialEntry(verticalId, initialLocation));
+    Promise.all([loadPack(verticalId, packVersion), preload])
+      .then(([pack]) => {
         if (cancelled) return;
         setLoaded({ vertical: verticalId, pack, saved: loadSession(verticalId, packVersion), location: window.location.pathname + window.location.search });
       })

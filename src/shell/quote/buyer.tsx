@@ -9,7 +9,10 @@ import { contactName } from "../pages/lists";
 import { A, Avatar, Card, cx, Empty, Modal } from "../ui";
 import { ClosingAgentLauncher, ClosingAgentPanel } from "./closing-agent";
 import { AcceptanceCard, QuoteDocument } from "./document";
+import { quoteLink } from "./link";
 import { useQuoteSettings } from "./settings";
+
+export { quoteLink } from "./link";
 
 const chip = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-line bg-white px-3 text-[12.5px] hover:bg-[#f5f5f5]";
 const signPrimary = "inline-flex h-9 items-center rounded-[4px] bg-[#0061fe] px-5 text-[13.5px] font-semibold text-white hover:bg-[#0052d9] disabled:cursor-default disabled:bg-[#4a4a4a] disabled:text-[#a8a8a8]";
@@ -332,11 +335,4 @@ export function BuyerPage({ id }: { id: string }) {
       </div>
     </div>
   );
-}
-
-/** The public link of a published quote, in the shape HubSpot gives it. */
-export function quoteLink(hubId: string, quote: Pick<Quote, "id" | "number">): string {
-  let hash = 0;
-  for (const ch of `${hubId}${quote.id}`) hash = (hash * 33 + ch.charCodeAt(0)) >>> 0;
-  return `${hubId}.hs-sites.com/${hash.toString(36)}${quote.number.replace(/\W/g, "").toLowerCase()}`;
 }
