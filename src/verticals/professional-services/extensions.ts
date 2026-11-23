@@ -148,4 +148,16 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Maps Breeze credit burn directly to deflected L1 tickets, reclaimed MSP engineer hours, and 15-minute P1 SLA compliance.",
     },
   ],
+  "contract-renewal": [
+    { id: "renewal-120d-workflow", name: "120-day contract renewal workflow, Renewal deal creation, and AM task", by: "native" },
+    { id: "qbr-meeting-booking", name: "HubSpot Meetings QBR scheduling and automatic deal/timeline sync", by: "native" },
+    { id: "quote-editor-acceptance", name: "Native Quote editor, published quote link, and client acceptance", by: "native" },
+    { id: "renewal-pipeline-report", name: "Native HubSpot Analytics report: Renewal pipeline & at-risk ARR", by: "native" },
+    {
+      id: "psa-contract-sync",
+      name: "PSA Agreement & Contract-Date Roll-Forward Sync",
+      by: "penguin",
+      note: "Writes the renewed 12-month contract end date, updated managed user count, and new monthly billing rate back to the ConnectWise PSA agreement when the renewal closes.",
+    },
+  ],
 };

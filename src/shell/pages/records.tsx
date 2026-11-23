@@ -16,6 +16,7 @@ import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, 
 import { IntakeDealPanel } from "../intake/lazy";
 import { IcpMatchCard, MarketingContactBanner, MarketingDealBanner } from "../marketing/lazy";
 import { DealQuotesCard } from "../quote/deal-quotes";
+import { RenewalsCompanyPanel, RenewalsDealPanel } from "../renewals/lazy";
 import { CampaignAttributionCard, FollowupAutomationBanner, PqlContactBanner } from "../social/lazy";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
@@ -502,6 +503,7 @@ export function CompanyRecord({ id }: { id: string }) {
             </Card>
           ) : null}
           {id === config.companyId ? <LazyErpCard company={company} /> : null}
+          <RenewalsCompanyPanel companyId={id} />
           <IcpMatchCard companyId={id} />
           {!company.enrichedAt && company.description ? (
             <Card title="About">
@@ -638,6 +640,7 @@ export function DealRecord({ id }: { id: string }) {
             </ol>
           </Card>
           <IntakeDealPanel dealId={id} />
+          <RenewalsDealPanel dealId={id} />
           <Card title={`Line items (${deal.lineItems.length})`} pad={false} testId="deal-line-items">
             {deal.lineItems.length === 0 ? (
               <p className="px-4 pb-4 pt-2 text-[13px] text-ink-muted">

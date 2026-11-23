@@ -3,6 +3,7 @@ import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
 import { line, products } from "./rate-card";
+import { itContractRenewalsReport } from "./renewals";
 import { professionalServicesReports } from "./reports";
 
 // Professional and IT services pack: Quillon Technology Partners, a managed IT services provider
@@ -484,5 +485,8 @@ export const professionalServicesPack: Pack = {
     },
   },
   demos,
-  reports: professionalServicesReports,
+  reports: {
+    ...professionalServicesReports,
+    "it-contract-renewals": itContractRenewalsReport,
+  },
 };

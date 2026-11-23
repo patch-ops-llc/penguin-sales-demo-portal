@@ -2,6 +2,7 @@ import type { ErpStockItem, GqLineTemplate, GqOption, Pack } from "../types";
 import { itCustomerAgent } from "./customer-agent";
 import { incidentCommsConfig } from "./incident-comms";
 import { ENGINEER_RATE, MARGIN_FLOOR_PCT, product } from "./rate-card";
+import { itRenewals } from "./renewals";
 
 // Per-demo content for Professional and IT services: hero records, rate-card rules, presets, and prepared output.
 // The demo templates in src/demos read everything vertical-specific from here.
@@ -626,4 +627,7 @@ export const demos: Pack["demos"] = {
   tickets: {
     "incident-comms": incidentCommsConfig,
   },
+
+  // ---------- Contract Renewal Management (IT Services #3) ----------
+  renewals: itRenewals,
 };

@@ -5,6 +5,7 @@ import type { IntakeAction, IntakeState } from "./intake";
 import type { MarketingStudioAction, MarketingStudioState } from "./marketing-studio";
 import type { PatientReactivationAction, PatientReactivationState } from "./patient-reactivation";
 import type { GuidedQuoteState, QuotingAction } from "./quoting";
+import type { RenewalsAction, RenewalsState } from "./renewals";
 import type { AiProspectingState, BackOfficeState, EmailToDealState, LeadCaptureState, PqlTrialState, SalesAction } from "./sales";
 import type { SocialAdsAction, SocialAdsState } from "./social-ads";
 import type { TicketsAction, TicketsState } from "./tickets";
@@ -50,9 +51,20 @@ export type World = {
   tk: TicketsState;
   pr: PatientReactivationState;
   intake: IntakeState;
+  renewals: RenewalsState;
   /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
   approvalRule: ApprovalRuleEdit;
   seq: number;
 };
 
-export type Action = CoreAction | QuotingAction | SalesAction | CustomerAgentAction | SocialAdsAction | MarketingStudioAction | TicketsAction | PatientReactivationAction | IntakeAction;
+export type Action =
+  | CoreAction
+  | QuotingAction
+  | SalesAction
+  | CustomerAgentAction
+  | SocialAdsAction
+  | MarketingStudioAction
+  | TicketsAction
+  | PatientReactivationAction
+  | IntakeAction
+  | RenewalsAction;

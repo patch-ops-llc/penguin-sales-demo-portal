@@ -332,7 +332,7 @@ test("criteria can be removed and added back, and the approver changed to anothe
 
   // The approver: the vertical's people, without the rep who writes the quotes.
   await workflow.getByTestId("aw-step").click();
-  await expect(panel.getByTestId("aw-panel-approver").locator("option")).toHaveCount(4);
+  await expect(panel.getByTestId("aw-panel-approver").locator("option")).toHaveCount(5);
   await expect(panel.getByTestId("aw-panel-approver")).not.toContainText("Jordan Avery");
   await panel.getByTestId("aw-panel-approver").selectOption("carmen");
   await expect(panel.getByTestId("aw-panel-message")).toHaveValue("A discount over 10% needs approval from Carmen Okoye, Enterprise Account Executive, West.");

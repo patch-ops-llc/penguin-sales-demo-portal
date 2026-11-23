@@ -21,7 +21,8 @@ function Dot({ color }: { color: string }) {
 
 /** Penguin piece 1: each product's floor price and the check that flags lines below it. HubSpot's approval workflow filters on that flag. */
 export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems" | "discountPct">; className?: string }) {
-  const { pack, world } = useShell();
+  const { pack, world, demo } = useShell();
+  if (demo === "renewal-churn-risk" || demo === "contract-renewal") return null;
   const rule = ruleOf(pack, world);
   const below = linesBelowFloor(quote, rule);
   return (
@@ -52,7 +53,8 @@ export function FloorCheck({ quote, className }: { quote: Pick<Quote, "lineItems
 
 /** Penguin piece 2: where the unit cost behind the margin comes from. Kept apart from the floor check so the two callouts do not overlap. */
 export function CostFeed({ className }: { className?: string }) {
-  const { pack } = useShell();
+  const { pack, demo } = useShell();
+  if (demo === "renewal-churn-risk" || demo === "contract-renewal") return null;
   return (
     <Ext id="erp-cost-feed" className={cx("rounded-[8px] bg-[#fafafa] px-3 py-2 pr-10", className)} pinClass="!right-1.5 !top-0.5">
       <p className="text-[12px] text-ink-muted" data-testid="cost-feed">

@@ -14,6 +14,7 @@ import { LazySitePage } from "./pages/site-lazy";
 import { WorkflowPage } from "./pages/workflow";
 import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
 import { LazyBuyerPage } from "./quote/buyer-lazy";
+import { RenewalsRoutes } from "./renewals/lazy";
 import { ServiceRoutes } from "./service/lazy";
 import { SocialRoutes } from "./social/lazy";
 import { TicketsRoutes } from "./tickets/lazy";
@@ -31,6 +32,7 @@ export function isOutsideHubSpot(segments: string[]): boolean {
     segments[0] === "ticket-app" ||
     segments[0] === "offplatform" ||
     segments[0] === "intake" ||
+    segments[0] === "renewals-app" ||
     (segments[0] === "marketing" && segments[1] === "off-platform")
   );
 }
@@ -83,6 +85,9 @@ export function Routes() {
       return <SocialRoutes section={section} id={id} />;
     case "intake":
       return <IntakeRoutes demoId={id} view={sub} />;
+    case "renewals":
+    case "renewals-app":
+      return <RenewalsRoutes section={section} demoId={id} view={sub} />;
     case "reports":
       return <AnalyticsRoutes reportId={id} />;
     case undefined:

@@ -5,11 +5,13 @@ import { referralIntake, staffingJobOrders } from "./intake";
 import { marketingStudio } from "./marketing-studio";
 import { patientReactivation } from "./patient-reactivation";
 import { discountApproval, guidedQuote } from "./quoting";
+import { contractRenewal, premiumToSubscription, renewalChurnRisk } from "./renewals";
 import { aiProspecting, backOffice, emailToDeal, leadCapture, pqlTrialProspecting } from "./sales";
 import { socialAds } from "./social-ads";
 import { customerOnboarding, incidentComms, postVisitFeedback } from "./tickets";
 import type { DemoScript } from "./types";
 
+export { renewalsReportFlag } from "./renewals";
 export { createTicketsScript, ticketReportFlag } from "./tickets";
 export { currentStep, hintOf, requiredSteps, stepText, type DemoScript, type Step, type StepCtx } from "./types";
 
@@ -30,6 +32,9 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "incident-comms": incidentComms,
   "pql-trial-prospecting": pqlTrialProspecting,
   "customer-onboarding": customerOnboarding,
+  "premium-to-subscription": premiumToSubscription,
+  "renewal-churn-risk": renewalChurnRisk,
+  "contract-renewal": contractRenewal,
 };
 
 /** Resolves a demo script for one pack, picking the vertical customer-agent variant and filtering steps whose `when(pack)` is false. */

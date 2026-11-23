@@ -6,6 +6,7 @@ import {
   applyMarketingStudio,
   applyPatientReactivation,
   applyQuoting,
+  applyRenewals,
   applySales,
   applySocialAds,
   applyTickets,
@@ -14,6 +15,7 @@ import {
   isMarketingStudioAction,
   isPatientReactivationAction,
   isQuotingAction,
+  isRenewalsAction,
   isSalesAction,
   isSocialAdsAction,
   isTicketsAction,
@@ -27,6 +29,7 @@ import {
   seedMarketingStudio,
   seedPatientReactivation,
   seedPqlTrial,
+  seedRenewals,
   seedSocialAds,
   seedTickets,
   type Action,
@@ -57,6 +60,9 @@ export {
   type PatientReactivationState,
   type PqlTrialState,
   type QuotingAction,
+  type RenewalsAction,
+  type RenewalsDemoState,
+  type RenewalsState,
   type SalesAction,
   type SocialAdsAction,
   type SocialAdsState,
@@ -92,6 +98,7 @@ export function seedWorld(pack: Pack): World {
     tk: seedTickets(),
     pr: seedPatientReactivation(),
     intake: seedIntake(pack),
+    renewals: seedRenewals(pack),
     approvalRule: {},
     seq: 0,
   };
@@ -107,6 +114,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isTicketsAction(a)) return applyTickets(w, a, pack);
   if (isPatientReactivationAction(a)) return applyPatientReactivation(w, a, pack);
   if (isIntakeAction(a)) return applyIntake(w, a, pack);
+  if (isRenewalsAction(a)) return applyRenewals(w, a, pack);
   return applyCore(w, a, pack);
 }
 

@@ -1,10 +1,18 @@
 import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
+import type { RenewalFlowConfig, RenewalsDemoId } from "@/shell/renewals/types";
 import type { PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
 import type { TicketsDemoConfig } from "@/shell/tickets/types";
 import type { AnalyticsCreditsOutcome, AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
 
 export type { IntakeDemoId, IntakeFlowConfig, IntakeFollowupOption, IntakeFormField, IntakeMode, IntakeReviewItem, IntakeTone } from "@/shell/intake/types";
+export type {
+  ContractRenewalConfig,
+  PremiumToSubscriptionConfig,
+  RenewalChurnRiskConfig,
+  RenewalFlowConfig,
+  RenewalsDemoId,
+} from "@/shell/renewals/types";
 
 export type {
   TicketChecklistItem,
@@ -1335,5 +1343,6 @@ export type Pack = {
     /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
     intake?: Partial<Record<IntakeDemoId, IntakeFlowConfig>>;
+    renewals?: Partial<Record<RenewalsDemoId, RenewalFlowConfig>>;
   };
 };

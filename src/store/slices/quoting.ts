@@ -2,6 +2,7 @@ import { generateLines, isComplete, pruneSelections } from "@/demos/guided-quote
 import type { LineItem, Pack } from "@/verticals/types";
 import { approvalReasons, quoteTotals, unitDiscountPct } from "../quote-math";
 import { addActivity, clampPct, iso, newQuote, nextDealQuoteId, quoteName, ruleOf, touch } from "./helpers";
+import { syncRenewalOnQuoteAccepted } from "./renewals";
 import type { Action, World } from "./types";
 
 export type GuidedQuoteState = {
@@ -311,6 +312,7 @@ export function applyQuoting(w: World, a: QuotingAction, pack: Pack): void {
         linkLabel: "View quote",
       });
       touch(w, at, { companyId: quote.companyId, contactIds: [quote.contactId], dealId: quote.dealId });
+      syncRenewalOnQuoteAccepted(w, quote, pack, at);
       return;
     }
   }

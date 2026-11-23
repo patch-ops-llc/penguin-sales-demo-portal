@@ -17,7 +17,10 @@ export type DemoId =
   | "staffing-job-orders"
   | "incident-comms"
   | "pql-trial-prospecting"
-  | "customer-onboarding";
+  | "customer-onboarding"
+  | "premium-to-subscription"
+  | "renewal-churn-risk"
+  | "contract-renewal";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -205,6 +208,33 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "service",
     tags: ["onboarding", "handoff", "service", "tickets", "checklist", "kickoff", "csat", "csm", "provisioning"],
   },
+  "premium-to-subscription": {
+    id: "premium-to-subscription",
+    title: "Premium to subscription pipeline",
+    minutes: 5,
+    summary: "Premium deal closes won, buyer completes external billing checkout, webhook auto-creates the Subscription deal with dates and MRR, CS kickoff tasks assign, and MRR reporting updates.",
+    takeaway: "Every closed Premium deal converts through billing checkout into a tracked Subscription deal with automated CS handoff and zero manual deal re-entry.",
+    hub: "sales",
+    tags: ["saas", "subscription", "mrr", "pipeline", "billing", "webhook", "onboarding", "renewals"],
+  },
+  "renewal-churn-risk": {
+    id: "renewal-churn-risk",
+    title: "Renewal and churn risk",
+    minutes: 5,
+    summary: "90-day renewal workflow flags an at-risk account, Account Health Score blends declining seat usage and open tickets, CSM gets Deal Desk approval on a retention quote, buyer accepts, and forecast updates.",
+    takeaway: "CSMs spot churn risk 90 days ahead from live usage telemetry and open tickets, then close an approved retention quote before expiry.",
+    hub: "service",
+    tags: ["saas", "renewal", "churn", "health score", "telemetry", "tickets", "retention", "approval"],
+  },
+  "contract-renewal": {
+    id: "contract-renewal",
+    title: "Contract renewal management",
+    minutes: 5,
+    summary: "120-day workflow opens a managed services renewal deal and AM task, client books a QBR, renewal quote is accepted, PSA agreement end date rolls forward 12 months, and ARR reporting updates.",
+    takeaway: "Managed IT renewals stay ahead of expiry with 120-day triggers, client-booked QBRs, accepted quotes, and automatic PSA contract end-date roll-forward.",
+    hub: "sales",
+    tags: ["msp", "it services", "contract", "renewal", "qbr", "psa", "arr", "managed services"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -231,6 +261,8 @@ export const VERTICALS: VerticalTile[] = [
       "marketing-studio",
       "pql-trial-prospecting",
       "customer-onboarding",
+      "premium-to-subscription",
+      "renewal-churn-risk",
     ],
     tiles: {
       "guided-quote": {
@@ -299,7 +331,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Quillon Technology Partners",
     blurb: "Managed IT services, projects, and hardware resale.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent", "incident-comms"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent", "incident-comms", "contract-renewal"],
     tiles: {
       "guided-quote": {
         title: "Guided proposal",

@@ -2,6 +2,7 @@ import type { Activity, Company, Contact, Deal, LineItem, Pack, Product, Quote, 
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
+import { saasPremiumHeroDeal } from "./renewals";
 import { reports } from "./reports";
 
 // SaaS and software pack: Lumenstack, a B2B analytics platform sold by plan, seats, and add-ons.
@@ -210,20 +211,23 @@ const dealSeeds: DealSeed[] = [
   ["dl-pikewell", "Pikewell Media: Audience dashboards", "co-pikewell", "ct-dev", "closed-lost", -15, 60, "New business", [line("LS-GRO-SEAT", 30)]],
 ];
 
-const deals: Deal[] = dealSeeds.map(([id, name, companyId, contactId, stage, closeIn, created, type, lineItems]) => ({
-  id,
-  name,
-  companyId,
-  contactIds: [contactId],
-  ownerId: company(companyId).ownerId,
-  stage,
-  amount: total(lineItems),
-  closeDate: closeIn >= 0 ? `@+${closeIn}d` : `@${closeIn}d`,
-  createdAt: `@-${created}d`,
-  lastActivityAt: `@-${Math.min(created, Math.max(1, Math.abs(closeIn) % 9))}d`,
-  type,
-  lineItems,
-}));
+const deals: Deal[] = [
+  ...dealSeeds.map(([id, name, companyId, contactId, stage, closeIn, created, type, lineItems]) => ({
+    id,
+    name,
+    companyId,
+    contactIds: [contactId],
+    ownerId: company(companyId).ownerId,
+    stage,
+    amount: total(lineItems),
+    closeDate: closeIn >= 0 ? `@+${closeIn}d` : `@${closeIn}d`,
+    createdAt: `@-${created}d`,
+    lastActivityAt: `@-${Math.min(created, Math.max(1, Math.abs(closeIn) % 9))}d`,
+    type,
+    lineItems,
+  })),
+  saasPremiumHeroDeal,
+];
 
 // The Guided quote hero starts as an estimate with no line items: the demo generates them.
 const rollout = deals.find((d) => d.id === "dl-tessellate")!;
@@ -341,6 +345,7 @@ export const saasPack: Pack = {
     { id: "carmen", name: "Carmen Okoye", title: "Enterprise Account Executive, West", email: "carmen.okoye@lumenstack.example", viewAs: "Carmen, enterprise AE", color: "#b8500a" },
     { id: "theo", name: "Theo Lindgren", title: "Mid-Market Account Executive", email: "theo.lindgren@lumenstack.example", viewAs: "Theo, mid-market AE", color: "#1565c0" },
     { id: "sasha", name: "Sasha Brooks", title: "SMB Account Executive", email: "sasha.brooks@lumenstack.example", viewAs: "Sasha, SMB AE", color: "#5d6b2f" },
+    { id: "nadia", name: "Nadia Kowalski", title: "Customer Success Manager", email: "nadia.kowalski@lumenstack.example", viewAs: "Nadia, Customer Success", color: "#007a8c" },
   ],
   defaultPersonaId: "jordan",
   terms: { quote: "Quote", product: "Product", backOffice: "billing system", request: "Request" },

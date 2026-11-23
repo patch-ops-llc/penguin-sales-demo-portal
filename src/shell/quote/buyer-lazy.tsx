@@ -3,7 +3,17 @@
 import { lazy, Suspense } from "react";
 import type { Quote } from "@/verticals/types";
 
-const loadBuyer = () => import("./buyer");
+type BuyerMod = typeof import("./buyer");
+let cached: Promise<BuyerMod> | null = null;
+
+function loadBuyer(): Promise<BuyerMod> {
+  if (!cached) cached = import("./buyer");
+  return cached;
+}
+
+export function preloadBuyer(): Promise<unknown> {
+  return loadBuyer();
+}
 
 const BuyerPageInner = lazy(() => loadBuyer().then((m) => ({ default: m.BuyerPage })));
 const BuyerViewInner = lazy(() => loadBuyer().then((m) => ({ default: m.BuyerView })));

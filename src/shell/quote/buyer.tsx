@@ -283,7 +283,7 @@ function SignDialog({ quote, current, onClose, onInsert }: { quote: Quote; curre
 
 /** The buyer's side: the quote page outside HubSpot, in a browser frame. */
 export function BuyerPage({ id }: { id: string }) {
-  const { world, pack } = useShell();
+  const { world, pack, demo } = useShell();
   const [signing, setSigning] = useState(false);
   const quote = world.quotes.find((q) => q.id === id);
   if (!quote || (quote.status !== "Sent" && quote.status !== "Accepted")) {
@@ -301,6 +301,7 @@ export function BuyerPage({ id }: { id: string }) {
     );
   }
   const contact = world.contacts.find((c) => c.id === quote.contactId);
+  const showRenewalDealLink = quote.status === "Accepted" && (demo === "renewal-churn-risk" || demo === "contract-renewal");
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#d9d9d9] p-4" data-testid="buyer-page">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-[#bdbdbd] bg-white shadow-lg">
@@ -314,6 +315,11 @@ export function BuyerPage({ id }: { id: string }) {
             <Icon name="lock" size={12} /> {quoteLink(pack.portal.hubId, quote)}
           </span>
           <span className="text-[12px] text-ink-muted">Viewing as {contactName(contact)}, the buyer</span>
+          {showRenewalDealLink ? (
+            <A to={`/deals/${quote.dealId}`} className="inline-flex h-7 items-center gap-1 rounded-[6px] bg-orange px-2.5 text-[12px] font-semibold text-white hover:bg-orange-dark" data-testid="buyer-view-deal">
+              View renewal deal <Icon name="arrowRight" size={13} />
+            </A>
+          ) : null}
           <A to={`/quotes/${quote.id}`} className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-line bg-white px-2.5 text-[12px] font-semibold" data-testid="buyer-back">
             <Icon name="arrowLeft" size={13} /> Back to HubSpot
           </A>

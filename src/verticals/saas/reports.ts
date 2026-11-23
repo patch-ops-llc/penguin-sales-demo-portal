@@ -1,6 +1,7 @@
 import type { AnalyticsReportSpec } from "../analytics-types";
 import { customerOnboardingReport } from "./customer-onboarding";
 import { trialToPaidReport } from "./pql-trial";
+import { saasMrrSubscriptionsReport, saasRenewalForecastReport } from "./renewals";
 
 /**
  * Declarative report specs for Lumenstack (SaaS & software).
@@ -512,4 +513,6 @@ export const reports: Record<string, AnalyticsReportSpec> = {
       ],
     },
   },
+  "saas-mrr-subscriptions": saasMrrSubscriptionsReport,
+  "saas-renewal-forecast": saasRenewalForecastReport,
 };

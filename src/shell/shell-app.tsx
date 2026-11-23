@@ -17,7 +17,9 @@ import { preloadMarketing } from "./marketing/lazy";
 import { preloadApprovalSettings } from "./pages/approval-settings-lazy";
 import { preloadSite } from "./pages/site-lazy";
 import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
+import { preloadBuyer } from "./quote/buyer-lazy";
 import { preloadQuoteEditorPanels } from "./quote/editor-lazy";
+import { preloadRenewals } from "./renewals/lazy";
 import { isOutsideHubSpot, Routes } from "./routes";
 import { preloadService } from "./service/lazy";
 import { preloadSocial } from "./social/lazy";
@@ -62,10 +64,32 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || section === "intake") {
     tasks.push(preloadIntake());
   }
+  if (
+    demo === "premium-to-subscription" ||
+    demo === "renewal-churn-risk" ||
+    demo === "contract-renewal" ||
+    section === "renewals" ||
+    section === "renewals-app"
+  ) {
+    tasks.push(preloadRenewals());
+    if (demo === "renewal-churn-risk" || demo === "contract-renewal") {
+      tasks.push(preloadApprovalSettings(), preloadQuoteEditorPanels(), preloadBuyer());
+    }
+  }
   if (section === "reports") {
     tasks.push(preloadAnalytics());
   }
   return tasks.length > 0 ? Promise.all(tasks) : Promise.resolve();
+}
+
+function shouldPreloadRenewals(pack: Pack, verticalId: string, location: string): boolean {
+  const renewals = pack.demos.renewals;
+  if (!renewals) return false;
+  const parsed = parseLocation(location);
+  if (parsed.segments[0] === "renewals" || parsed.segments[0] === "renewals-app") return true;
+  const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
+  if (!demo || !isDemoId(demo)) return false;
+  return demo in renewals;
 }
 
 function shouldPreloadTickets(pack: Pack, verticalId: string, location: string): boolean {
@@ -169,6 +193,7 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
           if (shouldPreloadAnalytics(pack, verticalId, initialLocation)) postPreloads.push(preloadAnalytics());
           if (shouldPreloadTickets(pack, verticalId, initialLocation)) postPreloads.push(preloadTickets());
           if (shouldPreloadSocial(pack, verticalId, initialLocation)) postPreloads.push(preloadSocial());
+          if (shouldPreloadRenewals(pack, verticalId, initialLocation)) postPreloads.push(preloadRenewals());
           if (postPreloads.length > 0) await Promise.all(postPreloads);
         }
         if (cancelled) return;

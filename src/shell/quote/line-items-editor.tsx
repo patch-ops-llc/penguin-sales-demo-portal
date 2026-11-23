@@ -329,7 +329,8 @@ const toRow = (line: LineItem, key: number, discountPct = 0): Row => ({ key, lin
  * unit discount, and Save. Nothing changes on the quote until Save.
  */
 export function LineItemsEditor({ quote, onClose }: { quote: Quote; onClose: () => void }) {
-  const { pack, world, dispatch } = useShell();
+  const { pack, world, dispatch, demo } = useShell();
+  const suppressCustomFloorExt = demo === "renewal-churn-risk" || demo === "contract-renewal";
   const rule = ruleOf(pack, world);
   const labels = labelsOf(pack).pack;
   const columnLabels: Record<ColumnId, string> = { description: "Description", timing: labels.timing, cost: "Unit cost", margin: "Margin" };
@@ -464,9 +465,13 @@ export function LineItemsEditor({ quote, onClose }: { quote: Quote; onClose: () 
                 {has("cost") ? <th className={cx(th, "text-right")}>Unit cost</th> : null}
                 {has("margin") ? <th className={cx(th, "text-right")}>Margin</th> : null}
                 <th className={cx(th, "pr-10")}>
-                  <Ext id="floor-price-rule" className="inline-block pr-9" pinClass="!right-0 !top-[-7px]">
-                    Floor price
-                  </Ext>
+                  {suppressCustomFloorExt ? (
+                    "Floor price"
+                  ) : (
+                    <Ext id="floor-price-rule" className="inline-block pr-9" pinClass="!right-0 !top-[-7px]">
+                      Floor price
+                    </Ext>
+                  )}
                 </th>
               </tr>
             </thead>

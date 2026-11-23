@@ -149,4 +149,28 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Reads live Lumenstack tenant provisioning, Okta SSO/SCIM sync, and data connector health directly inside the HubSpot Service Hub onboarding ticket.",
     },
   ],
+  "premium-to-subscription": [
+    { id: "dual-pipelines", name: "Multiple Deals pipelines (Premium Pipeline -> Subscription Pipeline)", by: "native" },
+    { id: "cs-assignment-workflow", name: "Deal-stage workflows, CS owner assignment, and onboarding kickoff tasks", by: "native" },
+    { id: "mrr-subscription-report", name: "Native HubSpot Analytics report: MRR, conversion rate & upcoming renewals", by: "native" },
+    {
+      id: "billing-subscription-sync",
+      name: "Billing Checkout & Subscription Sync",
+      by: "penguin",
+      note: "Webhook bridge from the external billing checkout that auto-creates the Subscription deal in HubSpot with start date, renewal date, MRR, and subscription ID.",
+    },
+  ],
+  "renewal-churn-risk": [
+    { id: "renewal-90d-workflow", name: "90-day renewal workflow, Renewal deal creation, and CSM escalation task", by: "native" },
+    { id: "quote-editor", name: "Native Quote editor and line-item discount controls", by: "native" },
+    { id: "quote-approval-rules", name: "Native Quote approval rules, Deal Desk notification, and one-click approve", by: "native" },
+    { id: "buyer-quote-acceptance", name: "Buyer-facing quote acceptance page and renewal deal close", by: "native" },
+    { id: "renewal-forecast-report", name: "Native HubSpot Analytics report: Renewal forecast & retention risk", by: "native" },
+    {
+      id: "account-health-score",
+      name: "Account Health Score Card",
+      by: "penguin",
+      note: "Blends live Lumenstack seat-usage telemetry and open HubSpot Service Hub tickets into an explainable renewal risk score right on the company record.",
+    },
+  ],
 };

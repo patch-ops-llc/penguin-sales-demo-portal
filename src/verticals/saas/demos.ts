@@ -2,6 +2,7 @@ import type { Pack } from "../types";
 import { customerOnboardingConfig } from "./customer-onboarding";
 import { marketingStudio } from "./marketing-studio";
 import { pqlTrialConfig } from "./pql-trial";
+import { saasRenewals } from "./renewals";
 
 // Per-demo content for SaaS and software: hero records, packaging rules, presets, and prepared output.
 // The demo templates in src/demos read everything vertical-specific from here.
@@ -531,4 +532,7 @@ export const demos: Pack["demos"] = {
   tickets: {
     "customer-onboarding": customerOnboardingConfig,
   },
+
+  // ---------- Renewals & Subscriptions (SaaS #3 & SaaS #4) ----------
+  renewals: saasRenewals,
 };

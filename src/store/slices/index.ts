@@ -12,6 +12,15 @@ export {
 } from "./patient-reactivation";
 export { applyQuoting, isQuotingAction, seedGuidedQuote, type GuidedQuoteState, type QuotingAction } from "./quoting";
 export {
+  applyRenewals,
+  isRenewalsAction,
+  seedRenewals,
+  syncRenewalOnQuoteAccepted,
+  type RenewalsAction,
+  type RenewalsDemoState,
+  type RenewalsState,
+} from "./renewals";
+export {
   applySales,
   isSalesAction,
   seedAiProspecting,
