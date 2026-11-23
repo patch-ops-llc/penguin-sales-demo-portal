@@ -34,7 +34,15 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "post-visit-feedback" || section === "tickets" || section === "ticket-app") {
     tasks.push(preloadTickets());
   }
-  if (demo === "social-ads" || section === "campaigns" || section === "social" || section === "insights" || section === "offplatform") {
+  if (
+    demo === "social-ads" ||
+    demo === "patient-reactivation" ||
+    section === "campaigns" ||
+    section === "social" ||
+    section === "insights" ||
+    section === "offplatform" ||
+    section === "reactivation"
+  ) {
     tasks.push(preloadSocial());
   }
   if (demo === "marketing-studio" || section === "marketing") {
@@ -73,6 +81,12 @@ function shouldPreloadAnalytics(pack: Pack, verticalId: string, location: string
   const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
   if (!demo || !isDemoId(demo)) return false;
   return Object.values(reports).some((r) => r.demoId === demo || r.demoIds?.includes(demo));
+}
+
+function shouldPreloadSocial(pack: Pack, verticalId: string, location: string): boolean {
+  const parsed = parseLocation(location);
+  const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
+  return Boolean(demo === "ai-prospecting" && pack.demos.aiProspecting.offPlatformMeeting);
 }
 
 type Loaded = { vertical: string; pack: Pack; saved: Saved | null; location: string };
@@ -146,6 +160,7 @@ export function ShellApp({ initialVertical, packVersions }: { initialVertical: s
           const postPreloads: Promise<unknown>[] = [];
           if (shouldPreloadAnalytics(pack, verticalId, initialLocation)) postPreloads.push(preloadAnalytics());
           if (shouldPreloadTickets(pack, verticalId, initialLocation)) postPreloads.push(preloadTickets());
+          if (shouldPreloadSocial(pack, verticalId, initialLocation)) postPreloads.push(preloadSocial());
           if (postPreloads.length > 0) await Promise.all(postPreloads);
         }
         if (cancelled) return;

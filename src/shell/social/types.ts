@@ -196,3 +196,69 @@ export type SocialAdsConfig = {
     avgTimeToFillDays: number;
   };
 };
+
+// ---------- Patient reactivation (non-PHI clinic outreach) ----------
+
+export type ReactivationPatient = {
+  id: string;
+  contactId: string | null;
+  name: string;
+  email: string;
+  clinicLocation: string;
+  lastVisitBucket: string;
+  overdueFlag: string;
+  optInChannel: string;
+  hero?: boolean;
+};
+
+export type ReactivationEmailTouch = {
+  id: string;
+  touchNumber: 1 | 2 | 3;
+  dayLabel: string;
+  condition: string;
+  subject: string;
+  previewText: string;
+  body: string;
+  ctaLabel: string;
+};
+
+export type ReactivationSlot = {
+  id: string;
+  day: string;
+  time: string;
+  tz: string;
+  providerRole: string;
+};
+
+export type PatientReactivationConfig = {
+  segmentName: string;
+  segmentCriteria: string[];
+  totalOverdueCount: number;
+  hipaaNotice: string;
+  ehrSync: {
+    systemName: string;
+    syncedAt: string;
+    syncedCount: number;
+    locationsCount: number;
+    nonPhiFields: string[];
+    guardrailNote: string;
+  };
+  locations: string[];
+  patients: ReactivationPatient[];
+  heroContactId: string;
+  touches: ReactivationEmailTouch[];
+  offPlatform: {
+    inboxEmail: string;
+    patientFirstName: string;
+    patientFullName: string;
+    senderName: string;
+    senderEmail: string;
+    clinicLocation: string;
+    clinicAddress: string;
+    bookingUrl: string;
+    visitTypeLabel: string;
+    slots: ReactivationSlot[];
+    defaultSlotId: string;
+  };
+  reportId: string;
+};

@@ -3,12 +3,14 @@ import {
   applyCore,
   applyCustomerAgent,
   applyMarketingStudio,
+  applyPatientReactivation,
   applyQuoting,
   applySales,
   applySocialAds,
   applyTickets,
   isCustomerAgentAction,
   isMarketingStudioAction,
+  isPatientReactivationAction,
   isQuotingAction,
   isSalesAction,
   isSocialAdsAction,
@@ -20,6 +22,7 @@ import {
   seedGuidedQuote,
   seedLeadCapture,
   seedMarketingStudio,
+  seedPatientReactivation,
   seedSocialAds,
   seedTickets,
   type Action,
@@ -43,6 +46,8 @@ export {
   type LeadCaptureState,
   type MarketingStudioAction,
   type MarketingStudioState,
+  type PatientReactivationAction,
+  type PatientReactivationState,
   type QuotingAction,
   type SalesAction,
   type SocialAdsAction,
@@ -76,6 +81,7 @@ export function seedWorld(pack: Pack): World {
     sa: seedSocialAds(),
     ms: seedMarketingStudio(pack),
     tk: seedTickets(),
+    pr: seedPatientReactivation(),
     approvalRule: {},
     seq: 0,
   };
@@ -89,6 +95,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isSocialAdsAction(a)) return applySocialAds(w, a, pack);
   if (isMarketingStudioAction(a)) return applyMarketingStudio(w, a, pack);
   if (isTicketsAction(a)) return applyTickets(w, a, pack);
+  if (isPatientReactivationAction(a)) return applyPatientReactivation(w, a, pack);
   return applyCore(w, a, pack);
 }
 

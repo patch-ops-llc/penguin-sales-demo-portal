@@ -2,6 +2,13 @@ export { applyCore, type CoreAction } from "./core";
 export { applyCustomerAgent, isCustomerAgentAction, seedCustomerAgent, type CustomerAgentAction, type CustomerAgentState } from "./customer-agent";
 export { nextDealQuoteId, quoteName, ruleOf } from "./helpers";
 export { applyMarketingStudio, isMarketingStudioAction, seedMarketingStudio, type MarketingStudioAction, type MarketingStudioState } from "./marketing-studio";
+export {
+  applyPatientReactivation,
+  isPatientReactivationAction,
+  seedPatientReactivation,
+  type PatientReactivationAction,
+  type PatientReactivationState,
+} from "./patient-reactivation";
 export { applyQuoting, isQuotingAction, seedGuidedQuote, type GuidedQuoteState, type QuotingAction } from "./quoting";
 export {
   applySales,

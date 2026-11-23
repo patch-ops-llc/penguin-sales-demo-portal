@@ -74,6 +74,9 @@ function Sidebar() {
       mergeNavGroups([
         ...NAV,
         ...(pack.demos.socialAds ? [SOCIAL_MARKETING_NAV] : []),
+        ...(pack.demos.patientReactivation
+          ? [{ group: "Marketing" as const, items: [{ to: "/reactivation/segment", label: "Reactivation", icon: "lifecycle" as IconName }] }]
+          : []),
         ...(pack.demos.marketingStudio
           ? [{ group: "Marketing" as const, items: [{ to: "/marketing", label: "Marketing Studio", icon: "megaphone" as IconName }] }]
           : []),
@@ -100,7 +103,7 @@ function Sidebar() {
           ? [{ group: "Reporting" as const, items: [{ to: "/reports", label: "Reports", icon: "chart" as IconName }] }]
           : []),
       ]),
-    [pack.demos.socialAds, pack.demos.marketingStudio, pack.demos.customerAgent, hasTickets, hasReports],
+    [pack.demos.socialAds, pack.demos.patientReactivation, pack.demos.marketingStudio, pack.demos.customerAgent, hasTickets, hasReports],
   );
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";

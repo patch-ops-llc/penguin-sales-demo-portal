@@ -1,14 +1,15 @@
 import type { Pack } from "../types";
 import { postVisitFeedbackConfig } from "./post-visit-feedback";
+import { patientReactivationConfig } from "./reactivation";
 import { socialAdsConfig } from "./social";
 
 // Demo configurations for Healthcare (Crestline Clinical Staffing & Specialty Clinics).
-// Includes Flow 3 (socialAds) and Healthcare #5 (post-visit-feedback via reusable Tickets workspace).
-// Minimal valid configurations for the shared shell screens keep Companies, Deals, Quotes,
-// Settings > Approvals, Inbox, and Prospecting working cleanly without missing defaults.
+// Live demos: Social media & paid ads (Flow 3), Referral-source outreach (H3), Patient reactivation (H4),
+// and Post-visit feedback (H5 via reusable Tickets workspace). 100% fictional data, zero PHI.
 
 export const demos: Pack["demos"] = {
   socialAds: socialAdsConfig,
+  patientReactivation: patientReactivationConfig,
   tickets: {
     "post-visit-feedback": postVisitFeedbackConfig,
   },
@@ -131,19 +132,154 @@ export const demos: Pack["demos"] = {
     dealStage: "new-rfq",
   },
   aiProspecting: {
-    companyId: "co-cascadia-med",
-    whyNow: {
-      headline: "New 18-bed ICU wing opening next quarter",
-      points: [{ label: "Facility expansion", detail: "Publicly announced 18-bed critical care wing in Tacoma.", source: "Hospital news" }],
+    companyId: "co-summit-creek",
+    signalDetail: {
+      fed: {
+        title: "Referral-Volume Signal Feed",
+        source: "EHR / Claims Analytics",
+        detail: "Quarterly specialty referrals from Summit Creek Family Medicine dropped 34% while a newly credentialed internist joined and their Lakewood clinic opened.",
+        bars: [
+          { label: "Q2 referrals", value: 44, unit: "referrals" },
+          { label: "Q3 referrals", value: 46, unit: "referrals" },
+          { label: "Q4 referrals", value: 39, unit: "referrals" },
+          { label: "Q1 (current)", value: 30, unit: "referrals", now: true },
+        ],
+        footnote: "Aggregated practice-level referral counts only (zero patient PHI).",
+      },
+      native: {
+        title: "New physician credentialed & clinic location opened",
+        source: "Breeze account research",
+        detail: "NPI registry and clinic announcement confirmed Dr. Priya Nair, MD (Internal Medicine) completed credentialing 19 days ago and Summit Creek opened its third clinic location in Lakewood, CO.",
+        footnote: "HubSpot Breeze combines credentialing and expansion signals with liaison CRM history.",
+      },
     },
-    buyingGroup: [
-      { id: "bg-hannah", name: "Dr. Hannah Kowalski", title: "VP Clinical Operations", role: "Economic buyer", email: "hannah.kowalski@cascadiamed.example", contactId: "ct-hannah", why: "Oversees acute care nursing operations and agency budgets." },
-    ],
-    drafts: {
-      "bg-hannah": [
-        { tone: "Direct", subject: "ICU wing staffing readiness at Cascadia Regional", body: "Hi Dr. Kowalski,\n\nCongrats on the new 18-bed ICU expansion. We have 11 Washington-licensed CCRN travel nurses ready if you need surge coverage during ramp-up." },
+    whyNow: {
+      headline: "Referrals fell 34% just as Summit Creek credentialed a new physician and opened a third clinic",
+      points: [
+        {
+          label: "Referral volume drop",
+          detail: "Quarterly cardiology & orthopedic referrals declined from 46 to 30 (-34% QoQ) after staff turnover at the referral desk.",
+          source: "EHR Referral Feed",
+        },
+        {
+          label: "New physician credentialed",
+          detail: "Dr. Priya Nair, MD (Internal Medicine) joined 19 days ago and has not yet met Crestline's specialty clinic directors.",
+          source: "NPI Directory",
+        },
+        {
+          label: "New clinic location",
+          detail: "Third primary-care clinic opened in Lakewood, CO last month with 8 new exam rooms and immediate specialty consult demand.",
+          source: "Breeze research",
+        },
       ],
     },
-    followUp: { title: "Follow up with Dr. Hannah Kowalski on ICU expansion", dueInDays: 3 },
+    buyingGroup: [
+      {
+        id: "bg-priya",
+        name: "Dr. Priya Nair, MD",
+        title: "Referring Physician (Internal Medicine)",
+        role: "Referring physician",
+        email: "priya.nair@summitcreekmed.example",
+        contactId: null,
+        why: "Newly credentialed internist at the Lakewood location; decides where complex cardiology and ortho patients are referred.",
+      },
+      {
+        id: "bg-martha",
+        name: "Martha Lindholm",
+        title: "Practice & Office Manager",
+        role: "Office manager",
+        email: "martha.lindholm@summitcreekmed.example",
+        contactId: "ct-martha",
+        why: "Runs referral coordinator workflows, clinic scheduling handoffs, and provider lunch-and-learn calendars.",
+      },
+      {
+        id: "bg-owen",
+        name: "Dr. Owen Gallagher, DO",
+        title: "Medical Director",
+        role: "Clinical champion",
+        email: "owen.gallagher@summitcreekmed.example",
+        contactId: "ct-owen",
+        why: "Historically referred 20+ patients per quarter to Crestline; key clinical sponsor across all 3 locations.",
+      },
+    ],
+    drafts: {
+      "bg-priya": [
+        {
+          tone: "Consultative",
+          subject: "Welcome to Lakewood, Dr. Nair — fast-track specialty referrals & lunch-and-learn",
+          body: "Hi Dr. Nair,\n\nWelcome to Summit Creek Family Medicine's new Lakewood clinic. I work with our cardiology and orthopedic specialists at Crestline Specialty Clinics just ten minutes east of your office.\n\nTo make specialty consults effortless as your panel ramps, we offer same-week diagnostic slots and 48-hour scheduling confirmations back to your care team. Could our cardiology lead and I bring lunch for a 30-minute lunch-and-learn with you and Martha later this month?\n\nBest regards,\nDevon Patel\nPhysician Liaison, Crestline Specialty Clinics",
+        },
+        {
+          tone: "Direct",
+          subject: "Same-week cardiology & ortho consults for your new Lakewood clinic",
+          body: "Hi Dr. Nair,\n\nCongrats on joining Summit Creek's Lakewood location. Crestline Specialty Clinics holds dedicated same-week slots for primary-care referrals across cardiology, orthopedics, and outpatient imaging.\n\nWould you have 30 minutes over lunch next week to meet our medical lead and review our direct referral line?\n\nBest,\nDevon Patel",
+        },
+        {
+          tone: "Warm",
+          subject: "Introducing Crestline Specialty Clinics — lunch on us in Lakewood",
+          body: "Hello Dr. Nair,\n\nCongratulations on your recent move to Summit Creek Family Medicine! We have partnered with Dr. Gallagher and Martha for years and would love to welcome you in person.\n\nI included our scheduling link below if a catered 30-minute lunch-and-learn works for you and the Lakewood team.\n\nWarmly,\nDevon Patel",
+        },
+      ],
+      "bg-martha": [
+        {
+          tone: "Consultative",
+          subject: "Streamlining Lakewood referrals + lunch-and-learn for Summit Creek",
+          body: "Hi Martha,\n\nCongrats on opening the new Lakewood clinic and welcoming Dr. Priya Nair to the team! We noticed referrals from Summit Creek dipped slightly this quarter while your staff was busy with the expansion, and we want to make sure our intake desk is making life easier for your coordinators.\n\nWe recently launched 48-hour appointment confirmation notices for referring offices. Would Tuesday or Thursday at noon work for a quick catered lunch-and-learn with you, Dr. Nair, and Dr. Gallagher?\n\nBest regards,\nDevon Patel\nPhysician Liaison, Crestline Specialty Clinics",
+        },
+        {
+          tone: "Direct",
+          subject: "Quick check-in on Lakewood referral workflow + lunch-and-learn",
+          body: "Hi Martha,\n\nHope the new Lakewood opening is going smoothly. We can set up direct non-PHI status confirmations for your referral coordinators in 15 minutes and introduce Dr. Nair to our specialty desk.\n\nCan we grab a 30-minute lunch slot next week? My scheduling link is below.\n\nThanks,\nDevon Patel",
+        },
+        {
+          tone: "Warm",
+          subject: "Congrats on Lakewood! Bringing lunch for you & Dr. Nair",
+          body: "Hi Martha,\n\nHuge congratulations to you and the entire Summit Creek team on the Lakewood opening and adding Dr. Nair! Let us bring lunch from your favorite spot and walk through our new fast-track scheduling portal for your referral team.\n\nFeel free to pick any lunch slot that fits the clinic's calendar.\n\nBest,\nDevon Patel",
+        },
+      ],
+      "bg-owen": [
+        {
+          tone: "Consultative",
+          subject: "Supporting Summit Creek's Lakewood launch & Dr. Nair's new panel",
+          body: "Hi Dr. Gallagher,\n\nCongratulations on opening the Lakewood clinic and adding Dr. Priya Nair to Summit Creek. We value our long partnership with your practice and want to ensure your providers continue seeing fast consult turnarounds as volume grows.\n\nI reached out to Martha and Dr. Nair about hosting a brief lunch-and-learn with our cardiology and ortho leads — hope you can join us.\n\nBest regards,\nDevon Patel\nPhysician Liaison, Crestline Specialty Clinics",
+        },
+        {
+          tone: "Direct",
+          subject: "Direct specialist access for Summit Creek's Lakewood expansion",
+          body: "Hi Dr. Gallagher,\n\nAs Summit Creek ramps Lakewood and onboards Dr. Nair, we reserved priority specialty consult blocks for your providers. Let's reconnect over a 30-minute lunch-and-learn with Martha and Dr. Nair next week.\n\nBest,\nDevon Patel",
+        },
+        {
+          tone: "Warm",
+          subject: "Great to see Summit Creek expanding into Lakewood",
+          body: "Hi Dr. Gallagher,\n\nAlways wonderful seeing Summit Creek grow. We would love to host lunch for you, Dr. Nair, and Martha to introduce our newest orthopedic surgeon and keep referrals effortless for your team.\n\nWarm regards,\nDevon Patel",
+        },
+      ],
+    },
+    followUp: { title: "Confirm lunch-and-learn headcount with Martha Lindholm", dueInDays: 3 },
+    offPlatformMeeting: {
+      inboxEmail: "martha.lindholm@summitcreekmed.example",
+      recipientName: "Martha Lindholm",
+      recipientTitle: "Practice & Office Manager",
+      practiceName: "Summit Creek Family Medicine",
+      senderName: "Devon Patel",
+      senderTitle: "Physician Liaison, Crestline Specialty Clinics",
+      meetingTitle: "Crestline x Summit Creek Provider Lunch-and-Learn",
+      meetingLocation: "Summit Creek Family Medicine — Lakewood Clinic (Conference Room B)",
+      meetingDuration: "30 min · Catered",
+      bookingUrl: "https://meetings.crestlineclinical.example/liaison/summit-creek-lunch-and-learn",
+      agenda: [
+        "Introduce Dr. Priya Nair to Crestline Cardiology & Orthopedics leads",
+        "Walk through 48-hour referral scheduling confirmations for office coordinators",
+        "Share dedicated Lakewood same-week diagnostic consult blocks",
+      ],
+      slots: [
+        { id: "slot-1", day: "Tue, Jan 26", time: "12:00 PM", tz: "MT" },
+        { id: "slot-2", day: "Thu, Jan 28", time: "12:15 PM", tz: "MT" },
+        { id: "slot-3", day: "Tue, Feb 2", time: "12:00 PM", tz: "MT" },
+      ],
+      defaultSlotId: "slot-1",
+      complianceNote: "Practice-level physician liaison session · Zero patient PHI discussed or stored in HubSpot.",
+    },
+    reportId: "referral-outreach",
   },
 };

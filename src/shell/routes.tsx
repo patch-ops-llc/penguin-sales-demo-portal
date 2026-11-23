@@ -77,6 +77,7 @@ export function Routes() {
     case "social":
     case "insights":
     case "offplatform":
+    case "reactivation":
       return <SocialRoutes section={section} id={id} />;
     case "reports":
       return <AnalyticsRoutes reportId={id} />;

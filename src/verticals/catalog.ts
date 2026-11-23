@@ -11,7 +11,8 @@ export type DemoId =
   | "customer-agent"
   | "social-ads"
   | "marketing-studio"
-  | "post-visit-feedback";
+  | "post-visit-feedback"
+  | "patient-reactivation";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -144,6 +145,15 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "service",
     tags: ["service", "tickets", "csat", "feedback", "survey", "sla", "healthcare", "clinic"],
   },
+  "patient-reactivation": {
+    id: "patient-reactivation",
+    title: "Patient reactivation campaign",
+    minutes: 5,
+    summary: "Sync non-PHI overdue annual-visit flags into a dynamic segment, approve a 3-touch reminder series, follow booking to automatic segment removal, and measure reactivation by location.",
+    takeaway: "Overdue patients book annual visits without storing clinical PHI in HubSpot, and booked contacts drop out of reminders automatically.",
+    hub: "marketing",
+    tags: ["segment", "dynamic list", "email series", "reactivation", "annual visit", "hipaa", "clinic"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -261,9 +271,21 @@ export const VERTICALS: VerticalTile[] = [
     id: "healthcare",
     name: "Healthcare",
     company: "Crestline Clinical Staffing & Specialty Clinics",
-    blurb: "Travel nursing, allied health staffing, and specialty clinic operations.",
+    blurb: "Travel nursing, allied health staffing, and multi-location specialty clinics.",
     status: "live",
-    demos: ["social-ads", "post-visit-feedback"],
+    demos: ["social-ads", "ai-prospecting", "patient-reactivation", "post-visit-feedback"],
+    tiles: {
+      "ai-prospecting": {
+        title: "Referral-source outreach",
+        summary: "Referring practices trigger signals on a new physician, new clinic location, or quarterly referral drop; Breeze drafts role outreach, books a lunch-and-learn, and tracks before/after referral volume.",
+        takeaway: "Physician liaisons spend time in lunch-and-learns instead of spreadsheets, with referral recovery and HubSpot Credits tied directly to practice outcomes.",
+        tags: ["referral", "physician", "clinic", "lunch-and-learn", "credits", "hipaa"],
+      },
+      "patient-reactivation": {
+        summary: "Non-PHI overdue annual-visit flags populate a dynamic segment, a 3-touch reminder series goes out, booked patients auto-remove from the list, and clinics track reactivation by location.",
+        takeaway: "Clinics fill annual wellness schedules automatically with zero clinical PHI in HubSpot and zero duplicate reminders after booking.",
+      },
+    },
   },
 ];
 

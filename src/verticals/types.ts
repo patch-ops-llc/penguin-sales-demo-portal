@@ -1,4 +1,4 @@
-import type { SocialAdsConfig } from "@/shell/social/types";
+import type { PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
 import type { TicketsDemoConfig } from "@/shell/tickets/types";
 import type { AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
@@ -606,6 +606,24 @@ export type ProspectSignalDetail = {
   native: { title: string; source: string; detail: string; footnote: string };
 };
 
+/** Optional off-platform inbox & meeting booking handoff after outreach is sent. */
+export type ProspectOffPlatformMeeting = {
+  inboxEmail: string;
+  recipientName: string;
+  recipientTitle: string;
+  practiceName: string;
+  senderName: string;
+  senderTitle: string;
+  meetingTitle: string;
+  meetingLocation: string;
+  meetingDuration: string;
+  bookingUrl: string;
+  agenda: string[];
+  slots: { id: string; day: string; time: string; tz: string }[];
+  defaultSlotId: string;
+  complianceNote?: string;
+};
+
 export type AiProspectingConfig = {
   companyId: string;
   signalDetail?: ProspectSignalDetail;
@@ -614,6 +632,10 @@ export type AiProspectingConfig = {
   /** Three prepared versions per person, keyed by buying-group member id. */
   drafts: Record<string, OutreachDraft[]>;
   followUp: { title: string; dueInDays: number };
+  /** Optional off-platform inbox & meeting booking step (e.g. Healthcare lunch-and-learn). */
+  offPlatformMeeting?: ProspectOffPlatformMeeting;
+  /** Optional shared Analytics report id opened at the end of the flow. */
+  reportId?: string;
 };
 
 // ---------- Customer agent (fintech omnichannel) ----------
@@ -1021,6 +1043,7 @@ export type Pack = {
     customerAgent?: CustomerAgentConfig;
     socialAds?: SocialAdsConfig;
     marketingStudio?: MarketingStudioConfig;
+    patientReactivation?: PatientReactivationConfig;
     /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
   };

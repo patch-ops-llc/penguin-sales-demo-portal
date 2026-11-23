@@ -11,7 +11,7 @@ import { A, Avatar, Button, cx } from "../ui";
  * Makes it unmistakable that these screens happen outside HubSpot while keeping
  * an obvious one-click path back into HubSpot.
  */
-function OffPlatformFrame({
+export function OffPlatformFrame({
   channelLabel,
   url,
   backTo,

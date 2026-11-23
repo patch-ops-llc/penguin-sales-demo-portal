@@ -3,6 +3,7 @@ import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
 import { patientSatisfactionReport } from "./post-visit-feedback";
+import { reports } from "./reports";
 
 // Healthcare vertical pack: Crestline Clinical Staffing.
 // Covers healthcare staffing (travel RNs, ICU/ER nurses, allied health) and specialty clinic networks.
@@ -43,6 +44,7 @@ const companySeeds: CompanySeed[] = [
   ["co-oakridge-clinic", "Oakridge Behavioral Health", "oakridgebehavioral.example", "Behavioral Health Clinics", "Prospect", "Raleigh", "NC", 510, 92, "devon", "Lead", 19, 6, "Southeast"],
   ["co-harborview-peds", "Harborview Children's Specialty", "harborviewpeds.example", "Pediatric Specialty Network", "Customer", "Boston", "MA", 940, 260, "marcus", "Customer", 615, 7, "Northeast"],
   ["co-prairie-oncology", "Prairie Winds Oncology Group", "prairiewindsoncology.example", "Outpatient Oncology Clinics", "Prospect", "Omaha", "NE", 310, 76, "devon", "Lead", 27, 3, "Midwest"],
+  ["co-summit-creek", "Summit Creek Family Medicine", "summitcreekmed.example", "Primary Care & Family Medicine", "Partner", "Denver", "CO", 115, 28, "devon", "Customer", 380, 1, "Mountain West"],
 ];
 
 const companies: Company[] = companySeeds.map(([id, name, domain, industry, type, city, state, employees, revenueM, ownerId, lifecycle, created, last, territory], i) => ({
@@ -74,6 +76,7 @@ company("co-mercy-pines").description = "Three-hospital regional health system a
 company("co-mercy-pines").erp = { accountNumber: "CC-VMS-4012", lastOrderDate: "@-18d", openBalance: 24800, creditStatus: "Current", creditLimit: 250000 };
 company("co-ridgecrest").description = "Multi-specialty outpatient clinic group operating 14 orthopedic, cardiology, and ambulatory surgery centers.";
 company("co-cascadia-med").description = "Acute care hospital system expanding critical care ICU capacity by 18 beds this spring.";
+company("co-summit-creek").description = "Three-location primary care and internal medicine referring practice in metro Denver; recently opened its Lakewood clinic.";
 
 type ContactSeed = [id: string, first: string, last: string, title: string, companyId: string, lifecycle: string, leadStatus: string, createdDaysAgo: number, lastDaysAgo: number, source: string];
 
@@ -89,31 +92,57 @@ const contactSeeds: ContactSeed[] = [
   ["ct-miriam", "Miriam", "Goldstein", "VP Nursing Workforce", "co-harborview-peds", "Customer", "Connected", 610, 7, "Referral"],
   ["ct-derek", "Derek", "Lindstrom", "Workforce Staffing Coordinator", "co-prairie-oncology", "Lead", "New", 27, 3, "Organic Social"],
   ["ct-jordan-vance", "Jordan", "Vance", "Clinic Visitor · Scottsdale Location", "co-ridgecrest", "Customer", "Connected", 120, 0, "Post-Visit Survey"],
+  ["ct-martha", "Martha", "Lindholm", "Practice & Office Manager", "co-summit-creek", "Customer", "Connected", 365, 2, "Referral Network"],
+  ["ct-owen", "Owen", "Gallagher", "Medical Director, DO", "co-summit-creek", "Customer", "Connected", 375, 4, "Referral Network"],
 ];
 
-const contacts: Contact[] = contactSeeds.map(([id, firstName, lastName, title, companyId, lifecycle, leadStatus, created, last, source], i) => ({
-  id,
-  firstName,
-  lastName,
-  email: id === "ct-jordan-vance" ? "jordan.vance@desertmesa.example" : `${firstName}.${lastName}@${company(companyId).domain}`.toLowerCase(),
-  phone: `(555) 01${String(80 + i).padStart(2, "0")}-${String(5100 + i * 37).slice(0, 4)}`,
-  title,
-  companyId,
-  ownerId: id === "ct-jordan-vance" ? "valerie" : company(companyId).ownerId,
-  lifecycle,
-  leadStatus,
-  createdAt: `@-${created}d`,
-  lastActivityAt: `@-${last}d`,
-  source,
-  ...(id === "ct-jordan-vance"
-    ? {
-        extra: [
-          { label: "Clinic location", value: "Scottsdale Orthopedic Center (AZ-04)" },
-          { label: "Data boundary", value: "Service experience only · Zero PHI" },
-        ],
-      }
-    : {}),
-}));
+const contacts: Contact[] = [
+  ...contactSeeds.map(([id, firstName, lastName, title, companyId, lifecycle, leadStatus, created, last, source], i) => ({
+    id,
+    firstName,
+    lastName,
+    email: id === "ct-jordan-vance" ? "jordan.vance@desertmesa.example" : `${firstName}.${lastName}@${company(companyId).domain}`.toLowerCase(),
+    phone: `(555) 01${String(80 + i).padStart(2, "0")}-${String(5100 + i * 37).slice(0, 4)}`,
+    title,
+    companyId,
+    ownerId: id === "ct-jordan-vance" ? "valerie" : company(companyId).ownerId,
+    lifecycle,
+    leadStatus,
+    createdAt: `@-${created}d`,
+    lastActivityAt: `@-${last}d`,
+    source,
+    ...(id === "ct-jordan-vance"
+      ? {
+          extra: [
+            { label: "Clinic location", value: "Scottsdale Orthopedic Center (AZ-04)" },
+            { label: "Data boundary", value: "Service experience only · Zero PHI" },
+          ],
+        }
+      : {}),
+  })),
+  {
+    id: "ct-camila",
+    firstName: "Camila",
+    lastName: "Reyes",
+    email: "camila.reyes@patientmail.example",
+    phone: "(555) 0199-4410",
+    title: "Clinic Member (Fictional Sample)",
+    companyId: null,
+    ownerId: "claire",
+    lifecycle: "Customer",
+    leadStatus: "Overdue > 12 months",
+    createdAt: "@-540d",
+    lastActivityAt: "@-15d",
+    source: "EHR Eligibility Sync (Non-PHI)",
+    extra: [
+      { label: "Preferred clinic", value: "Denver — Cherry Creek" },
+      { label: "Last visit bucket", value: "12–18 months ago" },
+      { label: "Annual visit status", value: "Overdue > 12 months" },
+      { label: "Dynamic segment", value: "Overdue > 12 Months — Annual Wellness Visit" },
+      { label: "PHI policy", value: "Non-PHI eligibility tokens only" },
+    ],
+  },
+];
 
 type DealSeed = [id: string, name: string, companyId: string, contactId: string, stage: string, closeInDays: number, createdDaysAgo: number, type: string, source: string, lines: LineItem[]];
 
@@ -270,8 +299,34 @@ export const healthcarePack: Pack = {
     },
   ],
   signals: [
-    { id: "sg-cascadia", companyId: "co-cascadia-med", title: "18-bed ICU expansion approved", source: "Health system news", at: "@-2d", strength: "High", summary: "Cascadia Regional Medical announced an 18-bed critical care wing opening next quarter.", hero: true },
-    { id: "sg-silverline", companyId: "co-silverline-er", title: "High engagement on Q1 staffing benchmark", source: "Social activity", at: "@-1d", strength: "Medium", summary: "Emergency Nurse Manager commented on Crestline's Instagram fill-rate post." },
+    {
+      id: "sg-summit-creek",
+      companyId: "co-summit-creek",
+      title: "Quarterly referrals down 34% · New physician & clinic",
+      source: "EHR Referral-Volume Feed",
+      at: "@-6h",
+      strength: "High",
+      summary: "Quarterly referrals dropped from 46 to 30 while Dr. Priya Nair joined and Summit Creek opened its Lakewood clinic.",
+      hero: true,
+    },
+    {
+      id: "sg-ridgecrest",
+      companyId: "co-ridgecrest",
+      title: "New orthopedic physician credentialed in Scottsdale",
+      source: "NPI & Credentialing Directory",
+      at: "@-1d",
+      strength: "Medium",
+      summary: "Dr. Kenji Takahashi joined Ridgecrest's East Valley clinic; high outpatient imaging & PT referral potential.",
+    },
+    {
+      id: "sg-bayside",
+      companyId: "co-bayside-ortho",
+      title: "Second outpatient clinic location opened",
+      source: "Health system news",
+      at: "@-2d",
+      strength: "Medium",
+      summary: "Opened a 12-exam-room ambulatory center in Westshore with new orthopedic consult capacity.",
+    },
   ],
   quoteTerms: [
     "All-in weekly bill rates in US dollars, valid for 30 days.",
@@ -280,6 +335,30 @@ export const healthcarePack: Pack = {
     "HIPAA Business Associate Agreement (BAA) governs all facility staffing coordination.",
   ],
   extensions,
+  stepNotes: {
+    "ai-prospecting": {
+      signal: {
+        title: "Open the flagged practice",
+        hint: "Prospecting: click Summit Creek Family Medicine to view EHR referral-drop, new physician, and clinic signals",
+      },
+      "why-now": {
+        title: "Review why now",
+        hint: "Click Why now to inspect all three referring-practice signals synthesized by Breeze",
+      },
+      group: {
+        title: "See the practice contacts",
+        hint: "Click Buying group to view the newly credentialed physician, office manager, and medical director",
+      },
+      draft: {
+        title: "Draft outreach by role",
+        hint: "Click Draft outreach for Breeze to tailor emails to the referring physician and practice manager",
+      },
+      send: {
+        title: "Approve and send outreach",
+        hint: "Liaison reviews drafts and clicks Approve and send all 3",
+      },
+    },
+  },
   labels: {
     pipeline: "Healthcare staffing pipeline",
     territory: "Region",
@@ -293,6 +372,7 @@ export const healthcarePack: Pack = {
     },
   },
   reports: {
+    ...reports,
     "patient-satisfaction": patientSatisfactionReport,
   },
   demos,

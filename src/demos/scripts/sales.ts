@@ -219,5 +219,25 @@ export const aiProspecting: DemoScript = {
       done: ({ w }) => w.ap.sent,
       script: (_c, now) => [{ t: "ap.send", at: now }],
     },
+    {
+      id: "meeting",
+      title: "Book lunch-and-learn meeting",
+      hint: "Off-platform practice inbox: review the email, pick a slot, and click Confirm lunch-and-learn",
+      when: (pack) => Boolean(pack.demos.aiProspecting.offPlatformMeeting),
+      path: () => "/offplatform/prospect-meeting",
+      done: ({ w }) => w.ap.meetingBooked,
+      script: ({ pack }, now) => [
+        { t: "ap.bookMeeting", slotId: pack.demos.aiProspecting.offPlatformMeeting?.defaultSlotId ?? "slot-1", at: now },
+      ],
+    },
+    {
+      id: "report",
+      title: "Review referral volume report",
+      hint: "Reports: filter before/after referral volume by practice and inspect Credits ROI, then click Complete review",
+      when: (pack) => Boolean(pack.demos.aiProspecting.reportId),
+      path: ({ pack }) => `/reports/${pack.demos.aiProspecting.reportId ?? "referral-outreach"}`,
+      done: (c) => has(c, "ap.reportSeen"),
+      script: () => [flag("ap.reportSeen")],
+    },
   ],
 };

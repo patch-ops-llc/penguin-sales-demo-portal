@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { currentStep, requiredSteps, SCRIPTS, type DemoScript } from "@/demos/scripts";
+import { currentStep, requiredSteps, scriptFor, type DemoScript } from "@/demos/scripts";
 import { newRunId, track } from "@/lib/beacon";
 import { DEMOS, getVertical, isDemoId, type DemoId } from "@/verticals/catalog";
 import type { Pack, Persona } from "@/verticals/types";
@@ -70,7 +70,7 @@ export function ShellProvider({
   const route = useMemo(() => parseLocation(location), [location]);
   const fallbackDemo = getVertical(verticalId)?.demos[0] ?? "guided-quote";
   const demo: DemoId = route.demo && isDemoId(route.demo) && getVertical(verticalId)?.demos.includes(route.demo) ? route.demo : fallbackDemo;
-  const script = SCRIPTS[demo];
+  const script = useMemo(() => scriptFor(demo, pack), [demo, pack]);
 
   const seed = useMemo(() => seedWorld(pack), [pack]);
   const [state, setState] = useState<State>(() => ({ changes: initial?.changes ?? [], runs: initial?.runs ?? {} }));

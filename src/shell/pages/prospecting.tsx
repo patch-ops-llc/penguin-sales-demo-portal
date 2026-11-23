@@ -288,9 +288,9 @@ function Typed({ text, onDone }: { text: string; onDone: () => void }) {
 }
 
 function Outreach() {
-  const { pack, world, dispatch } = useShell();
+  const { pack, world, dispatch, navigate } = useShell();
   const config = pack.demos.aiProspecting;
-  const { drafted, version, edits, sent } = world.ap;
+  const { drafted, version, edits, sent, meetingBooked } = world.ap;
   const [memberId, setMemberId] = useState(config.buyingGroup[0].id);
   // Set by the Draft and Regenerate buttons, so the writing effect plays once and never on a return visit.
   const [typing, setTyping] = useState<string | null>(null);
@@ -346,6 +346,20 @@ function Outreach() {
                 View tasks
               </A>
             </p>
+            {config.offPlatformMeeting || config.reportId ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                {config.offPlatformMeeting ? (
+                  <Button variant="primary" size="sm" data-testid="ap-open-offplatform" onClick={() => navigate("/offplatform/prospect-meeting")}>
+                    {meetingBooked ? "View booked lunch-and-learn" : "Open practice inbox & book meeting"} <Icon name="arrowRight" size={14} />
+                  </Button>
+                ) : null}
+                {config.reportId ? (
+                  <Button variant="secondary" size="sm" data-testid="ap-open-report" onClick={() => navigate(`/reports/${config.reportId}`)}>
+                    View referral volume report
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

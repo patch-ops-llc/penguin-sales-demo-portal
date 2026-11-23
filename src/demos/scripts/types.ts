@@ -18,6 +18,8 @@ export type Step = {
   hint: string | ((c: StepCtx) => string);
   /** Full-path-only steps: the short path skips them. */
   optional?: boolean;
+  /** Optional predicate to include this step only for packs that configure it. */
+  when?: (pack: Pack) => boolean;
   /** The shell path where this step happens. */
   path: (c: StepCtx) => string;
   /** The screen that shows the step's result, when it is not simply where the next step starts. */

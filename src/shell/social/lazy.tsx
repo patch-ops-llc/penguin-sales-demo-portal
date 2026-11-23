@@ -4,7 +4,7 @@ import { lazy, Suspense } from "react";
 import { useShell } from "@/store/store";
 
 type SocialRouteProps = {
-  section: "campaigns" | "social" | "insights" | "offplatform";
+  section: "campaigns" | "social" | "insights" | "offplatform" | "reactivation";
   id?: string;
 };
 

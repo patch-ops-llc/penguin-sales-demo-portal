@@ -43,4 +43,37 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Listens for outpatient checkout events in the practice management / EHR system (non-PHI site code and checkout token only) and triggers the HubSpot post-visit CSAT survey automatically.",
     },
   ],
+  "ai-prospecting": [
+    { id: "prospecting-agent", name: "Breeze Prospecting Agent and flagged referring-practice queue", by: "native" },
+    { id: "why-now", name: "Why now summary across new physician, clinic location, and referral signals", by: "native" },
+    { id: "buying-group", name: "Buying group and practice roles (referring physicians and office manager)", by: "native" },
+    { id: "outreach-drafts", name: "Role-tailored outreach drafts, liaison review, approval, and send", by: "native" },
+    { id: "meeting-booking", name: "Lunch-and-learn meeting booking logged to company and contact timelines", by: "native" },
+    { id: "referral-report", name: "Before/after referral volume report by referring practice", by: "native" },
+    {
+      id: "erp-signal",
+      name: "Referral-Volume Signal Feed",
+      by: "penguin",
+      note: "Ingests aggregated, non-PHI quarterly referral volume counts from EHR/claims analytics so Breeze flags referral drops alongside new providers and clinic openings.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits & Outcomes Attribution",
+      by: "penguin",
+      note: "Connects Breeze Prospecting Agent enrichment and outreach credits directly to booked lunch-and-learns and recovered quarterly referral volume.",
+    },
+  ],
+  "patient-reactivation": [
+    { id: "dynamic-segment", name: "Dynamic active segment for overdue annual-visit contacts (> 12 months)", by: "native" },
+    { id: "reminder-series", name: "Automated 3-touch HIPAA-safe reminder email series preview and approval", by: "native" },
+    { id: "appointment-booking", name: "Annual wellness visit booking logged to the contact timeline", by: "native" },
+    { id: "auto-removal", name: "Automatic segment removal and touch suppression once booked", by: "native" },
+    { id: "reactivation-report", name: "Reactivation rate and visits booked by clinic location report", by: "native" },
+    {
+      id: "ehr-eligibility-sync",
+      name: "EHR Annual-Visit Eligibility Sync",
+      by: "penguin",
+      note: "Syncs non-PHI last-visit-bucket and annual-visit-overdue flags from practice management into HubSpot so dynamic segments stay current without storing clinical notes or MRNs.",
+    },
+  ],
 };

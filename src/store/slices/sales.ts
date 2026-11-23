@@ -29,6 +29,8 @@ export type AiProspectingState = {
   version: number;
   edits: Record<string, string>;
   sent: boolean;
+  meetingBooked: boolean;
+  meetingSlotId: string | null;
 };
 
 export type SalesAction =
@@ -42,7 +44,8 @@ export type SalesAction =
   | { t: "ap.draft" }
   | { t: "ap.version"; v: number }
   | { t: "ap.edit"; memberId: string; text: string }
-  | { t: "ap.send"; at: number };
+  | { t: "ap.send"; at: number }
+  | { t: "ap.bookMeeting"; slotId: string; at: number };
 
 export function seedBackOffice(): BackOfficeState {
   return { picked: [], quoteId: null, dealId: null };
@@ -57,7 +60,7 @@ export function seedEmailToDeal(): EmailToDealState {
 }
 
 export function seedAiProspecting(): AiProspectingState {
-  return { drafted: false, version: 0, edits: {}, sent: false };
+  return { drafted: false, version: 0, edits: {}, sent: false, meetingBooked: false, meetingSlotId: null };
 }
 
 export function isSalesAction(a: Action): a is SalesAction {
@@ -411,6 +414,28 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
       });
       touch(w, at, { companyId: config.companyId, contactIds });
       w.ap.sent = true;
+      return;
+    }
+    case "ap.bookMeeting": {
+      const config = pack.demos.aiProspecting;
+      const meeting = config.offPlatformMeeting;
+      if (!meeting || w.ap.meetingBooked) return;
+      const slot = meeting.slots.find((s) => s.id === a.slotId) ?? meeting.slots[0];
+      const at = iso(a.at);
+      const contactIds = config.buyingGroup.map((m) => m.contactId ?? `ct-${m.id}`).filter((cid) => w.contacts.some((c) => c.id === cid));
+      addActivity(w, {
+        at,
+        type: "meeting",
+        title: `Meeting booked: ${meeting.meetingTitle}`,
+        body: `${slot.day} at ${slot.time} ${slot.tz} · ${meeting.meetingLocation}. Confirmed by ${meeting.recipientName} (${meeting.recipientTitle}) from Breeze Prospecting outreach.`,
+        byId: w.persona,
+        contactIds,
+        companyIds: [config.companyId],
+        ...(config.reportId ? { linkPath: `/reports/${config.reportId}`, linkLabel: "View referral report" } : {}),
+      });
+      touch(w, at, { companyId: config.companyId, contactIds });
+      w.ap.meetingBooked = true;
+      w.ap.meetingSlotId = slot.id;
       return;
     }
   }
