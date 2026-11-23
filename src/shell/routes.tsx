@@ -65,7 +65,7 @@ export function Routes() {
     case "marketing":
       return <LazyMarketingView id={id} sub={sub} />;
     case "site":
-      return <LazySitePage />;
+      return <LazySitePage id={id} />;
     case "service-app":
     case "service":
     case "service-dashboard":

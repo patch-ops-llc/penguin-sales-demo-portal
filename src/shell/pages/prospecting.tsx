@@ -350,12 +350,15 @@ function Outreach() {
               <div className="mt-2.5 flex flex-wrap items-center gap-2">
                 {config.offPlatformMeeting ? (
                   <Button variant="primary" size="sm" data-testid="ap-open-offplatform" onClick={() => navigate("/offplatform/prospect-meeting")}>
-                    {meetingBooked ? "View booked lunch-and-learn" : "Open practice inbox & book meeting"} <Icon name="arrowRight" size={14} />
+                    {meetingBooked
+                      ? (config.offPlatformMeeting.bookedButtonLabel ?? "View booked lunch-and-learn")
+                      : (config.offPlatformMeeting.openButtonLabel ?? "Open practice inbox & book meeting")}{" "}
+                    <Icon name="arrowRight" size={14} />
                   </Button>
                 ) : null}
                 {config.reportId ? (
                   <Button variant="secondary" size="sm" data-testid="ap-open-report" onClick={() => navigate(`/reports/${config.reportId}`)}>
-                    View referral volume report
+                    {config.reportLabel ?? "View referral volume report"}
                   </Button>
                 ) : null}
               </div>

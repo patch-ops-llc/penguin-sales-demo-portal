@@ -178,7 +178,7 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
       },
       {
         id: "open-incident",
-        title: "Open incident ticket & impacted companies list",
+        title: "Open incident ticket & impacted companies",
         hint: "Service Hub Tickets: open the incident ticket to review impacted managed companies",
         path: () => "/tickets",
         done: ({ w }) => getTicketRun(w, demoId).ticketOpened,
@@ -186,8 +186,8 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
       },
       {
         id: "broadcast-customers",
-        title: "Notify all impacted customers",
-        hint: "Ticket workspace: broadcast initial outage alert to all affected accounts",
+        title: "Broadcast alert to impacted accounts",
+        hint: "Ticket workspace: notify all affected managed companies and preview customer status email",
         path: ticketPath,
         done: (c) => {
           const accounts = cfgOf(c, demoId)?.impactedAccounts ?? [];
@@ -197,8 +197,8 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
       },
       {
         id: "close-incident",
-        title: "Post resolution update & send post-incident summary",
-        hint: "Ticket workspace: send recovery update and close the incident ticket",
+        title: "Post recovery update & close incident",
+        hint: "Ticket workspace: send recovery status update and publish post-incident summary",
         path: ticketPath,
         done: ({ w }) => getTicketRun(w, demoId).resolved,
         script: (_c, now) => [
@@ -206,9 +206,10 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
           { t: "tk.resolve", demoId, at: now },
         ],
       },
-      { ...reportStep, title: "Review incident MTTR & impacted accounts report" },
+      { ...reportStep, title: "Review incident MTTR & impacted accounts" },
     ],
   };
 }
 
 export const postVisitFeedback = createTicketsScript("post-visit-feedback", "feedback");
+export const incidentComms = createTicketsScript("incident-comms", "incident");

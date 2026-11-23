@@ -1,5 +1,6 @@
 import type { ErpStockItem, GqLineTemplate, GqOption, Pack } from "../types";
 import { itCustomerAgent } from "./customer-agent";
+import { incidentCommsConfig } from "./incident-comms";
 import { ENGINEER_RATE, MARGIN_FLOOR_PCT, product } from "./rate-card";
 
 // Per-demo content for Professional and IT services: hero records, rate-card rules, presets, and prepared output.
@@ -157,6 +158,8 @@ export const demos: Pack["demos"] = {
     ],
     scripted: { selections: { tier: "complete", security: "mdr", sites: "3", term: "36" }, quantity: 100, needBy: "8w" },
     quoteTitle: "Ashgrove Design Partners: Managed IT proposal",
+    reportId: "it-tier-win-rate",
+    reportLabel: "Tier win-rate report",
     labels: {
       source: "Rates from the rate card",
       timing: "Billing",
@@ -171,6 +174,8 @@ export const demos: Pack["demos"] = {
     marginFloorPct: MARGIN_FLOOR_PCT,
     approverId: "omar",
     scriptedDiscountPct: 12,
+    reportId: "it-tier-win-rate",
+    reportLabel: "Tier win-rate report",
     labels: {
       ruleFloor: "an hourly rate under its rate-card floor",
       costFeed: "Loaded cost per hour on every line is synced from the PSA. Last sync {when}.",
@@ -410,6 +415,62 @@ export const demos: Pack["demos"] = {
     scriptedPresetId: "hot",
     workflowId: "wf-assessment-routing",
     dealStage: "new-rfq",
+    assessmentFollowUp: {
+      channelLabel: "Security Assessment Findings & Proposal Handoff",
+      windowTitle: "Quillon Security Practice · Assessment Findings Report",
+      inboxAddress: "assessments.quillontech.example/reports/alderbrook-2026-sec",
+      senderName: "Imani Okoro",
+      senderTitle: "Security Consultant, Southeast",
+      senderEmail: "imani.okoro@quillontech.example",
+      callSummaryTitle: "Discovery & Clinic Risk Walk-Through Complete (45 min)",
+      callSummaryBody:
+        "Imani Okoro completed the technical discovery call with COO Priya Raman and Alderbrook's clinic administrator across all 8 Piedmont Triad locations. Three gaps block cyber-insurance renewal in 60 days.",
+      emailSubject: "Alderbrook Family Medicine — Security Assessment Findings & 60-Day Remediation Plan",
+      emailPreview: "Three priority controls required before your cyber-insurance renewal in 60 days, plus a tailored proposal.",
+      emailBody:
+        "Hi Priya,\n\nThank you for walking through all eight clinics with us today. Attached is your Security Assessment Findings Report highlighting the three controls your cyber insurance carrier requires before renewal in 60 days:\n\n1. Enforce phishing-resistant MFA across all 260 Microsoft 365 & EHR logins (currently 41% coverage).\n2. Deploy 24x7 Managed Detection & Response (MDR) across all 8 clinic workstations and servers.\n3. Replace unmanaged clinic routers with centrally monitored firewalls and segmented clinical Wi-Fi.\n\nI have also prepared a tailored proposal in HubSpot covering Security & Compliance for 260 users, managed firewalls for 8 sites, and fixed-fee onboarding.\n\n— Imani Okoro, Security Consultant, Quillon Technology Partners",
+      attachmentName: "Alderbrook_Security_Assessment_Findings_2026.pdf",
+      attachmentMeta: "PDF · 14 pages · Executive summary + 8-clinic remediation roadmap",
+      findings: [
+        {
+          id: "f-mfa",
+          severity: "Critical",
+          title: "Identity & MFA coverage at 41%",
+          detail: "153 of 260 clinic accounts lack MFA on Microsoft 365 and hosted EHR sign-in.",
+          remediation: "Enforce conditional MFA + SSO in Week 1",
+        },
+        {
+          id: "f-mdr",
+          severity: "High",
+          title: "No 24x7 Managed Detection & Response (MDR)",
+          detail: "Standard antivirus only; insurer now mandates continuous EDR telemetry and SOC response.",
+          remediation: "Roll out Security & Compliance Pack across 260 users",
+        },
+        {
+          id: "f-fw",
+          severity: "High",
+          title: "Unmanaged clinic edge routers",
+          detail: "Eight Piedmont Triad offices run standalone routers with no centralized firmware patching.",
+          remediation: "Deploy managed firewalls at all 8 clinics",
+        },
+        {
+          id: "f-train",
+          severity: "Medium",
+          title: "Missing annual security awareness log",
+          detail: "No documented HIPAA / phishing simulation evidence for cyber-insurance underwriters.",
+          remediation: "Include automated training & yearly risk assessment",
+        },
+      ],
+      proposalTitle: "Alderbrook Family Medicine: Security & Compliance Remediation Proposal",
+      proposalStage: "quote-sent",
+      proposalLines: [
+        { sku: "QT-SEC-CPL", qty: 260, note: "24x7 MDR, MFA rollout, annual risk assessment & awareness training (260 users)" },
+        { sku: "QT-NET-SITE", qty: 8, note: "Managed edge firewall, patching & clinical Wi-Fi segmentation (8 clinics)" },
+        { sku: "QT-ONB-CMP", qty: 1, note: "Fixed-fee security remediation & 8-clinic cutover inside 60-day renewal window" },
+      ],
+      reportId: "it-assessment-funnel",
+      reportLabel: "Assessments to proposals funnel",
+    },
   },
 
   // ---------- Email to deal ----------
@@ -515,8 +576,54 @@ export const demos: Pack["demos"] = {
       ],
     },
     followUp: { title: "Follow up with the Oriel Park Senior Living buying group", dueInDays: 3 },
+    offPlatformMeeting: {
+      inboxEmail: "ingrid.solberg@orielparkseniorliving.example",
+      recipientName: "Ingrid Solberg",
+      recipientTitle: "Chief Information Officer",
+      practiceName: "Oriel Park Senior Living (12 Communities)",
+      senderName: "Tessa Marlow",
+      senderTitle: "Account Executive, Southeast · Quillon Technology Partners",
+      meetingTitle: "Network Refresh & 3-Site Acquisition Scope Review",
+      meetingLocation: "Microsoft Teams (with Solutions Architect Soledad Ruiz)",
+      meetingDuration: "30 minutes",
+      bookingUrl: "meetings.quillontech.example/tessa-marlow/network-refresh-review",
+      agenda: [
+        "Walk through the 22 switches and firewalls reaching end of support in 120 days across 6 communities",
+        "Review standardization options for the 3 newly acquired South Carolina communities",
+        "Align one combined hardware order and cutover schedule ahead of the 148-day contract renewal",
+      ],
+      slots: [
+        { id: "slot-tue", day: "Tue, Nov 24", time: "10:00 AM", tz: "ET" },
+        { id: "slot-wed", day: "Wed, Nov 25", time: "2:30 PM", tz: "ET" },
+        { id: "slot-thu", day: "Thu, Nov 26", time: "11:00 AM", tz: "ET" },
+      ],
+      defaultSlotId: "slot-tue",
+      complianceNote: "Booked through HubSpot Meetings — syncs calendar invite, logs meeting on Ingrid Solberg, and opens the refresh deal in Services pipeline.",
+      channelLabel: "CIO Inbox & Meeting Confirmation",
+      mailClientName: "Oriel Park Mail",
+      inboxBreadcrumb: "Oriel Park Executive Inbox · Managed IT Refresh",
+      openButtonLabel: "View CIO reply & meeting booking",
+      bookedButtonLabel: "Meeting confirmed — view CIO inbox",
+      slotHeading: "Pick a slot on Tessa Marlow's HubSpot calendar",
+      confirmButtonLabel: "Confirm refresh review meeting",
+      confirmedHeadline: "Refresh review confirmed & synced to HubSpot",
+      bookingForLabel: "Booked for",
+      dealCreated: {
+        id: "dl-oriel-refresh",
+        name: "Oriel Park Senior Living: 22-Device Network Refresh & 3-Site Rollout",
+        amount: 194_000,
+        stage: "qualified",
+      },
+    },
+    reportId: "it-signal-pipeline",
+    reportLabel: "View pipeline by signal report",
   },
 
   // ---------- Customer Agent: IT service desk (Chat, Email & L2 Escalation) ----------
   customerAgent: itCustomerAgent,
+
+  // ---------- Tickets: IT Services #5 (Incident communication) ----------
+  tickets: {
+    "incident-comms": incidentCommsConfig,
+  },
 };

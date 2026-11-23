@@ -31,9 +31,18 @@ export function ProspectMeetingOffPlatformPage() {
     dispatch({ t: "ap.bookMeeting", slotId: activeSlot.id, at: nowMs() });
   };
 
+  const reportButtonLabel = config.reportLabel ?? "View referral volume report";
+  const channelLabel = meeting.channelLabel ?? "Practice Email Inbox & Scheduling";
+  const mailClientName = meeting.mailClientName ?? "Practice Mail";
+  const inboxBreadcrumb = meeting.inboxBreadcrumb ?? "Inbox › Referral Liaison Outreach";
+  const slotHeading = meeting.slotHeading ?? "Select a lunch-and-learn time";
+  const confirmButtonLabel = meeting.confirmButtonLabel ?? "Confirm lunch-and-learn";
+  const confirmedHeadline = meeting.confirmedHeadline ?? "Lunch-and-learn confirmed";
+  const bookingForLabel = meeting.bookingForLabel ?? `${meeting.recipientName} & ${meeting.practiceName} providers`;
+
   return (
     <OffPlatformFrame
-      channelLabel="Practice Email Inbox & Scheduling"
+      channelLabel={channelLabel}
       url={meeting.bookingUrl}
       backTo="/prospecting"
       backLabel="Back to Prospecting"
@@ -41,26 +50,26 @@ export function ProspectMeetingOffPlatformPage() {
       action={
         booked && config.reportId ? (
           <Button variant="primary" size="sm" data-testid="ap-go-report-top" onClick={() => navigate(`/reports/${config.reportId}`)}>
-            View referral volume report <Icon name="arrowRight" size={14} />
+            {reportButtonLabel} <Icon name="arrowRight" size={14} />
           </Button>
         ) : undefined
       }
     >
       <div className="min-h-full bg-[#f4f6f9] p-6">
         <div className="mx-auto grid max-w-[1120px] gap-6 lg:grid-cols-[minmax(0,1fr)_410px]">
-          {/* Left: Practice Email Inbox showing the delivered Breeze outreach */}
+          {/* Left: Prospect Email Inbox showing the delivered Breeze outreach */}
           <div className="overflow-hidden rounded-[12px] border border-[#d6dde6] bg-white shadow-sm" data-testid="ap-practice-inbox">
             <div className="flex items-center justify-between border-b border-line-soft bg-[#0f3d56] px-5 py-3 text-white">
               <div className="flex items-center gap-2.5">
                 <Icon name="email" size={16} />
-                <span className="text-[14px] font-semibold">Practice Mail</span>
+                <span className="text-[14px] font-semibold">{mailClientName}</span>
                 <span className="text-[12px] text-white/75">&middot; {meeting.inboxEmail}</span>
               </div>
               <Tag tone="green">Delivered from HubSpot</Tag>
             </div>
 
             <div className="border-b border-line-soft bg-[#fafbfd] px-5 py-3.5">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">Inbox &rsaquo; Referral Liaison Outreach</p>
+              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">{inboxBreadcrumb}</p>
               <h1 className="mt-1 text-[18px] font-semibold text-ink" data-testid="ap-inbox-subject">
                 {emailSubject}
               </h1>
@@ -127,7 +136,7 @@ export function ProspectMeetingOffPlatformPage() {
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0b7a4b] text-white">
                         <Icon name="check" size={14} strokeWidth={2.4} />
                       </span>
-                      Lunch-and-learn confirmed
+                      {confirmedHeadline}
                     </p>
                     <p className="mt-2 text-[13.5px] font-semibold text-ink">
                       {activeSlot.day} &middot; {activeSlot.time} {activeSlot.tz}
@@ -146,24 +155,31 @@ export function ProspectMeetingOffPlatformPage() {
                         <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
                         Attendees: {config.buyingGroup.map((m) => m.name).join(", ")}
                       </li>
-                      <li className="flex items-start gap-2">
-                        <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
-                        Calendar invite sent to {meeting.senderName} &amp; practice staff
-                      </li>
+                      {meeting.dealCreated ? (
+                        <li className="flex items-start gap-2" data-testid="ap-deal-created-line">
+                          <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
+                          Deal opened: {meeting.dealCreated.name} (${meeting.dealCreated.amount.toLocaleString("en-US")})
+                        </li>
+                      ) : (
+                        <li className="flex items-start gap-2">
+                          <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
+                          Calendar invite sent to {meeting.senderName} &amp; practice staff
+                        </li>
+                      )}
                     </ul>
                   </div>
 
                   {config.reportId ? (
                     <Button variant="primary" className="w-full" data-testid="ap-go-report" onClick={() => navigate(`/reports/${config.reportId}`)}>
-                      View referral volume report <Icon name="arrowRight" size={15} />
+                      {reportButtonLabel} <Icon name="arrowRight" size={15} />
                     </Button>
                   ) : null}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Select a lunch-and-learn time</p>
-                    <div className="mt-2.5 space-y-2" role="radiogroup" aria-label="Lunch-and-learn time slots">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-muted">{slotHeading}</p>
+                    <div className="mt-2.5 space-y-2" role="radiogroup" aria-label={slotHeading}>
                       {meeting.slots.map((slot) => {
                         const selected = slot.id === activeSlot.id;
                         return (
@@ -190,14 +206,12 @@ export function ProspectMeetingOffPlatformPage() {
 
                   <div className="rounded-[8px] border border-line-soft bg-[#fafafa] px-3.5 py-2.5 text-[12.5px]">
                     <p className="text-ink-muted">Booking for</p>
-                    <p className="mt-0.5 font-semibold text-ink">
-                      {meeting.recipientName} &amp; {meeting.practiceName} providers
-                    </p>
+                    <p className="mt-0.5 font-semibold text-ink">{bookingForLabel}</p>
                     <p className="text-[12px] text-ink-muted">{meeting.inboxEmail}</p>
                   </div>
 
                   <Button variant="primary" className="w-full" data-testid="ap-book-meeting" onClick={confirmBooking}>
-                    <Icon name="check" size={15} /> Confirm lunch-and-learn
+                    <Icon name="check" size={15} /> {confirmButtonLabel}
                   </Button>
                 </div>
               )}

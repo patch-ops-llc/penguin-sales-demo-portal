@@ -390,6 +390,36 @@ export function TasksIndex() {
   return (
     <>
       <MarketingTaskBanner />
+      {world.lc && pack.demos.leadCapture.assessmentFollowUp ? (
+        <div className="mx-6 mt-4 flex flex-col gap-2.5 rounded-[10px] border border-[#bfe3cd] bg-[#f2fbf5] px-4 py-3 text-[13px]" data-testid="lc-assessment-task-banner">
+          <div>
+            <p className="font-semibold text-[#0b5b2b]">
+              {world.lc.proposalQuoteId
+                ? "Security findings emailed & proposal quote created in HubSpot."
+                : "Assessment call booked — ready to email the security findings report."}
+            </p>
+            <p className="text-[12.5px] text-ink-muted">
+              {pack.demos.leadCapture.assessmentFollowUp.callSummaryTitle}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <A
+              to="/site/findings"
+              data-testid="lc-open-findings"
+              className="inline-flex h-8 items-center gap-1.5 rounded-[6px] bg-hs-orange px-3.5 text-[12.5px] font-semibold text-white hover:bg-hs-orange-strong"
+            >
+              {world.lc.findingsSent ? "View findings & proposal" : "Email findings report (off-platform)"} <Icon name="arrowRight" size={13} />
+            </A>
+            <A
+              to={`/reports/${pack.demos.leadCapture.assessmentFollowUp.reportId}`}
+              data-testid="lc-tasks-open-report"
+              className="inline-flex h-8 items-center gap-1.5 rounded-[6px] border border-line bg-white px-3 text-[12.5px] font-semibold text-ink hover:bg-[#f5f5f5]"
+            >
+              <Icon name="chart" size={13} /> {pack.demos.leadCapture.assessmentFollowUp.reportLabel}
+            </A>
+          </div>
+        </div>
+      ) : null}
       <IndexPage title="Tasks" noun="task" rows={world.tasks} columns={columns} views={views} filters={[ownerFilter<Task>(pack, (t) => t.ownerId)]} searchText={(t) => t.title} rowKey={(t) => t.id} isNew={(t) => Boolean(t.isNew)} initialSort={{ id: "due", dir: 1 }} />
     </>
   );

@@ -146,6 +146,15 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
     if (next) setSidebar(true);
   };
   const exitTo = deal ? `/deals/${deal.id}` : "/quotes";
+  const assessmentFollowUp = pack.demos.leadCapture.assessmentFollowUp;
+  const isAssessmentProposal = Boolean(assessmentFollowUp && quote.id === world.lc?.proposalQuoteId);
+  const quoteReport = isAssessmentProposal && assessmentFollowUp
+    ? { id: assessmentFollowUp.reportId, label: assessmentFollowUp.reportLabel }
+    : isRuleQuote && pack.demos.discountApproval.reportId
+      ? { id: pack.demos.discountApproval.reportId, label: pack.demos.discountApproval.reportLabel ?? "Tier win-rate report" }
+      : (quote.id === world.gq.quoteId || quote.dealId === pack.demos.guidedQuote.dealId) && pack.demos.guidedQuote.reportId
+        ? { id: pack.demos.guidedQuote.reportId, label: pack.demos.guidedQuote.reportLabel ?? "Tier win-rate report" }
+        : null;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-[#e1e8f0]" data-testid="quote-page">
@@ -157,6 +166,11 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
         <h1 className="min-w-0 truncate text-[14.5px] font-semibold">{quoteName(quote)}</h1>
         <QuoteStatus status={quote.status} className="shrink-0 text-[12.5px] text-white/85" testId="quote-status" />
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          {view !== "lines" && quoteReport ? (
+            <A to={`/reports/${quoteReport.id}`} className={barSecondary} data-testid="quote-open-report">
+              <Icon name="chart" size={14} /> {quoteReport.label}
+            </A>
+          ) : null}
           {view === "lines" ? null : view === "preview" ? (
             <button type="button" className={barSecondary} onClick={() => setView("edit")} data-testid="quote-preview-close">
               Exit preview
@@ -303,6 +317,14 @@ function QuoteEditor({ quote, approvals }: { quote: Quote; approvals: boolean })
                     <button type="button" className="hs-link" onClick={() => setPanel(true)} data-testid="view-approval-conditions">
                       View approval conditions
                     </button>
+                  </Banner>
+                ) : isAssessmentProposal && assessmentFollowUp ? (
+                  <Banner tone="green" icon="check" testId="quote-assessment-banner">
+                    <span className="font-semibold">Proposal generated from security assessment findings.</span> Share with {contactName(contact)} or{" "}
+                    <A to={`/reports/${assessmentFollowUp.reportId}`} className="hs-link" data-testid="quote-open-funnel-report">
+                      open {assessmentFollowUp.reportLabel}
+                    </A>
+                    .
                   </Banner>
                 ) : null}
 

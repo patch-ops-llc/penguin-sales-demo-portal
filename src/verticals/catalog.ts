@@ -14,7 +14,8 @@ export type DemoId =
   | "post-visit-feedback"
   | "patient-reactivation"
   | "referral-intake"
-  | "staffing-job-orders";
+  | "staffing-job-orders"
+  | "incident-comms";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -174,6 +175,15 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "sales",
     tags: ["healthcare", "staffing", "travel rn", "job order", "ats", "vms", "shortlist", "fill rate"],
   },
+  "incident-comms": {
+    id: "incident-comms",
+    title: "Incident communication",
+    minutes: 4,
+    summary: "Monitoring outage alert opens a Service Hub incident ticket with impacted managed companies, batch customer notifications, recovery updates, post-incident summary, and MTTR reporting.",
+    takeaway: "Outages move from RMM alert to proactive customer status updates across every affected managed account inside Service Hub, cutting inbound ticket spikes and MTTR.",
+    hub: "service",
+    tags: ["service", "incident", "outage", "rmm", "monitoring", "broadcast", "mttr", "msp", "status"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -258,15 +268,16 @@ export const VERTICALS: VerticalTile[] = [
     company: "Quillon Technology Partners",
     blurb: "Managed IT services, projects, and hardware resale.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent", "incident-comms"],
     tiles: {
       "guided-quote": {
         title: "Guided proposal",
-        summary: "Pick service tier, security add-on, sites, term, and users. Managed services and the onboarding project generate from the rate card, proposal preview, send.",
-        takeaway: "A new account executive scopes a managed services proposal correctly in under a minute, from the rate card.",
+        summary: "Pick service tier, security add-on, sites, term, and users. Managed services and onboarding generate from the rate card, with proposal preview, send, and tier win-rate reporting.",
+        takeaway: "A new account executive scopes a managed services proposal correctly in under a minute, backed by win-rate and discount reporting by service tier.",
+        tags: ["tiers", "essentials", "complete", "complete plus", "win rate", "msp"],
       },
       "discount-approval": {
-        summary: "A discount that takes hourly rates under the rate-card floor routes to the practice lead, one click approves, the statement of work unlocks.",
+        summary: "A discount that takes hourly rates under the rate-card floor routes to the practice lead, one click approves, the statement of work unlocks, and tier discount metrics track compliance.",
         takeaway: "Rate-card control that does not slow the deal.",
       },
       "back-office": {
@@ -274,16 +285,18 @@ export const VERTICALS: VerticalTile[] = [
         takeaway: "What are they contracted for, what do they owe, do we have the people and the hardware: answered without leaving HubSpot.",
       },
       "lead-capture": {
-        summary: "Assessment request submitted, company enriched and scored with reasons, routed by practice area and region, consultant gets a task and an alert.",
-        takeaway: "An assessment request reaches the right practice in seconds, and the consultant can see why it is worth the call.",
+        summary: "Free security assessment requested on the web, enriched and scored with reasons, routed to the security consultant, findings report emailed, proposal quote created, and tracked through the assessment-to-deal funnel.",
+        takeaway: "Free security assessments move seamlessly from web capture to findings report, proposal quote, and closed deals inside HubSpot.",
+        tags: ["assessment", "security", "findings", "proposal", "funnel", "msp"],
       },
       "email-to-deal": {
         summary: "A purchase order for hardware and licences, or an RFP summary, arrives by email, gets parsed, and becomes a deal with product and service lines.",
         takeaway: "Purchase orders and RFPs stop being re-keyed. A person only looks where the parser is unsure.",
       },
       "ai-prospecting": {
-        summary: "Equipment nears end of support and a new CIO starts, the buying group appears, outreach is drafted, rep approves and sends.",
-        takeaway: "Reps approve instead of researching, with a signal only the managed asset inventory can give.",
+        summary: "End-of-support devices, new CIO, acquisition, and renewal signals surface the buying group, draft outreach, book a CIO meeting into a deal, and report pipeline and credits by signal type.",
+        takeaway: "Reps approve instead of researching, with PSA asset signals tied directly to meetings, pipeline, and HubSpot Credits ROI.",
+        tags: ["eos", "cio", "acquisition", "renewal", "credits", "msp"],
       },
       "customer-agent": {
         title: "Customer agent: IT service desk",

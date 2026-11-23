@@ -608,6 +608,14 @@ export function DealRecord({ id }: { id: string }) {
               </Button>
             ) : null}
           </DealQuotesCard>
+          {hero && gq.reportId ? (
+            <Card title="Sales Reporting" testId="deal-reporting-card">
+              <p className="text-[12.5px] text-ink-muted">Track managed services win rate and average discount across service tiers.</p>
+              <A to={`/reports/${gq.reportId}`} data-testid="deal-open-report" className="hs-link mt-2 inline-flex items-center gap-1.5 text-[13px]">
+                <Icon name="chart" size={14} /> {gq.reportLabel ?? "Win rate & discount by tier"}
+              </A>
+            </Card>
+          ) : null}
         </>
       }
     >

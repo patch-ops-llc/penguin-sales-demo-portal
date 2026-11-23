@@ -327,7 +327,20 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
             title={`Impacted Managed Companies (${cfg.impactedAccounts.length})`}
             right={
               run.notifiedCompanyIds.length >= cfg.impactedAccounts.length ? (
-                <Tag tone="green">All {cfg.impactedAccounts.length} notified</Tag>
+                <div className="flex items-center gap-2">
+                  <Tag tone="green">All {cfg.impactedAccounts.length} notified</Tag>
+                  {cfg.secondaryOffPlatform ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon="external"
+                      data-testid="incident-preview-email"
+                      onClick={() => navigate(`/ticket-app/${cfg.demoId}/outreach`)}
+                    >
+                      Preview customer email
+                    </Button>
+                  ) : null}
+                </div>
               ) : (
                 <Button
                   variant="primary"
@@ -436,7 +449,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
                 />
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[12px] text-ink-muted">
-                    Closing moves {cfg.ticket.number} to <strong>{cfg.stages.find((s) => s.id === cfg.ticket.resolvedStageId)?.label ?? "Resolved"}</strong> and updates location metrics.
+                    Closing moves {cfg.ticket.number} to <strong>{cfg.stages.find((s) => s.id === cfg.ticket.resolvedStageId)?.label ?? "Resolved"}</strong> and updates Service Hub metrics.
                   </span>
                   <Button variant="primary" size="sm" icon="check" onClick={handleResolve} data-testid="ticket-resolve-btn">
                     {cfg.outreach.resolveButtonLabel}
@@ -454,7 +467,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[12.5px] text-ink-muted">
-                  Ready to review live location trends in HubSpot Reporting.
+                  Ready to review live metrics in HubSpot Reporting.
                 </span>
                 <Button variant="primary" size="sm" icon="chart" onClick={() => navigate(`/reports/${cfg.reportId}`)} data-testid="ticket-open-report">
                   {cfg.reportButtonLabel} <Icon name="arrowRight" size={14} />
@@ -507,7 +520,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
           ) : null}
         </Card>
 
-        <Card title="Company / Clinic (1)">
+        <Card title={cfg.mode === "incident" ? "Company (1)" : "Company / Clinic (1)"}>
           {company ? (
             <div className="text-[13px]">
               <A to={`/companies/${company.id}`} className="hs-link">

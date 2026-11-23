@@ -7,7 +7,7 @@ import { patientReactivation } from "./patient-reactivation";
 import { discountApproval, guidedQuote } from "./quoting";
 import { aiProspecting, backOffice, emailToDeal, leadCapture } from "./sales";
 import { socialAds } from "./social-ads";
-import { postVisitFeedback } from "./tickets";
+import { incidentComms, postVisitFeedback } from "./tickets";
 import type { DemoScript } from "./types";
 
 export { createTicketsScript, ticketReportFlag } from "./tickets";
@@ -27,6 +27,7 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "patient-reactivation": patientReactivation,
   "referral-intake": referralIntake,
   "staffing-job-orders": staffingJobOrders,
+  "incident-comms": incidentComms,
 };
 
 /** Resolves a demo script for one pack, picking the vertical customer-agent variant and filtering steps whose `when(pack)` is false. */

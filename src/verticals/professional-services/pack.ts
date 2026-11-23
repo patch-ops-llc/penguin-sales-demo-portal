@@ -1,9 +1,9 @@
 import type { Activity, Company, Contact, Deal, LineItem, Pack, Quote, Task } from "../types";
-import { itServiceDeskReport } from "./customer-agent";
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
 import { line, products } from "./rate-card";
+import { professionalServicesReports } from "./reports";
 
 // Professional and IT services pack: Quillon Technology Partners, a managed IT services provider
 // that also runs projects and resells hardware and licences.
@@ -472,9 +472,17 @@ export const professionalServicesPack: Pack = {
       create: { title: "Confirm the flagged item, create the deal", hint: "Pick the suggested match for the flagged line, then Create deal" },
       deal: { hint: "Click View deal. Hardware, licence, and service lines, amount, and close date are filled. The email is on the timeline" },
     },
+    "ai-prospecting": {
+      meeting: {
+        title: "Confirm refresh meeting in CIO inbox",
+        hint: "Off-platform executive inbox: pick a calendar slot and click Confirm refresh review meeting",
+      },
+      report: {
+        title: "Review pipeline by signal report",
+        hint: "Native Breeze Prospecting report by technology signal type, plus the Credits-to-Outcome attribution card",
+      },
+    },
   },
   demos,
-  reports: {
-    "it-service-desk-analytics": itServiceDeskReport,
-  },
+  reports: professionalServicesReports,
 };

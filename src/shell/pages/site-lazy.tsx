@@ -17,14 +17,14 @@ export function preloadSite(): Promise<unknown> {
   return loadSite();
 }
 
-export function LazySitePage() {
+export function LazySitePage({ id }: { id?: string }) {
   if (cached) {
     const Comp = cached.SitePage;
-    return <Comp />;
+    return <Comp id={id} />;
   }
   return (
     <Suspense fallback={<div className="flex min-h-0 flex-1 bg-[#d9d9d9]" />}>
-      <SitePageInner />
+      <SitePageInner id={id} />
     </Suspense>
   );
 }

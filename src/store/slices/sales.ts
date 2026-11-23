@@ -16,6 +16,8 @@ export type LeadCaptureState = {
   dealId: string | null;
   taskId: string | null;
   ownerId: string | null;
+  findingsSent?: boolean;
+  proposalQuoteId?: string | null;
 } | null;
 
 export type EmailToDealState = {
@@ -37,6 +39,8 @@ export type SalesAction =
   | { t: "bo.pick"; sku: string }
   | { t: "bo.addToQuote"; at: number }
   | { t: "lc.submit"; presetId: string; at: number }
+  | { t: "lc.sendFindings"; at: number }
+  | { t: "lc.createProposal"; at: number }
   | { t: "ed.open"; threadId: string }
   | { t: "ed.match"; threadId: string; lineId: string; sku: string }
   | { t: "ed.createDeal"; threadId: string; at: number }
@@ -260,7 +264,108 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
       if (dealId) addActivity(w, { at, type: "deal", title: "Deal created by workflow", body: `${preset.deal!.name} was created in ${pack.stages.find((s) => s.id === config.dealStage)?.label ?? "the first stage"}.`, byId: null, ...ids, dealIds: [dealId] });
       if (taskId) addActivity(w, { at, type: "task", title: `Task assigned to ${ownerName}`, body: preset.task!.title, byId: null, ...ids, ...(dealId ? { dealIds: [dealId] } : {}) });
 
-      w.lc = { presetId: preset.id, contactId: contact.id, companyId: company.id, dealId, taskId, ownerId: owner };
+      w.lc = { presetId: preset.id, contactId: contact.id, companyId: company.id, dealId, taskId, ownerId: owner, findingsSent: false, proposalQuoteId: null };
+      return;
+    }
+    case "lc.sendFindings": {
+      const followUp = pack.demos.leadCapture.assessmentFollowUp;
+      if (!followUp || !w.lc || w.lc.findingsSent) return;
+      const at = iso(a.at);
+      const actorId = w.lc.ownerId ?? w.persona;
+      const ids = {
+        contactIds: [w.lc.contactId],
+        companyIds: [w.lc.companyId],
+        ...(w.lc.dealId ? { dealIds: [w.lc.dealId] } : {}),
+      };
+      addActivity(w, {
+        at: iso(a.at - 60_000),
+        type: "meeting",
+        title: followUp.callSummaryTitle,
+        body: followUp.callSummaryBody,
+        byId: actorId,
+        ...ids,
+      });
+      addActivity(w, {
+        at,
+        type: "email",
+        title: `Findings report emailed: ${followUp.emailSubject}`,
+        body: followUp.emailPreview,
+        byId: actorId,
+        attachment: followUp.attachmentName,
+        ...ids,
+      });
+      if (w.lc.taskId) {
+        const task = w.tasks.find((t) => t.id === w.lc?.taskId);
+        if (task) task.status = "done";
+      }
+      touch(w, at, { companyId: w.lc.companyId, contactIds: [w.lc.contactId], dealId: w.lc.dealId });
+      w.lc = { ...w.lc, findingsSent: true };
+      return;
+    }
+    case "lc.createProposal": {
+      const followUp = pack.demos.leadCapture.assessmentFollowUp;
+      if (!followUp || !w.lc || w.lc.proposalQuoteId) return;
+      const at = iso(a.at);
+      const actorId = w.lc.ownerId ?? w.persona;
+      const lineItems: LineItem[] = followUp.proposalLines
+        .map((pl) => {
+          const p = pack.products.find((x) => x.sku === pl.sku);
+          if (!p) return null;
+          return {
+            sku: p.sku,
+            name: p.name,
+            ...(pl.note ? { description: pl.note } : {}),
+            qty: pl.qty,
+            unitPrice: pl.unitPrice ?? p.price,
+            unitCost: p.cost,
+            leadDays: p.leadDays,
+            ...(p.timing ? { timing: p.timing } : {}),
+            ...(p.recurring ? { recurring: true } : {}),
+          };
+        })
+        .filter((item): item is LineItem => item !== null);
+      const totalAmount = lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
+
+      let dealId = w.lc.dealId;
+      let deal = dealId ? w.deals.find((d) => d.id === dealId) : undefined;
+      if (!deal) {
+        dealId = "dl-lead";
+        deal = {
+          id: dealId,
+          name: followUp.proposalTitle,
+          companyId: w.lc.companyId,
+          contactIds: [w.lc.contactId],
+          ownerId: actorId,
+          stage: followUp.proposalStage ?? "quote-sent",
+          amount: totalAmount,
+          closeDate: iso(a.at + 30 * DAY),
+          createdAt: at,
+          lastActivityAt: at,
+          type: "New business",
+          lineItems,
+          source: "Security assessment findings",
+          isNew: true,
+        };
+        w.deals.unshift(deal);
+      } else {
+        deal.lineItems = lineItems;
+        deal.amount = totalAmount;
+        deal.stage = followUp.proposalStage ?? "quote-sent";
+        deal.lastActivityAt = at;
+      }
+
+      const quote = newQuote(w, {
+        id: "q-lead-proposal",
+        title: followUp.proposalTitle,
+        dealId: deal.id,
+        companyId: w.lc.companyId,
+        contactId: w.lc.contactId,
+        lineItems,
+        origin: "Created from security assessment findings",
+        at: a.at,
+      });
+      touch(w, at, { companyId: w.lc.companyId, contactIds: [w.lc.contactId], dealId: deal.id });
+      w.lc = { ...w.lc, dealId: deal.id, findingsSent: true, proposalQuoteId: quote.id };
       return;
     }
 
@@ -423,6 +528,26 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
       const slot = meeting.slots.find((s) => s.id === a.slotId) ?? meeting.slots[0];
       const at = iso(a.at);
       const contactIds = config.buyingGroup.map((m) => m.contactId ?? `ct-${m.id}`).filter((cid) => w.contacts.some((c) => c.id === cid));
+      let createdDealId: string | null = null;
+      if (meeting.dealCreated && !w.deals.some((d) => d.id === meeting.dealCreated!.id)) {
+        createdDealId = meeting.dealCreated.id;
+        w.deals.unshift({
+          id: meeting.dealCreated.id,
+          name: meeting.dealCreated.name,
+          companyId: config.companyId,
+          contactIds,
+          ownerId: w.persona,
+          stage: meeting.dealCreated.stage,
+          amount: meeting.dealCreated.amount,
+          closeDate: iso(a.at + 60 * DAY),
+          createdAt: at,
+          lastActivityAt: at,
+          type: "Expansion",
+          lineItems: [],
+          source: "Breeze Prospecting Agent",
+          isNew: true,
+        });
+      }
       addActivity(w, {
         at,
         type: "meeting",
@@ -431,9 +556,10 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
         byId: w.persona,
         contactIds,
         companyIds: [config.companyId],
-        ...(config.reportId ? { linkPath: `/reports/${config.reportId}`, linkLabel: "View referral report" } : {}),
+        ...(createdDealId ? { dealIds: [createdDealId] } : {}),
+        ...(config.reportId ? { linkPath: `/reports/${config.reportId}`, linkLabel: config.reportLabel ?? "View referral report" } : {}),
       });
-      touch(w, at, { companyId: config.companyId, contactIds });
+      touch(w, at, { companyId: config.companyId, contactIds, dealId: createdDealId });
       w.ap.meetingBooked = true;
       w.ap.meetingSlotId = slot.id;
       return;

@@ -19,6 +19,7 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
     { id: "pricing-models", name: "Recurring and one-time line items, billing frequency", by: "native" },
     { id: "quote-editor", name: "Quote editor and templates", by: "native" },
     { id: "quote-page", name: "Buyer-facing quote page and e-signature", by: "native" },
+    { id: "tier-win-rate-report", name: "Win rate & average discount by service tier report", by: "native" },
     {
       id: "guided-selling",
       name: "Guided selling",
@@ -32,6 +33,7 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
     { id: "approval-record", name: "Approval activity: who requested and who approved", by: "native" },
     { id: "margin-rule", name: "Unit cost, margin, and Quote margin %", by: "native" },
     { id: "notifications", name: "Notifications and approval tasks", by: "native" },
+    { id: "tier-win-rate-report", name: "Win rate & average discount by service tier report", by: "native" },
     {
       id: "erp-cost-feed",
       name: "Loaded cost per hour fed from the PSA",
@@ -69,6 +71,7 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
     { id: "lead-scoring", name: "Lead scoring", by: "native" },
     { id: "workflows", name: "Workflows, owner assignment, tasks, deal creation", by: "native" },
     { id: "notifications", name: "Notifications and the Slack alert", by: "native" },
+    { id: "findings-proposal", name: "Assessment findings email, proposal quote handoff, and funnel report", by: "native" },
     {
       id: "why-this-score",
       name: "Why this score card",
@@ -99,11 +102,32 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
     { id: "why-now", name: "Why now summary: Reason To Reach Out and Signals Summary", by: "native" },
     { id: "buying-group", name: "Buying group and buying roles", by: "native" },
     { id: "outreach-drafts", name: "Outreach drafts, with nothing sent until a person approves", by: "native" },
+    { id: "meeting-booking", name: "HubSpot meeting link confirmation and automatic deal creation", by: "native" },
+    { id: "signal-pipeline-report", name: "Pipeline by technology signal type report", by: "native" },
     {
       id: "erp-signal",
       name: "End-of-support signal from the PSA",
       by: "penguin",
       note: "A buying signal HubSpot cannot see by itself: equipment nearing end of support, fed in from the managed asset inventory in the PSA.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits-to-Outcome Attribution Panel",
+      by: "penguin",
+      note: "Connects Breeze Prospecting Agent credit spend directly to technology-signal meetings booked and managed IT pipeline created.",
+    },
+  ],
+  "incident-comms": [
+    { id: "incident-ticket", name: "HubSpot Service Hub incident ticket, pipeline stages, and SLA timer", by: "native" },
+    { id: "impacted-company-associations", name: "Multi-company ticket associations for impacted managed clients", by: "native" },
+    { id: "batch-customer-notifications", name: "Batch customer outage alerts and live status update emails", by: "native" },
+    { id: "post-incident-summary", name: "Post-incident summary publication and ticket closure", by: "native" },
+    { id: "incident-mttr-dashboard", name: "Service Hub Incidents, MTTR & Customers Affected dashboard", by: "native" },
+    {
+      id: "rmm-outage-resolver",
+      name: "RMM / Monitoring Outage Trigger & Impacted-Asset Resolver",
+      by: "penguin",
+      note: "Ingests the Datadog/RMM outage webhook, resolves affected firewall serials in the PSA CMDB, and attaches every impacted managed company to the HubSpot incident ticket.",
     },
   ],
   "customer-agent": [

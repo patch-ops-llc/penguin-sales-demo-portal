@@ -331,6 +331,9 @@ export type GuidedQuoteConfig = {
   /** Volume pricing: the highest break at or under the chosen quantity multiplies the unit price of `volume` lines. */
   quantityBreaks?: { from: number; multiplier: number; note: string }[];
   labels?: Partial<GuidedLabels>;
+  /** Optional shared Analytics report linked from the hero deal and generated quote. */
+  reportId?: string;
+  reportLabel?: string;
 };
 
 // ---------- Discount approval ----------
@@ -380,6 +383,9 @@ export type DiscountApprovalConfig = {
   scriptedSkus?: string[];
   terms?: TermsRule;
   labels?: Partial<ApprovalLabels>;
+  /** Optional shared Analytics report linked from the approval quote. */
+  reportId?: string;
+  reportLabel?: string;
 };
 
 // ---------- Back-office data ----------
@@ -497,6 +503,37 @@ export type Workflow = {
   branches?: WorkflowBranch[];
 };
 
+export type LeadAssessmentFinding = {
+  id: string;
+  severity: "Critical" | "High" | "Medium";
+  title: string;
+  detail: string;
+  remediation: string;
+};
+
+/** Optional trailing assessment-to-proposal arc on Lead Capture (e.g. IT Services #6). */
+export type LeadAssessmentFollowUp = {
+  channelLabel: string;
+  windowTitle: string;
+  inboxAddress: string;
+  senderName: string;
+  senderTitle: string;
+  senderEmail: string;
+  callSummaryTitle: string;
+  callSummaryBody: string;
+  emailSubject: string;
+  emailPreview: string;
+  emailBody: string;
+  attachmentName: string;
+  attachmentMeta: string;
+  findings: LeadAssessmentFinding[];
+  proposalTitle: string;
+  proposalStage?: string;
+  proposalLines: { sku: string; qty: number; unitPrice?: number; note?: string }[];
+  reportId: string;
+  reportLabel: string;
+};
+
 export type LeadCaptureConfig = {
   site: {
     company: string;
@@ -518,6 +555,8 @@ export type LeadCaptureConfig = {
   scriptedPresetId: string;
   workflowId: string;
   dealStage: string;
+  /** Optional findings-report email -> proposal quote -> funnel report trailing arc. */
+  assessmentFollowUp?: LeadAssessmentFollowUp;
 };
 
 // ---------- Email to deal ----------
@@ -628,6 +667,18 @@ export type ProspectOffPlatformMeeting = {
   slots: { id: string; day: string; time: string; tz: string }[];
   defaultSlotId: string;
   complianceNote?: string;
+  /** Optional vertical wording overrides (Healthcare lunch-and-learn copy is the default). */
+  channelLabel?: string;
+  mailClientName?: string;
+  inboxBreadcrumb?: string;
+  openButtonLabel?: string;
+  bookedButtonLabel?: string;
+  slotHeading?: string;
+  confirmButtonLabel?: string;
+  confirmedHeadline?: string;
+  bookingForLabel?: string;
+  /** Optional HubSpot deal opened automatically when the prospect confirms the meeting. */
+  dealCreated?: { id: string; name: string; amount: number; stage: string };
 };
 
 export type AiProspectingConfig = {
@@ -638,10 +689,12 @@ export type AiProspectingConfig = {
   /** Three prepared versions per person, keyed by buying-group member id. */
   drafts: Record<string, OutreachDraft[]>;
   followUp: { title: string; dueInDays: number };
-  /** Optional off-platform inbox & meeting booking step (e.g. Healthcare lunch-and-learn). */
+  /** Optional off-platform inbox & meeting booking step (e.g. Healthcare lunch-and-learn or IT CIO review). */
   offPlatformMeeting?: ProspectOffPlatformMeeting;
   /** Optional shared Analytics report id opened at the end of the flow. */
   reportId?: string;
+  /** Optional CTA label for the report button. */
+  reportLabel?: string;
 };
 
 // ---------- Customer agent (fintech omnichannel) ----------
