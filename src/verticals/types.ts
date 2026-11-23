@@ -1,3 +1,4 @@
+import type { SocialAdsConfig } from "@/shell/social/types";
 import type { DemoId } from "./catalog";
 
 /**
@@ -844,5 +845,6 @@ export type Pack = {
     emailToDeal: EmailToDealConfig;
     aiProspecting: AiProspectingConfig;
     customerAgent?: CustomerAgentConfig;
+    socialAds?: SocialAdsConfig;
   };
 };

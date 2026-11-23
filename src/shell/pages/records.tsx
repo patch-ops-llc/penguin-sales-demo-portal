@@ -14,6 +14,7 @@ import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
 import { DealQuotesCard } from "../quote/deal-quotes";
+import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/attribution-card";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
 const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync", chat: "chat" };
@@ -261,7 +262,12 @@ function useTab(recordId: string, fallback = "overview"): [string, (id: string) 
 export function ContactRecord({ id }: { id: string }) {
   const { world, pack, demo, dispatch, navigate } = useShell();
   const contact = world.contacts.find((c) => c.id === id);
-  const [tab, setTab] = useTab(id);
+  const [tab, setTabRaw] = useTab(id);
+  const isSocialLead = Boolean(contact && world.sa.contactId === id);
+  const setTab = (next: string) => {
+    setTabRaw(next);
+    if (isSocialLead && next === "activities" && !world.sa.contactSeen) dispatch({ t: "sa.seenContact" });
+  };
   useSeen("lc.contact", Boolean(contact && world.lc?.contactId === id));
   if (!contact) return <NotFound noun="contact" to="/contacts" />;
   const company = companyOf(world, contact.companyId);
@@ -339,6 +345,7 @@ export function ContactRecord({ id }: { id: string }) {
               </Button>
             </div>
           ) : null}
+          <CampaignAttributionCard contactId={id} onOpenTimeline={() => setTab("activities")} />
           <WhyThisScoreCard contact={contact} />
           <Card title="Data highlights">
             <dl className="grid grid-cols-3 gap-4">
@@ -353,7 +360,10 @@ export function ContactRecord({ id }: { id: string }) {
           </div>
         </div>
       ) : (
-        <Timeline match={match} />
+        <>
+          <FollowupAutomationBanner contactId={id} />
+          <Timeline match={match} />
+        </>
       )}
     </RecordLayout>
   );

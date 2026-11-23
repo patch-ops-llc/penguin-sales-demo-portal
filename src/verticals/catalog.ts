@@ -8,7 +8,8 @@ export type DemoId =
   | "email-to-deal"
   | "ai-prospecting"
   | "discount-approval"
-  | "customer-agent";
+  | "customer-agent"
+  | "social-ads";
 
 export type DemoTile = {
   id: DemoId;
@@ -78,6 +79,13 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     minutes: 6,
     summary: "Breeze Customer Agent handles chat, email, and voice queries, hands complex fraud to a human, and reports resolution and credits.",
     takeaway: "Over 70% of routine inquiries resolve autonomously across chat, email, and voice, while complex cases reach reps with full context.",
+  },
+  "social-ads": {
+    id: "social-ads",
+    title: "Social media and paid ads",
+    minutes: 5,
+    summary: "Plan social posts on a calendar, run paid search and social ads, follow a hiring manager from ad click to contact, reply in one social inbox, and measure campaign ROI.",
+    takeaway: "Every ad click, social post, form submission, comment reply, and placement pipeline dollar tied together in HubSpot, with simulated campaign data ready to demo live.",
   },
 };
 
@@ -191,6 +199,14 @@ export const VERTICALS: VerticalTile[] = [
         takeaway: "Reps approve instead of researching, with a signal only the managed asset inventory can give.",
       },
     },
+  },
+  {
+    id: "healthcare",
+    name: "Healthcare",
+    company: "Crestline Clinical Staffing",
+    blurb: "Travel nursing, allied health staffing, and specialty clinic workforce solutions.",
+    status: "live",
+    demos: ["social-ads"],
   },
 ];
 

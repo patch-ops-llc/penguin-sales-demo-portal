@@ -33,22 +33,34 @@ const NAV: { group: string; items: NavItem[] }[] = [
   { group: "Automation", items: [{ to: "/workflows", label: "Workflows", icon: "workflow" }] },
 ];
 
+const MARKETING_NAV: { group: string; items: NavItem[] } = {
+  group: "Marketing",
+  items: [
+    { to: "/campaigns", label: "Campaigns", icon: "megaphone" },
+    { to: "/social/calendar", label: "Social", icon: "meeting" },
+    { to: "/insights", label: "Insights", icon: "chart" },
+  ],
+};
+
 function Sidebar() {
   const { route, pack } = useShell();
   const [pinned, setPinned] = useState(false);
   const section = `/${route.segments[0] ?? ""}`;
-  const navGroups = pack.demos.customerAgent
-    ? [
-        ...NAV,
-        {
-          group: "Service",
-          items: [
-            { to: "/service", label: "Help Desk", icon: "chat" as IconName },
-            { to: "/service-dashboard", label: "Service Dashboard", icon: "chart" as IconName },
-          ],
-        },
-      ]
-    : NAV;
+  const navGroups = [
+    ...(pack.demos.socialAds ? [MARKETING_NAV] : []),
+    ...NAV,
+    ...(pack.demos.customerAgent
+      ? [
+          {
+            group: "Service",
+            items: [
+              { to: "/service", label: "Help Desk", icon: "chat" as IconName },
+              { to: "/service-dashboard", label: "Service Dashboard", icon: "chart" as IconName },
+            ],
+          },
+        ]
+      : []),
+  ];
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";
   return (
@@ -59,9 +71,10 @@ function Sidebar() {
             <div key={group.group} className="mt-2">
               <p className={cx("h-5 whitespace-nowrap px-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-white/45", pinned ? "opacity-100" : "opacity-0 group-hover/nav:opacity-100")}>{group.group}</p>
               {group.items.map((item) => {
-                const active = section === item.to;
+                const itemSection = `/${item.to.split("/")[1] ?? ""}`;
+                const active = section === itemSection;
                 return (
-                  <A key={item.to} to={item.to} data-testid={`nav-${item.to.slice(1)}`} className={cx("mx-1.5 flex h-9 items-center gap-3 whitespace-nowrap rounded-[6px] px-[11px] text-[13.5px]", active ? "bg-white/15 font-semibold" : "text-white/85 hover:bg-nav-hover")}>
+                  <A key={item.to} to={item.to} data-testid={`nav-${itemSection.slice(1)}`} className={cx("mx-1.5 flex h-9 items-center gap-3 whitespace-nowrap rounded-[6px] px-[11px] text-[13.5px]", active ? "bg-white/15 font-semibold" : "text-white/85 hover:bg-nav-hover")}>
                     <Icon name={item.icon} size={18} className="shrink-0" />
                     <span className={label}>{item.label}</span>
                   </A>

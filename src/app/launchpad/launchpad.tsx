@@ -54,7 +54,7 @@ export function Launchpad({ user, packVersions }: Props) {
         </p>
 
         <h2 className="mt-9 text-[13px] font-semibold uppercase tracking-wider text-ink-muted">1. Vertical</h2>
-        <div className="mt-3 grid grid-cols-4 gap-4">
+        <div className="mt-3 grid grid-cols-5 gap-3.5">
           {VERTICALS.map((v) => {
             const live = v.status === "live";
             const selected = v.id === vertical.id;
@@ -66,7 +66,9 @@ export function Launchpad({ user, packVersions }: Props) {
                 </div>
                 <div className="mt-1 text-[13px] font-medium">{v.company}</div>
                 <p className="mt-1.5 text-[12.5px] leading-snug text-ink-muted">{v.blurb}</p>
-                <div className="mt-3 text-[12px] text-ink-muted">{v.demos.length} demos</div>
+                <div className="mt-3 text-[12px] text-ink-muted">
+                  {v.demos.length} {v.demos.length === 1 ? "demo" : "demos"}
+                </div>
               </>
             );
             return live ? (

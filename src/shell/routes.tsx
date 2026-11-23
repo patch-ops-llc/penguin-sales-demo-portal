@@ -17,6 +17,7 @@ import { OffplatformChatPage } from "./service/offplatform-chat";
 import { OffplatformEmailPage } from "./service/offplatform-email";
 import { OffplatformPhonePage } from "./service/offplatform-phone";
 import { TicketRecordPage } from "./service/ticket";
+import { SocialRoutes } from "./social/lazy";
 import { A, Card, Empty } from "./ui";
 
 /**
@@ -27,7 +28,8 @@ export function isOutsideHubSpot(segments: string[]): boolean {
   return (
     ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) ||
     segments[0] === "site" ||
-    segments[0] === "service-app"
+    segments[0] === "service-app" ||
+    segments[0] === "offplatform"
   );
 }
 
@@ -71,6 +73,11 @@ export function Routes() {
       return <ServiceDashboardPage />;
     case "settings":
       return <SettingsPage />;
+    case "campaigns":
+    case "social":
+    case "insights":
+    case "offplatform":
+      return <SocialRoutes section={section} id={id} />;
     case undefined:
       return null;
     default:

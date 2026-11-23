@@ -71,6 +71,8 @@ const PATHS = {
   mic: "M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6 8a6 6 0 0 0 12 0M12 17v4m-3 0h6",
   volume: "M5 9v6h4l5 4V5L9 9H5Zm12.5-1.5a6.5 6.5 0 0 1 0 9M19.8 5a10 10 0 0 1 0 14",
   ticket: "M4 7h16v3.5a1.5 1.5 0 0 0 0 3V17H4v-3.5a1.5 1.5 0 0 0 0-3V7Zm6 0v10",
+  megaphone: "M4 11v2a2 2 0 0 0 2 2h2l7 4V5L8 9H6a2 2 0 0 0-2 2Zm14-3a5 5 0 0 1 0 8M8 15l1.5 5",
+  thumbsUp: "M7 11v9H4v-9h3Zm0 0 4-7a2 2 0 0 1 2 2v3h5a2 2 0 0 1 2 2.4l-1.2 6A2 2 0 0 1 16.8 20H7",
 } as const;
 
 export type IconName = keyof typeof PATHS;

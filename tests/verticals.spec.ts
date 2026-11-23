@@ -78,6 +78,7 @@ test("the back-office card's third tab opens in every vertical", async ({ page }
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   for (const vertical of Object.keys(VERTICAL_DEMOS)) {
+    if (!VERTICAL_DEMOS[vertical].includes("back-office")) continue;
     await openDemo(page, "back-office", vertical);
     await page.getByTestId("demo-next").click();
     await page.getByTestId("erp-tab-stock").click();
