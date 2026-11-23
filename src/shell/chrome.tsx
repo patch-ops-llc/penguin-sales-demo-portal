@@ -34,16 +34,28 @@ const NAV: { group: string; items: NavItem[] }[] = [
 ];
 
 function Sidebar() {
-  const { route } = useShell();
+  const { route, pack } = useShell();
   const [pinned, setPinned] = useState(false);
   const section = `/${route.segments[0] ?? ""}`;
+  const navGroups = pack.demos.customerAgent
+    ? [
+        ...NAV,
+        {
+          group: "Service",
+          items: [
+            { to: "/service", label: "Help Desk", icon: "chat" as IconName },
+            { to: "/service-dashboard", label: "Service Dashboard", icon: "chart" as IconName },
+          ],
+        },
+      ]
+    : NAV;
   // Labels show only while the sidebar is open, so the collapsed rail is icons alone.
   const label = pinned ? "" : "opacity-0 group-hover/nav:opacity-100";
   return (
     <nav aria-label="Main" className={cx("group/nav relative z-30 shrink-0", pinned ? "w-[212px]" : "w-[52px]")}>
       <div className={cx("absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-nav text-white transition-[width] duration-100", pinned ? "w-[212px]" : "w-[52px] hover:w-[212px] hover:shadow-[6px_0_18px_rgba(0,0,0,0.25)]")}>
         <div className="hs-scroll flex-1 overflow-y-auto overflow-x-hidden pb-2 pt-1">
-          {NAV.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.group} className="mt-2">
               <p className={cx("h-5 whitespace-nowrap px-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-white/45", pinned ? "opacity-100" : "opacity-0 group-hover/nav:opacity-100")}>{group.group}</p>
               {group.items.map((item) => {

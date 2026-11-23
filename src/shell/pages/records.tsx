@@ -16,7 +16,7 @@ import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, 
 import { DealQuotesCard } from "../quote/deal-quotes";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
-const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync" };
+const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync", chat: "chat" };
 const ACTIVITY_FILTERS: { id: string; label: string; types: ActivityType[] }[] = [
   { id: "all", label: "All activity", types: [] },
   { id: "notes", label: "Notes", types: ["note"] },
@@ -259,7 +259,7 @@ function useTab(recordId: string, fallback = "overview"): [string, (id: string) 
 }
 
 export function ContactRecord({ id }: { id: string }) {
-  const { world, pack } = useShell();
+  const { world, pack, demo, dispatch, navigate } = useShell();
   const contact = world.contacts.find((c) => c.id === id);
   const [tab, setTab] = useTab(id);
   useSeen("lc.contact", Boolean(contact && world.lc?.contactId === id));
@@ -268,6 +268,7 @@ export function ContactRecord({ id }: { id: string }) {
   const deals = world.deals.filter((d) => d.contactIds.includes(id));
   const match = (a: Activity) => Boolean(a.contactIds?.includes(id));
   const name = contactName(contact);
+  const showVoiceTimelineNext = demo === "customer-agent" && id === pack.demos.customerAgent?.voiceCase.contactId && world.ca.voiceUnlocked && !world.ca.timelineReviewed;
 
   return (
     <RecordLayout
@@ -322,6 +323,22 @@ export function ContactRecord({ id }: { id: string }) {
     >
       {tab === "overview" ? (
         <div className="space-y-4">
+          {showVoiceTimelineNext ? (
+            <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[#bfe3cd] bg-[#f0faf4] px-4 py-3 text-[13px]" data-testid="ca-timeline-banner">
+              <p className="font-semibold text-[#0b5b2b]">Voice call transcribed and logged on {name}&apos;s HubSpot timeline.</p>
+              <Button
+                variant="primary"
+                size="sm"
+                data-testid="ca-continue-fraud"
+                onClick={() => {
+                  dispatch({ t: "ca.reviewTimeline" });
+                  navigate("/service");
+                }}
+              >
+                Continue to fraud escalation <Icon name="arrowRight" size={14} />
+              </Button>
+            </div>
+          ) : null}
           <WhyThisScoreCard contact={contact} />
           <Card title="Data highlights">
             <dl className="grid grid-cols-3 gap-4">

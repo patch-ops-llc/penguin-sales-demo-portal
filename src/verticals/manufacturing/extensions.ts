@@ -14,7 +14,7 @@ import type { Extension } from "../types";
  * marked. Flags still open for the user's decision are noted beside the entry.
  * Ids of Penguin elements match the <Ext id="..."> wrappers in the screens.
  */
-export const extensions: Record<DemoId, Extension[]> = {
+export const extensions: Partial<Record<DemoId, Extension[]>> = {
   "guided-quote": [
     { id: "deal-record", name: "Deal record and pipeline", by: "native" },
     { id: "products-line-items", name: "Product library and line items", by: "native" },

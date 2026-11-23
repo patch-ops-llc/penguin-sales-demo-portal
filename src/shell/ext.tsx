@@ -13,7 +13,7 @@ export function useExtension(id: string): Extension | undefined {
   const own = pack.extensions[demo]?.find((e) => e.id === id);
   if (own) return own;
   for (const list of Object.values(pack.extensions)) {
-    const found = list.find((e) => e.id === id);
+    const found = list?.find((e) => e.id === id);
     if (found) return found;
   }
   return undefined;

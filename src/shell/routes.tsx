@@ -11,14 +11,24 @@ import { SettingsPage } from "./pages/settings";
 import { SitePage } from "./pages/site";
 import { WorkflowPage } from "./pages/workflow";
 import { APPROVAL_WORKFLOW_ID } from "./quote/approval-rule";
+import { ServiceDashboardPage } from "./service/dashboard";
+import { HelpDeskPage } from "./service/help-desk";
+import { OffplatformChatPage } from "./service/offplatform-chat";
+import { OffplatformEmailPage } from "./service/offplatform-email";
+import { OffplatformPhonePage } from "./service/offplatform-phone";
+import { TicketRecordPage } from "./service/ticket";
 import { A, Card, Empty } from "./ui";
 
 /**
  * Screens that fill the window instead of sitting inside HubSpot's navigation: the quote editor,
- * which HubSpot opens full screen, the buyer's quote page, and the public website.
+ * which HubSpot opens full screen, the buyer's quote page, the public website, and off-platform apps.
  */
 export function isOutsideHubSpot(segments: string[]): boolean {
-  return ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) || segments[0] === "site";
+  return (
+    ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) ||
+    segments[0] === "site" ||
+    segments[0] === "service-app"
+  );
 }
 
 export function Routes() {
@@ -50,6 +60,15 @@ export function Routes() {
       return <ProspectingPage />;
     case "site":
       return <SitePage />;
+    case "service-app":
+      if (id === "email") return <OffplatformEmailPage />;
+      if (id === "phone") return <OffplatformPhonePage />;
+      return <OffplatformChatPage />;
+    case "service":
+      if (id === "tickets" && sub) return <TicketRecordPage key={sub} id={sub} />;
+      return <HelpDeskPage />;
+    case "service-dashboard":
+      return <ServiceDashboardPage />;
     case "settings":
       return <SettingsPage />;
     case undefined:

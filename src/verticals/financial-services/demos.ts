@@ -1,4 +1,5 @@
 import type { GqOption, Pack } from "../types";
+import { customerAgent } from "./customer-agent";
 import { docFee, factor, INSPECTION_FROM, LINE_RATE, monthlyPayment, TERMS, TIER_RATE, usd } from "./rates";
 
 // Per-demo content for Financial services and fintech: hero records, pricing rules, presets, and prepared output.
@@ -536,4 +537,7 @@ export const demos: Pack["demos"] = {
     },
     followUp: { title: "Follow up with the Tidewater Cold Storage buying group", dueInDays: 3 },
   },
+
+  // ---------- Customer agent (chat, email, voice) ----------
+  customerAgent,
 };

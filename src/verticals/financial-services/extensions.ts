@@ -12,7 +12,7 @@ import type { Extension } from "../types";
  * Only what Penguin would have to build is marked (product plan, section 1.5). Ids of Penguin
  * elements match the <Ext id="..."> wrappers in the screens, which are shared by every vertical.
  */
-export const extensions: Record<DemoId, Extension[]> = {
+export const extensions: Partial<Record<DemoId, Extension[]>> = {
   "guided-quote": [
     { id: "deal-record", name: "Deal record and pipeline", by: "native" },
     { id: "products-line-items", name: "Product library and line items", by: "native" },
@@ -105,6 +105,25 @@ export const extensions: Record<DemoId, Extension[]> = {
       name: "Maturity signal from loan servicing",
       by: "penguin",
       note: "A buying signal HubSpot cannot see by itself: a facility nearing maturity, fed in from the loan servicing system.",
+    },
+  ],
+  "customer-agent": [
+    { id: "breeze-customer-agent", name: "Breeze Customer Agent across chat, email, and voice", by: "native" },
+    { id: "help-desk", name: "Service Hub Help Desk and ticket pipelines", by: "native" },
+    { id: "omnichannel-timeline", name: "Unified contact timeline with call transcripts and cross-channel history", by: "native" },
+    { id: "human-handoff", name: "AI-to-human handoff rules with structured conversation summaries", by: "native" },
+    { id: "service-dashboard", name: "Service Hub analytics dashboard and HubSpot credits reporting", by: "native" },
+    {
+      id: "core-banking-lookup",
+      name: "Core-banking ledger and transfer lookup action",
+      by: "penguin",
+      note: "Custom Breeze Customer Agent action and Help Desk card that reads live ACH transfer status, clearing windows, and commercial card charges from Fernhill's core banking system.",
+    },
+    {
+      id: "core-banking-unlock",
+      name: "Core-banking step-up verification and account controls",
+      by: "penguin",
+      note: "Custom security connector that verifies authorized signers against Fernhill's identity store, unlocks MFA lockouts, and places protective wire and card holds on suspected fraud.",
     },
   ],
 };

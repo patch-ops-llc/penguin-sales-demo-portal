@@ -12,7 +12,7 @@ import type { Extension } from "../types";
  * Only what Penguin would have to build is marked (product plan, section 1.5). Ids of Penguin
  * elements match the <Ext id="..."> wrappers in the screens, which are shared by every vertical.
  */
-export const extensions: Record<DemoId, Extension[]> = {
+export const extensions: Partial<Record<DemoId, Extension[]>> = {
   "guided-quote": [
     { id: "deal-record", name: "Deal record and pipeline", by: "native" },
     { id: "products-line-items", name: "Product library and line items", by: "native" },

@@ -65,6 +65,12 @@ const PATHS = {
   print: "M7 9V4h10v5M7 17H4v-7h16v7h-3M7 14h10v6H7v-6Z",
   flag: "M5 21V4m0 1h13l-3 4 3 4H5",
   star4: "M12 3c.9 5.4 3.6 8.1 9 9-5.4.9-8.1 3.6-9 9-.9-5.4-3.6-8.1-9-9 5.4-.9 8.1-3.6 9-9Z",
+  shield: "M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Zm-2.5 9.2 1.8 1.8 3.7-3.8",
+  chart: "M4 19h16M7 16v-5M12 16V7M17 16v-8",
+  creditCard: "M3 6h18v12H3V6Zm0 4h18M7 14h4",
+  mic: "M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6 8a6 6 0 0 0 12 0M12 17v4m-3 0h6",
+  volume: "M5 9v6h4l5 4V5L9 9H5Zm12.5-1.5a6.5 6.5 0 0 1 0 9M19.8 5a10 10 0 0 1 0 14",
+  ticket: "M4 7h16v3.5a1.5 1.5 0 0 0 0 3V17H4v-3.5a1.5 1.5 0 0 0 0-3V7Zm6 0v10",
 } as const;
 
 export type IconName = keyof typeof PATHS;

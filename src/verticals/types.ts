@@ -185,7 +185,7 @@ export type Notification = {
   slack?: { channel: string; text: string };
 };
 
-export type ActivityType = "note" | "email" | "call" | "meeting" | "task" | "form" | "quote" | "deal" | "workflow" | "lifecycle" | "sync";
+export type ActivityType = "note" | "email" | "call" | "meeting" | "task" | "form" | "quote" | "deal" | "workflow" | "lifecycle" | "sync" | "chat";
 
 export type Activity = {
   id: string;
@@ -584,6 +584,194 @@ export type AiProspectingConfig = {
   followUp: { title: string; dueInDays: number };
 };
 
+// ---------- Customer agent (fintech omnichannel) ----------
+
+export type ServiceChannel = "chat" | "email" | "voice";
+
+export type CustomerAgentTransfer = {
+  id: string;
+  recipient: string;
+  amount: number;
+  method: string;
+  initiatedAt: string;
+  status: "Pending" | "Completed" | "Scheduled";
+  expectedSettlement: string;
+  cutoffNote: string;
+  complianceStatus: string;
+};
+
+export type CustomerAgentChatCase = {
+  id: string;
+  contactId: string;
+  companyId: string;
+  appUrl: string;
+  accountNumber: string;
+  accountName: string;
+  availableBalance: number;
+  pendingBalance: number;
+  customerQuestion: string;
+  quickPrompts: string[];
+  transfers: CustomerAgentTransfer[];
+  pendingTransferId: string;
+  securityCheck: {
+    method: string;
+    challenge: string;
+    customerProof: string;
+    verifiedBadge: string;
+    auditRef: string;
+  };
+  agentResolution: string;
+  customerReply: string;
+  creditsUsed: number;
+};
+
+export type CustomerAgentEmailCase = {
+  id: string;
+  contactId: string;
+  companyId: string;
+  fromName: string;
+  fromEmail: string;
+  toEmail: string;
+  subject: string;
+  body: string;
+  priorAlert: {
+    from: string;
+    subject: string;
+    at: string;
+    preview: string;
+    body: string;
+  };
+  card: {
+    last4: string;
+    holder: string;
+    merchant: string;
+    location: string;
+    amount: number;
+    postedAt: string;
+    authCode: string;
+    status: string;
+  };
+  ticketNumber: string;
+  ticketSubject: string;
+  ticketPipeline: string;
+  ticketStage: string;
+  agentReply: string;
+  disputeSteps: string[];
+  creditsUsed: number;
+};
+
+export type VoiceTranscriptLine = {
+  id: string;
+  speaker: "customer" | "agent";
+  name: string;
+  time: string;
+  text: string;
+  phase: "opening" | "verify" | "unlock";
+};
+
+export type CustomerAgentVoiceCase = {
+  id: string;
+  contactId: string;
+  companyId: string;
+  supportNumber: string;
+  callerNumber: string;
+  accountNumber: string;
+  lockReason: string;
+  failedAttempts: number;
+  lockedAt: string;
+  duration: string;
+  verificationCode: string;
+  unlockRef: string;
+  unlockSteps: string[];
+  transcript: VoiceTranscriptLine[];
+  timelineSummary: string;
+  creditsUsed: number;
+};
+
+export type UnifiedHistoryEntry = {
+  id: string;
+  channel: ServiceChannel;
+  at: string;
+  actor: string;
+  actorRole: "Customer" | "Breeze Customer Agent" | "System Alert";
+  subject: string;
+  body: string;
+  meta: string;
+};
+
+export type CustomerAgentFraudCase = {
+  id: string;
+  ticketId: string;
+  ticketNumber: string;
+  contactId: string;
+  companyId: string;
+  ownerId: string;
+  accountNumber: string;
+  subject: string;
+  priority: "High" | "Urgent";
+  pipeline: string;
+  stage: string;
+  customerMessage: string;
+  agentAck: string;
+  riskSignals: { label: string; severity: "Critical" | "High"; detail: string }[];
+  holdDetails: {
+    wireRef: string;
+    amount: number;
+    beneficiary: string;
+    cardLast4: string;
+    holdId: string;
+    status: string;
+  };
+  handoffSummary: {
+    headline: string;
+    verifiedIdentity: string;
+    actionsTaken: string[];
+    recommendedNext: string[];
+  };
+  unifiedHistory: UnifiedHistoryEntry[];
+  defaultRepReply: string;
+  creditsUsed: number;
+};
+
+export type ServiceDashboardPeriod = {
+  id: "30d" | "7d" | "90d";
+  label: string;
+  totalConversations: number;
+  autonomousResolved: number;
+  resolutionRatePct: number;
+  resolutionDelta: string;
+  handoffs: number;
+  handoffRatePct: number;
+  avgHandleSeconds: number;
+  csat: number;
+  creditsUsed: number;
+  creditsAllocated: number;
+  channels: {
+    channel: ServiceChannel;
+    label: string;
+    volume: number;
+    resolved: number;
+    handoffs: number;
+    resolutionPct: number;
+    credits: number;
+    avgSeconds: number;
+  }[];
+  trend: { label: string; resolutionPct: number; volume: number }[];
+  handoffReasons: { reason: string; count: number; pct: number }[];
+};
+
+export type CustomerAgentConfig = {
+  chatCase: CustomerAgentChatCase;
+  emailCase: CustomerAgentEmailCase;
+  voiceCase: CustomerAgentVoiceCase;
+  fraudCase: CustomerAgentFraudCase;
+  dashboard: {
+    goalPct: number;
+    creditModelNote: string;
+    periods: Record<"30d" | "7d" | "90d", ServiceDashboardPeriod>;
+  };
+};
+
 // ---------- Pack ----------
 
 export type DeepPartial<T> = { [K in keyof T]?: T[K] extends string | number | boolean | unknown[] ? T[K] : DeepPartial<T[K]> };
@@ -644,7 +832,7 @@ export type Pack = {
   signals: ProspectSignal[];
   quoteTerms: string[];
   /** Per demo: every element named on the end card, and the flag that marks it as Penguin or native. */
-  extensions: Record<DemoId, Extension[]>;
+  extensions: Partial<Record<DemoId, Extension[]>>;
   labels?: DeepPartial<PackLabels>;
   /** Presenter wording per demo and step id, where the shared storyboard's wording does not fit the vertical. */
   stepNotes?: Partial<Record<DemoId, Record<string, StepNote>>>;
@@ -655,5 +843,6 @@ export type Pack = {
     leadCapture: LeadCaptureConfig;
     emailToDeal: EmailToDealConfig;
     aiProspecting: AiProspectingConfig;
+    customerAgent?: CustomerAgentConfig;
   };
 };

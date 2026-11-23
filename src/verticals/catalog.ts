@@ -1,7 +1,14 @@
 // Tile-level facts about verticals and demos. Safe for any bundle: no demo data lives here.
 // The full content of a vertical is its pack (src/verticals/<vertical>/pack.ts), served only to signed-in users.
 
-export type DemoId = "guided-quote" | "lead-capture" | "back-office" | "email-to-deal" | "ai-prospecting" | "discount-approval";
+export type DemoId =
+  | "guided-quote"
+  | "lead-capture"
+  | "back-office"
+  | "email-to-deal"
+  | "ai-prospecting"
+  | "discount-approval"
+  | "customer-agent";
 
 export type DemoTile = {
   id: DemoId;
@@ -65,6 +72,13 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     summary: "An account shows a buying signal, the buying group appears, outreach is drafted, rep approves and sends.",
     takeaway: "Reps approve instead of researching, and nothing goes out without a human click.",
   },
+  "customer-agent": {
+    id: "customer-agent",
+    title: "Customer agent",
+    minutes: 6,
+    summary: "Breeze Customer Agent handles chat, email, and voice queries, hands complex fraud to a human, and reports resolution and credits.",
+    takeaway: "Over 70% of routine inquiries resolve autonomously across chat, email, and voice, while complex cases reach reps with full context.",
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -108,7 +122,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Fernhill Capital",
     blurb: "Equipment finance for mid-size businesses, direct and through vendors and brokers.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent"],
     tiles: {
       "guided-quote": {
         title: "Guided financing proposal",
@@ -135,6 +149,11 @@ export const VERTICALS: VerticalTile[] = [
       "ai-prospecting": {
         summary: "A facility nears maturity and the customer announces an expansion, the buying group appears, outreach is drafted, rep approves and sends.",
         takeaway: "Reps approve instead of researching, and no regulated outreach goes out without a human click.",
+      },
+      "customer-agent": {
+        title: "Customer agent (chat, email, voice)",
+        summary: "Handles a pending transfer by chat, a card dispute by email, a locked account by voice, and hands a fraud report to a human rep.",
+        takeaway: "74.6% autonomous resolution across chat, email, and voice, with full cross-channel context when a human steps in.",
       },
     },
   },
