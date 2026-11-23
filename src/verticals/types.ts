@@ -773,6 +773,147 @@ export type CustomerAgentConfig = {
   };
 };
 
+// ---------- Marketing Studio (ICP outreach) ----------
+
+export type MsAssetFormatId = "email" | "blog" | "social" | "landing";
+
+export type MsVoicePreset = {
+  id: string;
+  name: string;
+  tagline: string;
+  tonePillars: string[];
+  audience: string;
+  dos: string[];
+  donts: string[];
+  sampleLine: string;
+};
+
+export type MsSourceAsset = {
+  title: string;
+  subtitle: string;
+  format: string;
+  fileName: string;
+  fileSize: string;
+  author: string;
+  publishedLabel: string;
+  summary: string;
+  keyStats: { value: string; label: string }[];
+  chapters: { number: string; title: string; summary: string }[];
+};
+
+export type MsRemixedAsset = {
+  id: MsAssetFormatId;
+  label: string;
+  channel: string;
+  title: string;
+  summary: string;
+  creditsUsed: number;
+  voiceScore: number;
+  headline: string;
+  subheadline?: string;
+  body: string;
+  cta?: string;
+  meta: { label: string; value: string }[];
+};
+
+export type MsOutreachRecipient = {
+  contactId: string;
+  role: string;
+  priority: "Primary buyer" | "Technical evaluator" | "Economic buyer";
+  personalizationAngle: string;
+  sendWindow: string;
+  subject: string;
+  previewText: string;
+  body: string;
+  ctaLabel: string;
+};
+
+export type MsPlanTouch = {
+  day: string;
+  channel: string;
+  title: string;
+  detail: string;
+  credits: number;
+};
+
+export type MarketingStudioConfig = {
+  companyId: string;
+  primaryContactId: string;
+  marketer: { name: string; title: string; email: string; color: string };
+  repId: string;
+  campaignName: string;
+  icp: {
+    tier: string;
+    score: number;
+    matchedSignals: { label: string; value: string; points: number }[];
+    buyingRoles: { contactId: string; role: string; influence: string }[];
+  };
+  brief: {
+    goal: string;
+    audience: string;
+    offer: string;
+    timeline: string;
+    targetAccounts: number;
+    targetContacts: number;
+  };
+  plan: {
+    summary: string;
+    channels: { id: string; label: string; cadence: string; role: string }[];
+    sequence: MsPlanTouch[];
+    estimatedCredits: number;
+  };
+  voices: MsVoicePreset[];
+  defaultVoiceId: string;
+  sourceAsset: MsSourceAsset;
+  remixedAssets: MsRemixedAsset[];
+  outreach: MsOutreachRecipient[];
+  landingPage: {
+    url: string;
+    eyebrow: string;
+    headline: string;
+    subheadline: string;
+    bullets: string[];
+    formTitle: string;
+    submitLabel: string;
+    confirmationHeadline: string;
+    confirmationBody: string;
+  };
+  repFollowUp: {
+    taskTitle: string;
+    taskNotes: string;
+    slackChannel: string;
+    slackText: string;
+    emailSubject: string;
+    emailBody: string;
+    meetingTitle: string;
+    meetingDuration: string;
+    meetingSlots: { id: string; day: string; time: string; tz: string }[];
+    defaultSlotId: string;
+  };
+  deal: {
+    id: string;
+    name: string;
+    amount: number;
+    stage: string;
+    closeInDays: number;
+    lineItems: { sku: string; qty: number }[];
+  };
+  dashboard: {
+    baseline: {
+      accountsReached: number;
+      contactsEngaged: number;
+      leads: number;
+      mqls: number;
+      meetings: number;
+      pipeline: number;
+      creditsUsed: number;
+    };
+    channels: { channel: string; touches: number; leads: number; meetings: number; pipeline: number; conversionPct: number }[];
+    creditBreakdown: { action: string; credits: number; outcomes: string; sharePct: number }[];
+    assets: { format: string; title: string; views: number; clicks: number; conversions: number; influencedPipeline: number }[];
+  };
+};
+
 // ---------- Pack ----------
 
 export type DeepPartial<T> = { [K in keyof T]?: T[K] extends string | number | boolean | unknown[] ? T[K] : DeepPartial<T[K]> };
@@ -846,5 +987,6 @@ export type Pack = {
     aiProspecting: AiProspectingConfig;
     customerAgent?: CustomerAgentConfig;
     socialAds?: SocialAdsConfig;
+    marketingStudio?: MarketingStudioConfig;
   };
 };

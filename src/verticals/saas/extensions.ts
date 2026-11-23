@@ -96,4 +96,24 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "A buying signal HubSpot cannot see by itself: people hitting the seat cap, fed in from product usage data.",
     },
   ],
+  "marketing-studio": [
+    { id: "ms-workspace", name: "Marketing Studio campaign brief and AI campaign plan", by: "native" },
+    { id: "ms-brand-voice", name: "Brand Voice configuration applied across generated assets", by: "native" },
+    { id: "ms-content-remix", name: "Content Remix: one source ebook remixed into email, blog, social, and landing page", by: "native" },
+    { id: "ms-approvals-scheduling", name: "Asset review, approval, and role-tailored ICP outreach scheduling", by: "native" },
+    { id: "ms-crm-conversion", name: "Contact conversion, activity timeline, lifecycle stage transitions, tasks, and deal creation", by: "native" },
+    { id: "ms-campaign-dashboard", name: "HubSpot Campaign Performance Dashboard: leads, meetings, and attributed pipeline", by: "native" },
+    {
+      id: "icp-fit-scoring",
+      name: "Custom ICP Fit & Buying Committee Card",
+      by: "penguin",
+      note: "Scores SaaS accounts across firmographics, Snowflake/Okta tech stack, and buying-committee coverage, flagging Tier 1 ICP matches directly on the company record.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits-to-Pipeline Outcome Attribution",
+      by: "penguin",
+      note: "Connects HubSpot Credits consumed by Marketing Studio and Breeze actions directly to booked meetings, cost-per-meeting, and attributed pipeline.",
+    },
+  ],
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useShell } from "@/store/store";
+import { LazyMarketingView } from "./marketing/lazy";
 import { ApprovalWorkflowPage } from "./pages/approval-workflow";
 import { CompaniesIndex, ContactsIndex, DealsIndex, ProductsIndex, QuotesIndex, TasksIndex, WorkflowsIndex } from "./pages/lists";
 import { InboxPage } from "./pages/inbox";
@@ -29,7 +30,8 @@ export function isOutsideHubSpot(segments: string[]): boolean {
     ((segments[0] === "quotes" || segments[0] === "approvals") && Boolean(segments[1])) ||
     segments[0] === "site" ||
     segments[0] === "service-app" ||
-    segments[0] === "offplatform"
+    segments[0] === "offplatform" ||
+    (segments[0] === "marketing" && segments[1] === "off-platform")
   );
 }
 
@@ -60,6 +62,8 @@ export function Routes() {
       return <InboxPage />;
     case "prospecting":
       return <ProspectingPage />;
+    case "marketing":
+      return <LazyMarketingView id={id} sub={sub} />;
     case "site":
       return <SitePage />;
     case "service-app":

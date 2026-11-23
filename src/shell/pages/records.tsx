@@ -13,6 +13,7 @@ import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
 import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, Tabs, Tag } from "../ui";
+import { IcpMatchCard, MarketingContactBanner, MarketingDealBanner } from "../marketing/lazy";
 import { DealQuotesCard } from "../quote/deal-quotes";
 import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/attribution-card";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
@@ -346,6 +347,7 @@ export function ContactRecord({ id }: { id: string }) {
             </div>
           ) : null}
           <CampaignAttributionCard contactId={id} onOpenTimeline={() => setTab("activities")} />
+          <MarketingContactBanner contactId={id} />
           <WhyThisScoreCard contact={contact} />
           <Card title="Data highlights">
             <dl className="grid grid-cols-3 gap-4">
@@ -467,6 +469,7 @@ export function CompanyRecord({ id }: { id: string }) {
             </Card>
           ) : null}
           {id === config.companyId ? <ErpCard company={company} /> : null}
+          <IcpMatchCard companyId={id} />
           {!company.enrichedAt && company.description ? (
             <Card title="About">
               <p className="text-[13.5px] text-ink-muted">{company.description}</p>
@@ -581,6 +584,7 @@ export function DealRecord({ id }: { id: string }) {
         <Timeline match={match} />
       ) : (
         <div className="space-y-4">
+          <MarketingDealBanner dealId={id} />
           <Card>
             <ol className="flex gap-1" aria-label="Deal stage" data-testid="stage-bar">
               {open.map((s, i) => (

@@ -49,6 +49,9 @@ function Sidebar() {
   const navGroups = [
     ...(pack.demos.socialAds ? [MARKETING_NAV] : []),
     ...NAV,
+    ...(pack.demos.marketingStudio
+      ? [{ group: "Marketing", items: [{ to: "/marketing", label: "Marketing Studio", icon: "megaphone" as IconName }] }]
+      : []),
     ...(pack.demos.customerAgent
       ? [
           {

@@ -9,7 +9,8 @@ export type DemoId =
   | "ai-prospecting"
   | "discount-approval"
   | "customer-agent"
-  | "social-ads";
+  | "social-ads"
+  | "marketing-studio";
 
 export type DemoTile = {
   id: DemoId;
@@ -87,6 +88,13 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     summary: "Plan social posts on a calendar, run paid search and social ads, follow a hiring manager from ad click to contact, reply in one social inbox, and measure campaign ROI.",
     takeaway: "Every ad click, social post, form submission, comment reply, and placement pipeline dollar tied together in HubSpot, with simulated campaign data ready to demo live.",
   },
+  "marketing-studio": {
+    id: "marketing-studio",
+    title: "Marketing Studio: ICP outreach",
+    minutes: 6,
+    summary: "ICP match to campaign brief, plan, one brand voice, one ebook remixed into four formats, tailored outreach, conversion, meeting booked, and credits-to-pipeline dashboard.",
+    takeaway: "One marketer takes a single asset from brief to booked meetings and pipeline, with HubSpot Credits tied directly to revenue outcomes.",
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -104,7 +112,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Lumenstack",
     blurb: "B2B analytics platform sold by plan, seats, and add-ons.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "ai-prospecting"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "ai-prospecting", "marketing-studio"],
     tiles: {
       "guided-quote": {
         summary: "Pick plan, seats, add-ons, and term. Subscription lines generate, quote preview, send.",

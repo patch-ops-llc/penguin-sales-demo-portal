@@ -9,6 +9,7 @@ import type { Company, Contact, Deal, Pack, Product, Quote, Task, Workflow } fro
 import { compactMoney, date, money, num, relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, colorFor, cx, Prop, statusTone, Tag } from "../ui";
+import { MarketingTaskBanner } from "../marketing/lazy";
 import { QuoteStatus } from "../quote/status";
 import { IndexPage, PreviewShell, type Column, type Filter, type View } from "./index-table";
 
@@ -385,7 +386,12 @@ export function TasksIndex() {
     { id: "all", label: "All tasks", filter: () => true },
     { id: "done", label: "Completed", filter: (t) => t.status === "done" },
   ];
-  return <IndexPage title="Tasks" noun="task" rows={world.tasks} columns={columns} views={views} filters={[ownerFilter<Task>(pack, (t) => t.ownerId)]} searchText={(t) => t.title} rowKey={(t) => t.id} isNew={(t) => Boolean(t.isNew)} initialSort={{ id: "due", dir: 1 }} />;
+  return (
+    <>
+      <MarketingTaskBanner />
+      <IndexPage title="Tasks" noun="task" rows={world.tasks} columns={columns} views={views} filters={[ownerFilter<Task>(pack, (t) => t.ownerId)]} searchText={(t) => t.title} rowKey={(t) => t.id} isNew={(t) => Boolean(t.isNew)} initialSort={{ id: "due", dir: 1 }} />
+    </>
+  );
 }
 
 export function ProductsIndex() {

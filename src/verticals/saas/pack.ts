@@ -51,6 +51,7 @@ type CompanySeed = [id: string, name: string, industry: string, type: string, ci
 
 const companySeeds: CompanySeed[] = [
   ["co-tessellate", "Tessellate Freight Systems", "Logistics", "Prospect", "Chicago", "IL", 780, 190, "jordan", "Opportunity", 46, 1, "Central"],
+  ["co-kestrel", "Kestrel Ops", "B2B SaaS", "Prospect", "Denver", "CO", 480, 74, "jordan", "Lead", 24, 2, "West"],
   ["co-marlowe", "Marlowe Ridge Health", "Healthcare services", "Customer", "Nashville", "TN", 1900, 410, "jordan", "Customer", 742, 1, "East"],
   ["co-quarry", "Quarrystone Outfitters", "Retail", "Customer", "Boulder", "CO", 640, 150, "jordan", "Customer", 668, 1, "West"],
   ["co-vireo", "Vireo Mobility", "Transportation", "Customer", "Austin", "TX", 410, 85, "jordan", "Customer", 246, 4, "Central"],
@@ -110,6 +111,12 @@ function company(id: string): Company {
 // The synced billing fields reuse the back-office summary: lastOrderDate holds the renewal date,
 // creditStatus the payment status, and creditLimit the account's annual recurring revenue.
 company("co-tessellate").description = "Freight brokerage and dispatch software for regional carriers. Evaluating one analytics tool for dispatch, finance, and the carrier team.";
+company("co-kestrel").description = "Workflow automation software for distributed engineering and operations teams. Scaling multi-team reporting ahead of Series C.";
+company("co-kestrel").extra = [
+  { label: "Segment", value: "Mid-market" },
+  { label: "ICP Fit", value: "Tier 1 Match (94/100)" },
+  { label: "Tech stack", value: "Snowflake, Okta, HubSpot CRM" },
+];
 company("co-marlowe").description = "Operates 31 outpatient clinics across Tennessee and Kentucky. On the Growth plan since last year, renewing with more seats.";
 company("co-marlowe").erp = { accountNumber: "LS-ACCT-18834", lastOrderDate: "@+21d", openBalance: 0, creditStatus: "Current", creditLimit: 102000 };
 company("co-quarry").description = "Outdoor gear retailer with 48 stores and a growing online business. Runs merchandising and store reporting on Lumenstack.";
@@ -122,6 +129,9 @@ type ContactSeed = [id: string, first: string, last: string, title: string, comp
 const contactSeeds: ContactSeed[] = [
   ["ct-anika", "Anika", "Sorensen", "VP Operations", "co-tessellate", "Opportunity", "In progress", 46, 1],
   ["ct-desmond", "Desmond", "Achebe", "Director of IT", "co-tessellate", "Opportunity", "In progress", 30, 6],
+  ["ct-elena", "Elena", "Morales", "VP of Revenue Operations", "co-kestrel", "Lead", "Open", 24, 2],
+  ["ct-marcus", "Marcus", "Bennett", "Director of Data Engineering", "co-kestrel", "Lead", "Open", 21, 5],
+  ["ct-priya", "Priya", "Nair", "VP of Finance", "co-kestrel", "Lead", "Open", 18, 7],
   ["ct-priscilla", "Priscilla", "Vance", "Director of Analytics", "co-marlowe", "Customer", "Connected", 740, 1],
   ["ct-tobias", "Tobias", "Reinhardt", "VP Finance", "co-marlowe", "Customer", "Connected", 402, 12],
   ["ct-lucia", "Lucia", "Ferrante", "Head of Merchandising Analytics", "co-quarry", "Customer", "Connected", 665, 1],

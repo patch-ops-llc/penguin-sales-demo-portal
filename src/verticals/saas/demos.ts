@@ -1,4 +1,5 @@
 import type { Pack } from "../types";
+import { marketingStudio } from "./marketing-studio";
 
 // Per-demo content for SaaS and software: hero records, packaging rules, presets, and prepared output.
 // The demo templates in src/demos read everything vertical-specific from here.
@@ -506,4 +507,7 @@ export const demos: Pack["demos"] = {
     },
     followUp: { title: "Follow up with the Vireo Mobility buying group", dueInDays: 3 },
   },
+
+  // ---------- Marketing Studio: ICP outreach ----------
+  marketingStudio,
 };

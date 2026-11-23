@@ -73,6 +73,7 @@ const PATHS = {
   ticket: "M4 7h16v3.5a1.5 1.5 0 0 0 0 3V17H4v-3.5a1.5 1.5 0 0 0 0-3V7Zm6 0v10",
   megaphone: "M4 11v2a2 2 0 0 0 2 2h2l7 4V5L8 9H6a2 2 0 0 0-2 2Zm14-3a5 5 0 0 1 0 8M8 15l1.5 5",
   thumbsUp: "M7 11v9H4v-9h3Zm0 0 4-7a2 2 0 0 1 2 2v3h5a2 2 0 0 1 2 2.4l-1.2 6A2 2 0 0 1 16.8 20H7",
+  book: "M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Zm0 13.5A2.5 2.5 0 0 1 6.5 16.5H20",
 } as const;
 
 export type IconName = keyof typeof PATHS;
