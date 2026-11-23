@@ -1,4 +1,5 @@
 import type { Activity, Company, Contact, Deal, LineItem, Pack, Product, Quote, Task } from "../types";
+import { clinicServiceAnalyticsReport } from "./customer-agent";
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
@@ -143,6 +144,44 @@ const contacts: Contact[] = [
       { label: "PHI policy", value: "Non-PHI eligibility tokens only" },
     ],
   },
+  {
+    id: "ct-nora",
+    firstName: "Nora",
+    lastName: "Castell",
+    email: "nora.castell@patientmail.example",
+    phone: "(555) 0193-5470",
+    title: "Outpatient Visitor (Non-PHI)",
+    companyId: "co-ridgecrest",
+    ownerId: "devon",
+    lifecycle: "Customer",
+    leadStatus: "Connected",
+    createdAt: "@-42d",
+    lastActivityAt: "@-1d",
+    source: "Clinic Patient Chat",
+    extra: [
+      { label: "Clinic campus", value: "Scottsdale Orthopedics · Suite 310" },
+      { label: "PHI policy", value: "HubSpot HIPAA/BAA posture · Zero clinical PHI" },
+    ],
+  },
+  {
+    id: "ct-elliot",
+    firstName: "Elliot",
+    lastName: "Morales",
+    email: "elliot.morales@patientmail.example",
+    phone: "(555) 0194-6620",
+    title: "Outpatient Visitor (Non-PHI)",
+    companyId: "co-ridgecrest",
+    ownerId: "devon",
+    lifecycle: "Customer",
+    leadStatus: "Connected",
+    createdAt: "@-58d",
+    lastActivityAt: "@-1d",
+    source: "Clinic Patient Chat",
+    extra: [
+      { label: "Clinic campus", value: "Scottsdale Orthopedics · Suite 310" },
+      { label: "PHI policy", value: "HubSpot HIPAA/BAA posture · Zero clinical PHI" },
+    ],
+  },
 ];
 
 type DealSeed = [id: string, name: string, companyId: string, contactId: string, stage: string, closeInDays: number, createdDaysAgo: number, type: string, source: string, lines: LineItem[]];
@@ -223,6 +262,8 @@ const activities: Activity[] = [
   { id: "ac-hc-2", at: "@-1d", type: "call", title: "Call with Dr. Hannah Kowalski", body: "Confirmed Joint Commission credentialing packet meets Cascadia's vendor tier standards.", byId: "marcus", contactIds: ["ct-hannah"], companyIds: ["co-cascadia-med"], dealIds: ["dl-cascadia-icu"] },
   { id: "ac-hc-3", at: "@-2d", type: "quote", title: "Quote Q-4102 created", body: "Draft staffing order quote for 4 ICU Travel RNs.", byId: "marcus", contactIds: ["ct-karen"], companyIds: ["co-mercy-pines"], dealIds: ["dl-mercy-icu"], linkPath: "/quotes/q-4102", linkLabel: "View quote" },
   { id: "ac-hc-4", at: "@-5d", type: "deal", title: "Deal created", body: "Redwood Valley Health: 5 Telemetry Travel RNs created from LinkedIn Paid Social inquiry.", byId: "marcus", contactIds: ["ct-david"], companyIds: ["co-redwood-health"], dealIds: ["dl-redwood-tele"] },
+  { id: "ac-hc-5", at: "@-14d", type: "note", title: "Clinic welcome & non-PHI preference confirmed", body: "Nora Castell opted into Scottsdale Clinic logistics & scheduling updates. HubSpot HIPAA/BAA posture: operational contact only, zero clinical PHI stored.", byId: "devon", contactIds: ["ct-nora"], companyIds: ["co-ridgecrest"] },
+  { id: "ac-hc-6", at: "@-6d", type: "note", title: "Prior logistics chat — Scottsdale PT parking & check-in", body: "Breeze Customer Agent answered Elliot Morales's parking validation and check-in timing question from Clinic KB before his visit (zero PHI stored).", byId: null, contactIds: ["ct-elliot"], companyIds: ["co-ridgecrest"] },
 ];
 
 export const healthcarePack: Pack = {
@@ -446,6 +487,7 @@ export const healthcarePack: Pack = {
     ...reports,
     ...healthcareReports,
     "patient-satisfaction": patientSatisfactionReport,
+    "clinic-service-analytics": clinicServiceAnalyticsReport,
   },
   demos,
 };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { nowMs } from "@/lib/format";
 import { useShell } from "@/store/store";
+import { isServiceDeskConfig } from "@/verticals/types";
 import { relative } from "../format";
 import { Icon } from "../icons";
 import { A, Avatar, Button, cx, Tag } from "../ui";
@@ -21,7 +22,7 @@ export function OffplatformPhonePage() {
   const [keypad, setKeypad] = useState(false);
   const [dialed, setDialed] = useState("");
 
-  if (!cfg) return null;
+  if (!cfg || isServiceDeskConfig(cfg)) return null;
   const v = cfg.voiceCase;
   const called = world.ca.voiceCalled;
   const unlocked = world.ca.voiceUnlocked;

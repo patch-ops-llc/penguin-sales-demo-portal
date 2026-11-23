@@ -102,4 +102,23 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Pulls pre-credentialed travel-RN profiles, Joint Commission & license verification, and shift availability from Bullhorn ATS / VMS directly onto the HubSpot job-order deal.",
     },
   ],
+  "customer-agent": [
+    { id: "breeze-customer-agent", name: "Breeze Customer Agent: clinic patient chat widget & 24/7 after-hours coverage", by: "native" },
+    { id: "clinic-kb", name: "Knowledge Base lookup for accepted insurance, parking, and visit prep", by: "native" },
+    { id: "scheduling-link", name: "HubSpot scheduling link & contact timeline appointment logging", by: "native" },
+    { id: "help-desk-tickets", name: "Help Desk workspace, Tickets, and AI handoff summary for clinic staff", by: "native" },
+    { id: "service-analytics", name: "Service Analytics dashboard: resolutions, after-hours coverage, and handoffs", by: "native" },
+    {
+      id: "ehr-scheduling-guardrail",
+      name: "EHR / Practice Scheduling Sync & HIPAA Clinical-Guardrail Action",
+      by: "penguin",
+      note: "Reads live non-PHI clinic appointment slots from the Practice EHR, enforces strict zero-medical-advice clinical handoff rules, and queues nurse callbacks without storing clinical PHI in HubSpot.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits-to-Outcome Attribution Panel",
+      by: "penguin",
+      note: "Maps Breeze credit usage directly to confirmed outpatient visits booked via AI and front-desk hours reclaimed under a HIPAA/BAA-ready posture.",
+    },
+  ],
 };

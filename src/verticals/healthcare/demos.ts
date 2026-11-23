@@ -1,15 +1,17 @@
 import type { Pack } from "../types";
+import { healthcareCustomerAgent } from "./customer-agent";
 import { healthcareIntakeConfigs } from "./intake";
 import { postVisitFeedbackConfig } from "./post-visit-feedback";
 import { patientReactivationConfig } from "./reactivation";
 import { socialAdsConfig } from "./social";
 
 // Demo configurations for Healthcare (Crestline Clinical Staffing & Specialty Clinics).
-// Live demos: Social media & paid ads (Flow 3), Referral intake (H2), Referral-source outreach (H3),
+// Live demos: Social media & paid ads (Flow 3), Clinic front desk (H1), Referral intake (H2), Referral-source outreach (H3),
 // Patient reactivation (H4), Post-visit feedback (H5), and Staffing job orders (H6). 100% fictional data, zero PHI.
 
 export const demos: Pack["demos"] = {
   socialAds: socialAdsConfig,
+  customerAgent: healthcareCustomerAgent,
   patientReactivation: patientReactivationConfig,
   tickets: {
     "post-visit-feedback": postVisitFeedbackConfig,

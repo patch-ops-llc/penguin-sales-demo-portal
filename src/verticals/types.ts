@@ -1,7 +1,7 @@
 import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
 import type { PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
 import type { TicketsDemoConfig } from "@/shell/tickets/types";
-import type { AnalyticsReportSpec } from "./analytics-types";
+import type { AnalyticsCreditsOutcome, AnalyticsReportSpec } from "./analytics-types";
 import type { DemoId } from "./catalog";
 
 export type { IntakeDemoId, IntakeFlowConfig, IntakeFollowupOption, IntakeFormField, IntakeMode, IntakeReviewItem, IntakeTone } from "@/shell/intake/types";
@@ -820,7 +820,165 @@ export type ServiceDashboardPeriod = {
   handoffReasons: { reason: string; count: number; pct: number }[];
 };
 
-export type CustomerAgentConfig = {
+export type CustomerAgentKbArticle = {
+  id: string;
+  title: string;
+  category: string;
+  excerpt: string;
+};
+
+export type CustomerAgentScheduleOption = {
+  slotLabel: string;
+  clinicLocation: string;
+  provider: string;
+  bookingUrl: string;
+  confirmationCode: string;
+  timelineTitle: string;
+  timelineBody: string;
+};
+
+export type CustomerAgentExternalCard = {
+  extId: string;
+  title: string;
+  badge: string;
+  badgeTone?: "blue" | "purple" | "teal" | "green";
+  subtitle?: string;
+  rows: { label: string; value: string; tone?: "green" | "amber" | "red" | "blue" | "teal" | "purple" }[];
+  resolvedRows?: { label: string; value: string; tone?: "green" | "amber" | "red" | "blue" | "teal" | "purple" }[];
+};
+
+export type ServiceDeskChatCase = {
+  id: string;
+  contactId: string;
+  companyId: string;
+  portalName: string;
+  portalSubtitle: string;
+  portalUrl: string;
+  portalBadge: string;
+  accentHex: string;
+  complianceNote?: string;
+  summaryCards: { label: string; value: string; note: string; tone?: "neutral" | "amber" | "teal" }[];
+  referenceListTitle: string;
+  referenceItems: { id: string; title: string; meta: string; status: string; tone: "green" | "amber" | "blue" }[];
+  customerQuestion: string;
+  quickPrompts: string[];
+  kbArticles: CustomerAgentKbArticle[];
+  agentResolution: string;
+  customerFollowUp?: string;
+  scheduling?: CustomerAgentScheduleOption;
+  externalCard: CustomerAgentExternalCard;
+  timelineTitle: string;
+  timelineBody: string;
+  creditsUsed: number;
+};
+
+export type ServiceDeskEmailCase = {
+  id: string;
+  contactId: string;
+  companyId: string;
+  clientName: string;
+  fromName: string;
+  fromEmail: string;
+  toEmail: string;
+  subject: string;
+  body: string;
+  priorAlert: {
+    from: string;
+    subject: string;
+    at: string;
+    preview: string;
+    body: string;
+    badge: string;
+  };
+  kbArticles: CustomerAgentKbArticle[];
+  agentReply: string;
+  ticketNumber: string;
+  ticketSubject: string;
+  ticketPipeline: string;
+  ticketStage: string;
+  externalCard: CustomerAgentExternalCard;
+  timelineTitle: string;
+  timelineBody: string;
+  creditsUsed: number;
+};
+
+export type ServiceDeskEscalationCase = {
+  id: string;
+  ticketId: string;
+  ticketNumber: string;
+  contactId: string;
+  companyId: string;
+  ownerId: string;
+  accountRefLabel: string;
+  accountRef: string;
+  portalName: string;
+  portalSubtitle: string;
+  portalUrl: string;
+  portalBadge: string;
+  accentHex: string;
+  complianceNote?: string;
+  subject: string;
+  priority: "High" | "Urgent";
+  pipeline: string;
+  stage: string;
+  guardrailBanner: {
+    title: string;
+    badge: string;
+    policySummary: string;
+    strictNoMedicalAdvice?: boolean;
+  };
+  customerMessage: string;
+  quickPrompts: string[];
+  agentAck: string;
+  riskSignals: { label: string; severity: "Critical" | "High"; detail: string }[];
+  handoffSummary: {
+    headline: string;
+    verifiedIdentity: string;
+    actionsTaken: string[];
+    recommendedNext: string[];
+  };
+  unifiedHistory: UnifiedHistoryEntry[];
+  externalCard: CustomerAgentExternalCard;
+  defaultRepReply: string;
+  repReplyButtonLabel: string;
+  repSentHeadline: string;
+  notificationTitle: string;
+  notificationBody: string;
+  timelineTitle: string;
+  timelineBody: string;
+  creditsUsed: number;
+};
+
+export type ServiceDeskDashboardPeriod = ServiceDashboardPeriod & {
+  afterHoursPct?: number;
+  afterHoursCount?: number;
+  medianFrtSeconds?: number;
+  humanFrtLabel?: string;
+};
+
+export type ServiceDeskCustomerAgentConfig = {
+  mode: "clinic-front-desk" | "it-service-desk";
+  channels: ServiceChannel[];
+  brandSubtitle: string;
+  compliancePostureNote?: string;
+  chatCase: ServiceDeskChatCase;
+  emailCase?: ServiceDeskEmailCase;
+  escalationCase: ServiceDeskEscalationCase;
+  dashboard: {
+    title: string;
+    subtitle: string;
+    goalPct: number;
+    trendFootnote: string;
+    creditModelNote: string;
+    highlightKpi: "after-hours" | "frt";
+    reportId?: string;
+    creditsOutcome?: AnalyticsCreditsOutcome;
+    periods: Record<"30d" | "7d" | "90d", ServiceDeskDashboardPeriod>;
+  };
+};
+
+export type FintechCustomerAgentConfig = {
+  mode?: "fintech";
   chatCase: CustomerAgentChatCase;
   emailCase: CustomerAgentEmailCase;
   voiceCase: CustomerAgentVoiceCase;
@@ -831,6 +989,12 @@ export type CustomerAgentConfig = {
     periods: Record<"30d" | "7d" | "90d", ServiceDashboardPeriod>;
   };
 };
+
+export type CustomerAgentConfig = FintechCustomerAgentConfig | ServiceDeskCustomerAgentConfig;
+
+export function isServiceDeskConfig(cfg: CustomerAgentConfig | undefined): cfg is ServiceDeskCustomerAgentConfig {
+  return Boolean(cfg && "mode" in cfg && (cfg.mode === "clinic-front-desk" || cfg.mode === "it-service-desk"));
+}
 
 // ---------- Marketing Studio (ICP outreach) ----------
 

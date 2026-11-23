@@ -8,7 +8,7 @@ import { WhyThisScoreCard } from "@/demos/lead-capture/score-card";
 import { quoteStatusLabel, quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
 import { fill, labelsOf } from "@/verticals/labels";
-import type { Activity, ActivityType } from "@/verticals/types";
+import { isServiceDeskConfig, type Activity, type ActivityType } from "@/verticals/types";
 import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
@@ -276,7 +276,22 @@ export function ContactRecord({ id }: { id: string }) {
   const deals = world.deals.filter((d) => d.contactIds.includes(id));
   const match = (a: Activity) => Boolean(a.contactIds?.includes(id));
   const name = contactName(contact);
-  const showVoiceTimelineNext = demo === "customer-agent" && id === pack.demos.customerAgent?.voiceCase.contactId && world.ca.voiceUnlocked && !world.ca.timelineReviewed;
+  const caCfg = pack.demos.customerAgent;
+  const showVoiceTimelineNext =
+    demo === "customer-agent" &&
+    caCfg &&
+    !isServiceDeskConfig(caCfg) &&
+    id === caCfg.voiceCase.contactId &&
+    world.ca.voiceUnlocked &&
+    !world.ca.timelineReviewed;
+  const showClinicTimelineNext =
+    demo === "customer-agent" &&
+    caCfg &&
+    isServiceDeskConfig(caCfg) &&
+    caCfg.mode === "clinic-front-desk" &&
+    id === caCfg.chatCase.contactId &&
+    world.ca.appointmentBooked &&
+    !world.ca.timelineReviewed;
 
   return (
     <RecordLayout
@@ -344,6 +359,22 @@ export function ContactRecord({ id }: { id: string }) {
                 }}
               >
                 Continue to fraud escalation <Icon name="arrowRight" size={14} />
+              </Button>
+            </div>
+          ) : null}
+          {showClinicTimelineNext ? (
+            <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[#bfe3cd] bg-[#f0faf4] px-4 py-3 text-[13px]" data-testid="ca-timeline-banner">
+              <p className="font-semibold text-[#0b5b2b]">Clinic appointment booked via scheduling link and logged on {name}&apos;s HubSpot timeline.</p>
+              <Button
+                variant="primary"
+                size="sm"
+                data-testid="ca-continue-escalation"
+                onClick={() => {
+                  dispatch({ t: "ca.reviewTimeline" });
+                  navigate("/service-app/escalation");
+                }}
+              >
+                Next: Clinical question chat <Icon name="arrowRight" size={14} />
               </Button>
             </div>
           ) : null}

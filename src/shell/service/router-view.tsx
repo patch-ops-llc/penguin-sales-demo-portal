@@ -17,7 +17,8 @@ export function ServiceRouteView({ section, id, sub }: ServiceRouteProps) {
   if (section === "service-app") {
     if (id === "email") return <OffplatformEmailPage />;
     if (id === "phone") return <OffplatformPhonePage />;
-    return <OffplatformChatPage />;
+    if (id === "escalation") return <OffplatformChatPage key="escalation" variant="escalation" />;
+    return <OffplatformChatPage key="primary" variant="primary" />;
   }
   if (section === "service-dashboard") return <ServiceDashboardPage />;
   if (id === "tickets" && sub) return <TicketRecordPage key={sub} id={sub} />;

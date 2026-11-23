@@ -258,7 +258,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Quillon Technology Partners",
     blurb: "Managed IT services, projects, and hardware resale.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting", "customer-agent"],
     tiles: {
       "guided-quote": {
         title: "Guided proposal",
@@ -285,6 +285,12 @@ export const VERTICALS: VerticalTile[] = [
         summary: "Equipment nears end of support and a new CIO starts, the buying group appears, outreach is drafted, rep approves and sends.",
         takeaway: "Reps approve instead of researching, with a signal only the managed asset inventory can give.",
       },
+      "customer-agent": {
+        title: "Customer agent: IT service desk",
+        summary: "Resolves password resets and ticket-status requests across chat and email from the IT KB and PSA/RMM, and escalates complex VPN outages to L2 engineers with an AI summary.",
+        takeaway: "Routine L1 requests resolve autonomously with live PSA SLA context, while complex network outages reach L2 engineers with full diagnostic summaries and credits tied to outcomes.",
+        tags: ["msp", "service desk", "psa", "rmm", "password reset", "vpn", "frt", "sla"],
+      },
     },
   },
   {
@@ -293,8 +299,14 @@ export const VERTICALS: VerticalTile[] = [
     company: "Crestline Clinical Staffing & Specialty Clinics",
     blurb: "Travel nursing, allied health staffing, and multi-location specialty clinics.",
     status: "live",
-    demos: ["social-ads", "ai-prospecting", "patient-reactivation", "post-visit-feedback", "referral-intake", "staffing-job-orders"],
+    demos: ["social-ads", "customer-agent", "ai-prospecting", "patient-reactivation", "post-visit-feedback", "referral-intake", "staffing-job-orders"],
     tiles: {
+      "customer-agent": {
+        title: "Customer agent: clinic front desk",
+        summary: "After-hours patient chat answers insurance, parking, and visit prep from clinic KB, sends a scheduling link logged to the timeline, and enforces a strict no-medical-advice handoff.",
+        takeaway: "After-hours clinic logistics resolve autonomously with EHR scheduling sync, while symptom questions hand off immediately to clinic staff with zero medical advice provided.",
+        tags: ["clinic", "hipaa", "scheduling", "after-hours", "no-medical-advice", "ehr"],
+      },
       "ai-prospecting": {
         title: "Referral-source outreach",
         summary: "Referring practices trigger signals on a new physician, new clinic location, or quarterly referral drop; Breeze drafts role outreach, books a lunch-and-learn, and tracks before/after referral volume.",

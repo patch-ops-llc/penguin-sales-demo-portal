@@ -1,4 +1,5 @@
 import type { Activity, Company, Contact, Deal, LineItem, Pack, Quote, Task } from "../types";
+import { itServiceDeskReport } from "./customer-agent";
 import { demos } from "./demos";
 import { extensions } from "./extensions";
 import { threads } from "./inbox";
@@ -473,4 +474,7 @@ export const professionalServicesPack: Pack = {
     },
   },
   demos,
+  reports: {
+    "it-service-desk-analytics": itServiceDeskReport,
+  },
 };

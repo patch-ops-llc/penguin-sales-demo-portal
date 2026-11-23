@@ -106,4 +106,22 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "A buying signal HubSpot cannot see by itself: equipment nearing end of support, fed in from the managed asset inventory in the PSA.",
     },
   ],
+  "customer-agent": [
+    { id: "breeze-customer-agent", name: "Breeze Customer Agent across IT Portal Chat and Service Desk Email", by: "native" },
+    { id: "it-kb", name: "IT Knowledge Base resolution for password resets, MFA, and runbooks", by: "native" },
+    { id: "help-desk-tickets", name: "Help Desk workspace, Tickets, and AI summary handoff to L2 engineers", by: "native" },
+    { id: "service-analytics", name: "Service Analytics dashboard: tickets by channel, auto-resolution rate, and FRT", by: "native" },
+    {
+      id: "psa-rmm-lookup",
+      name: "PSA / RMM Account Plan & Ticket-Status Action",
+      by: "penguin",
+      note: "Queries ConnectWise PSA and RMM live inside Help Desk to verify SLA tier, open ticket status (INC/REQ), and firewall telemetry before Breeze resolves or escalates.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "HubSpot Credits-to-Outcome Attribution Panel",
+      by: "penguin",
+      note: "Maps Breeze credit burn directly to deflected L1 tickets, reclaimed MSP engineer hours, and 15-minute P1 SLA compliance.",
+    },
+  ],
 };

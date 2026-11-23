@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { nowMs } from "@/lib/format";
 import { useShell } from "@/store/store";
-import type { ServiceChannel } from "@/verticals/types";
+import { isServiceDeskConfig, type FintechCustomerAgentConfig, type ServiceChannel, type ServiceDeskCustomerAgentConfig } from "@/verticals/types";
 import { Ext } from "../ext";
 import { money, relative } from "../format";
 import { Icon, type IconName } from "../icons";
@@ -14,16 +14,13 @@ const CHANNEL_LABEL: Record<ServiceChannel, string> = { chat: "Chat", email: "Em
 const CHANNEL_TONE: Record<ServiceChannel, "blue" | "teal" | "pink"> = { chat: "teal", email: "blue", voice: "pink" };
 
 /**
- * HubSpot Service Hub Ticket Record (Step 11): Human service rep opens Ticket TKT-4091 with
- * Breeze's structured handoff summary and the full unified conversation history across chat, email, and voice.
+ * HubSpot Service Hub Ticket Record for escalated human handoffs across Fintech, Healthcare, and IT Services.
  */
 export function TicketRecordPage({ id }: { id: string }) {
-  const { pack, world, dispatch, navigate } = useShell();
+  const { pack } = useShell();
   const cfg = pack.demos.customerAgent;
-  const [channelFilter, setChannelFilter] = useState<"all" | ServiceChannel>("all");
-  const [reply, setReply] = useState(cfg?.fraudCase.defaultRepReply ?? "");
 
-  if (!cfg || id !== cfg.fraudCase.ticketId) {
+  if (!cfg) {
     return (
       <div className="p-10">
         <Card>
@@ -36,6 +33,273 @@ export function TicketRecordPage({ id }: { id: string }) {
       </div>
     );
   }
+
+  if (isServiceDeskConfig(cfg)) {
+    if (id !== cfg.escalationCase.ticketId) {
+      return (
+        <div className="p-10">
+          <Card>
+            <Empty title="Ticket not found">
+              <A to="/service" className="hs-link">
+                Return to Help Desk
+              </A>
+            </Empty>
+          </Card>
+        </div>
+      );
+    }
+    return <ServiceDeskTicketRecord cfg={cfg} />;
+  }
+
+  if (id !== cfg.fraudCase.ticketId) {
+    return (
+      <div className="p-10">
+        <Card>
+          <Empty title="Ticket not found">
+            <A to="/service" className="hs-link">
+              Return to Help Desk
+            </A>
+          </Empty>
+        </Card>
+      </div>
+    );
+  }
+  return <FintechTicketRecord cfg={cfg} />;
+}
+
+function ServiceDeskTicketRecord({ cfg }: { cfg: ServiceDeskCustomerAgentConfig }) {
+  const { pack, world, dispatch, navigate } = useShell();
+  const esc = cfg.escalationCase;
+  const [channelFilter, setChannelFilter] = useState<"all" | ServiceChannel>("all");
+  const [reply, setReply] = useState(esc.defaultRepReply);
+
+  const contact = world.contacts.find((c) => c.id === esc.contactId);
+  const company = world.companies.find((c) => c.id === esc.companyId);
+  const owner = pack.personas.find((p) => p.id === esc.ownerId);
+  const history = channelFilter === "all" ? esc.unifiedHistory : esc.unifiedHistory.filter((h) => h.channel === channelFilter);
+  const extRows = world.ca.repReplied && esc.externalCard.resolvedRows ? esc.externalCard.resolvedRows : esc.externalCard.rows;
+
+  const sendRepReply = () => {
+    dispatch({ t: "ca.repReply", text: reply, at: nowMs() });
+  };
+
+  const openDashboard = () => {
+    dispatch({ t: "ca.reviewTicket" });
+    navigate("/service-dashboard");
+  };
+
+  return (
+    <div className="grid min-h-full grid-cols-[300px_minmax(0,1fr)_312px]" data-testid="ticket-record-page">
+      {/* Left Column: Native HubSpot Ticket Properties */}
+      <aside className="border-r border-line bg-white px-4 py-4">
+        <A to="/service" className="inline-flex items-center gap-1 text-[13px] font-semibold text-link hover:underline" data-testid="ticket-back">
+          <Icon name="chevronLeft" size={14} /> Help Desk
+        </A>
+        <div className="mt-3 flex items-start gap-3">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-[#fde0dd] text-[#99201a]">
+            <Icon name="ticket" size={20} />
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono text-[12px] font-semibold text-ink-muted">{esc.ticketNumber}</p>
+            <h1 className="text-[16.5px] font-semibold leading-snug" data-testid="ticket-title">
+              {esc.subject}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <Tag tone="red">{esc.priority} Priority</Tag>
+              <Tag tone="orange">{esc.guardrailBanner.badge}</Tag>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 border-t border-line-soft pt-3">
+          <h2 className="text-[13px] font-semibold">About this ticket</h2>
+          <dl className="mt-1">
+            <Prop label="Ticket ID">{esc.ticketNumber}</Prop>
+            <Prop label="Pipeline">{esc.pipeline}</Prop>
+            <Prop label="Ticket status">{world.ca.repReplied ? "Resolved — Staff notified user" : esc.stage}</Prop>
+            <Prop label="Ticket owner">{owner?.name ?? esc.ownerId}</Prop>
+            <Prop label="Channels included">{cfg.channels.map((ch) => CHANNEL_LABEL[ch]).join(", ")}</Prop>
+            <Prop label="Handoff source">Breeze Customer Agent</Prop>
+            <Prop label={esc.accountRefLabel}>{esc.accountRef}</Prop>
+          </dl>
+        </div>
+      </aside>
+
+      {/* Center Column: Native Breeze Handoff Summary + Unified History + Staff Resolution */}
+      <div className="min-w-0 space-y-4 px-5 py-4">
+        <Card
+          title={
+            <span className="flex items-center gap-2">
+              <AiPill /> Breeze Customer Agent Handoff Summary
+            </span>
+          }
+          right={
+            <Tag tone={esc.guardrailBanner.strictNoMedicalAdvice ? "red" : "green"}>
+              {esc.guardrailBanner.strictNoMedicalAdvice ? "No medical advice provided" : "Full AI summary attached"}
+            </Tag>
+          }
+          testId="ticket-handoff-summary"
+        >
+          <p className="text-[14px] font-medium leading-relaxed text-ink">{esc.handoffSummary.headline}</p>
+          <p className="mt-2 text-[12.5px] text-ink-muted">
+            <span className="font-semibold text-ink">Verification &amp; posture:</span> {esc.handoffSummary.verifiedIdentity}
+          </p>
+
+          <div className="mt-3.5 grid grid-cols-2 gap-3">
+            <div className="rounded-[8px] border border-line-soft bg-[#f8fbf9] p-3">
+              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-[#0b5b2b]">Actions already taken</p>
+              <ul className="mt-1.5 space-y-1.5 text-[12.5px]">
+                {esc.handoffSummary.actionsTaken.map((item) => (
+                  <li key={item} className="flex items-start gap-1.5">
+                    <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-[8px] border border-line-soft bg-[#fffaf5] p-3">
+              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-[#a03400]">Recommended next steps</p>
+              <ul className="mt-1.5 space-y-1.5 text-[12.5px]">
+                {esc.handoffSummary.recommendedNext.map((item) => (
+                  <li key={item} className="flex items-start gap-1.5">
+                    <Icon name="arrowRight" size={14} className="mt-0.5 shrink-0 text-[#a03400]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          title="Unified Conversation History"
+          right={
+            <div className="flex items-center gap-1">
+              {(["all", ...cfg.channels] as const).map((ch) => (
+                <button
+                  key={ch}
+                  type="button"
+                  onClick={() => setChannelFilter(ch)}
+                  data-testid={`ticket-filter-${ch}`}
+                  className={cx(
+                    "h-7 rounded-full border px-2.5 text-[12px] font-semibold",
+                    channelFilter === ch ? "border-ink bg-ink text-white" : "border-line bg-white text-ink-muted hover:border-ink hover:text-ink",
+                  )}
+                >
+                  {ch === "all" ? `All (${esc.unifiedHistory.length})` : CHANNEL_LABEL[ch]}
+                </button>
+              ))}
+            </div>
+          }
+          testId="ticket-unified-history"
+        >
+          <ul className="space-y-2.5">
+            {history.map((entry) => (
+              <li key={entry.id} className="rounded-[9px] border border-line-soft bg-[#fcfcfc] p-3.5" data-testid={`unified-entry-${entry.channel}`}>
+                <div className="flex items-center gap-2">
+                  <Tag tone={CHANNEL_TONE[entry.channel]}>
+                    <Icon name={CHANNEL_ICON[entry.channel]} size={12} className="mr-1" />
+                    {CHANNEL_LABEL[entry.channel]}
+                  </Tag>
+                  <span className="text-[13px] font-semibold">{entry.subject}</span>
+                  <span className="ml-auto shrink-0 text-[11.5px] text-ink-muted">{relative(entry.at)}</span>
+                </div>
+                <p className="mt-2 text-[13px] leading-relaxed text-ink">{entry.body}</p>
+                <p className="mt-1.5 text-[11.5px] text-ink-muted">
+                  {entry.actor} · {entry.meta}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card title={`Resolve & reply as ${owner?.name ?? esc.ownerId}`} testId="ticket-rep-composer">
+          {world.ca.repReplied ? (
+            <div className="rounded-[8px] border border-[#bfe3cd] bg-[#f0faf4] p-3.5 text-[13px]" data-testid="ticket-rep-sent">
+              <p className="font-semibold text-[#0b5b2b]">{esc.repSentHeadline}</p>
+              <p className="mt-1 text-ink-muted">{world.ca.repReplyText}</p>
+            </div>
+          ) : (
+            <>
+              <textarea
+                rows={3}
+                aria-label="Staff resolution response"
+                data-testid="ticket-reply-input"
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                className="w-full resize-none rounded-[6px] border border-line p-3 text-[13px] leading-relaxed focus:border-ink focus:outline-none"
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <Button variant="secondary" size="sm" icon="send" onClick={sendRepReply} data-testid="ticket-send-reply">
+                  {esc.repReplyButtonLabel}
+                </Button>
+                <Button variant="primary" size="sm" onClick={openDashboard} data-testid="ticket-open-dashboard">
+                  Open Service Dashboard <Icon name="arrowRight" size={14} />
+                </Button>
+              </div>
+            </>
+          )}
+          {world.ca.repReplied ? (
+            <div className="mt-3 flex justify-end">
+              <Button variant="primary" size="sm" onClick={openDashboard} data-testid="ticket-open-dashboard">
+                Open Service Dashboard <Icon name="arrowRight" size={14} />
+              </Button>
+            </div>
+          ) : null}
+        </Card>
+      </div>
+
+      {/* Right Column: Native CRM Records + 1 Custom Penguin Extension Card */}
+      <aside className="space-y-3 border-l border-line bg-[#f7f7f7] px-3 py-4">
+        <Card title="Contact (1)">
+          {contact ? (
+            <div className="flex items-center gap-2.5 text-[13px]">
+              <Avatar name={`${contact.firstName} ${contact.lastName}`} color={colorFor(contact.id)} size={32} />
+              <div className="min-w-0">
+                <A to={`/contacts/${contact.id}`} className="hs-link block truncate">
+                  {contact.firstName} {contact.lastName}
+                </A>
+                <p className="truncate text-[12px] text-ink-muted">{contact.title}</p>
+                <p className="truncate text-[12px] text-ink-muted">{contact.phone}</p>
+              </div>
+            </div>
+          ) : null}
+        </Card>
+
+        <Card title="Company (1)">
+          {company ? (
+            <div className="text-[13px]">
+              <A to={`/companies/${company.id}`} className="hs-link">
+                {company.name}
+              </A>
+              <p className="mt-0.5 text-[12px] text-ink-muted">
+                {company.industry} · {company.city}, {company.state}
+              </p>
+            </div>
+          ) : null}
+        </Card>
+
+        {/* Custom Penguin External Card — ONLY Penguin marker on Ticket page */}
+        <Ext id={esc.externalCard.extId}>
+          <Card title={esc.externalCard.title} right={<Tag tone={esc.externalCard.badgeTone ?? "blue"}>{esc.externalCard.badge}</Tag>} testId="ticket-external-card">
+            <dl className="text-[12.5px]">
+              {extRows.map((r) => (
+                <Prop key={r.label} label={r.label}>
+                  {r.tone ? <Tag tone={r.tone}>{r.value}</Tag> : r.value}
+                </Prop>
+              ))}
+            </dl>
+          </Card>
+        </Ext>
+      </aside>
+    </div>
+  );
+}
+
+function FintechTicketRecord({ cfg }: { cfg: FintechCustomerAgentConfig }) {
+  const { pack, world, dispatch, navigate } = useShell();
+  const [channelFilter, setChannelFilter] = useState<"all" | ServiceChannel>("all");
+  const [reply, setReply] = useState(cfg.fraudCase.defaultRepReply);
 
   const f = cfg.fraudCase;
   const contact = world.contacts.find((c) => c.id === f.contactId);

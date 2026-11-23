@@ -1,6 +1,6 @@
 import type { DemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
-import { customerAgent } from "./customer-agent";
+import { customerAgent, customerAgentScriptFor } from "./customer-agent";
 import { referralIntake, staffingJobOrders } from "./intake";
 import { marketingStudio } from "./marketing-studio";
 import { patientReactivation } from "./patient-reactivation";
@@ -29,9 +29,9 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "staffing-job-orders": staffingJobOrders,
 };
 
-/** Resolves a demo script for one pack, filtering out steps whose `when(pack)` is false. */
+/** Resolves a demo script for one pack, picking the vertical customer-agent variant and filtering steps whose `when(pack)` is false. */
 export function scriptFor(demo: DemoId, pack: Pack): DemoScript {
-  const base = SCRIPTS[demo];
+  const base = demo === "customer-agent" ? customerAgentScriptFor(pack) : SCRIPTS[demo];
   const steps = base.steps.filter((s) => !s.when || s.when(pack));
   return steps.length === base.steps.length ? base : { ...base, steps };
 }

@@ -1,4 +1,5 @@
 import type { ErpStockItem, GqLineTemplate, GqOption, Pack } from "../types";
+import { itCustomerAgent } from "./customer-agent";
 import { ENGINEER_RATE, MARGIN_FLOOR_PCT, product } from "./rate-card";
 
 // Per-demo content for Professional and IT services: hero records, rate-card rules, presets, and prepared output.
@@ -515,4 +516,7 @@ export const demos: Pack["demos"] = {
     },
     followUp: { title: "Follow up with the Oriel Park Senior Living buying group", dueInDays: 3 },
   },
+
+  // ---------- Customer Agent: IT service desk (Chat, Email & L2 Escalation) ----------
+  customerAgent: itCustomerAgent,
 };
