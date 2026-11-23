@@ -74,6 +74,7 @@ const companySeeds: CompanySeed[] = [
   ["co-elderbrook", "Elderbrook Senior Living", "Senior living", "Prospect", "Minneapolis", "MN", 1600, 330, "carmen", "Opportunity", 66, 2, "Central"],
   ["co-pikewell", "Pikewell Media", "Media", "Prospect", "New York", "NY", 220, 48, "sasha", "Lead", 84, 15, "East"],
   ["co-starling", "Starling Yard Fitness", "Fitness", "Prospect", "Atlanta", "GA", 95, 12, "sasha", "Lead", 11, 8, "East"],
+  ["co-alderwave", "Alderwave Logistics", "Logistics", "Prospect", "Boston", "MA", 310, 62, "jordan", "Lead", 6, 1, "East"],
 ];
 
 function domainOf(name: string): string {
@@ -124,6 +125,12 @@ company("co-quarry").description = "Outdoor gear retailer with 48 stores and a g
 company("co-quarry").erp = { accountNumber: "LS-ACCT-20417", lastOrderDate: "@+74d", openBalance: 4400, creditStatus: "Current", creditLimit: 103000 };
 company("co-vireo").description = "Shared electric scooters and bikes in six cities. Started on the Starter plan with one operations team.";
 company("co-vireo").erp = { accountNumber: "LS-ACCT-23190", lastOrderDate: "@+165d", openBalance: 0, creditStatus: "Current", creditLimit: 14400 };
+company("co-alderwave").description = "Regional cold-chain and freight logistics platform across New England. Evaluating Lumenstack on a 14-day self-serve free trial.";
+company("co-alderwave").extra = [
+  { label: "Segment", value: "Mid-market" },
+  { label: "Trial status", value: "14-day Free Trial (Day 6)" },
+  { label: "Tech stack", value: "Snowflake, Okta, HubSpot CRM" },
+];
 
 type ContactSeed = [id: string, first: string, last: string, title: string, companyId: string, lifecycle: string, leadStatus: string, createdDaysAgo: number, lastDaysAgo: number];
 
@@ -157,6 +164,7 @@ const contactSeeds: ContactSeed[] = [
   ["ct-harriet", "Harriet", "Oyelaran", "VP Clinical Operations", "co-elderbrook", "Opportunity", "In progress", 66, 2],
   ["ct-dev", "Dev", "Malhotra", "Audience Analytics Lead", "co-pikewell", "Lead", "Open", 84, 15],
   ["ct-noor", "Noor", "Farah", "General Manager", "co-starling", "Lead", "New", 11, 8],
+  ["ct-nadia", "Nadia", "Osei", "Head of Data Operations", "co-alderwave", "Lead", "Free Trial", 6, 1],
 ];
 
 const contacts: Contact[] = contactSeeds.map(([id, firstName, lastName, title, companyId, lifecycle, leadStatus, created, last], i) => ({
@@ -172,7 +180,8 @@ const contacts: Contact[] = contactSeeds.map(([id, firstName, lastName, title, c
   leadStatus,
   createdAt: `@-${created}d`,
   lastActivityAt: `@-${last}d`,
-  source: i % 3 === 0 ? "Organic search" : i % 3 === 1 ? "Webinar" : "Referral",
+  source: id === "ct-nadia" ? "Organic search (Free Trial)" : i % 3 === 0 ? "Organic search" : i % 3 === 1 ? "Webinar" : "Referral",
+  ...(id === "ct-nadia" ? { score: 42, extra: [{ label: "Free trial plan", value: "14-day self-serve trial (Day 6)" }] } : {}),
 }));
 
 type DealSeed = [id: string, name: string, companyId: string, contactId: string, stage: string, closeInDays: number, createdDaysAgo: number, type: string, lines: LineItem[]];
@@ -286,7 +295,8 @@ const activities: Activity[] = [
   { id: "ac-11", at: "@-1d", type: "email", title: "Email from Priscilla Vance: Re: Renewal quote Q-2087", body: "Finance is asking for a better number on the renewal given we are adding 20 seats, and our standard payment terms are net 60.", byId: null, contactIds: ["ct-priscilla"], companyIds: ["co-marlowe"], dealIds: ["dl-marlowe"] },
   { id: "ac-12", at: "@-8d", type: "deal", title: "Deal created", body: "Marlowe Ridge Health: Renewal and 20-seat expansion was created in Solution Fit.", byId: "jordan", companyIds: ["co-marlowe"], dealIds: ["dl-marlowe"] },
   { id: "ac-13", at: "@-12d", type: "call", title: "Call with Tobias Reinhardt", body: "Budget for analytics is flat next year. Open to a multi-year commitment in exchange for a lower price.", byId: "jordan", contactIds: ["ct-tobias"], companyIds: ["co-marlowe"], dealIds: ["dl-marlowe"] },
-  // Quarrystone Outfitters: the Back-office hero.
+  // Quarrystone Outfitters: the Back-office hero (consolidated with S5 seat-limit expansion).
+  { id: "ac-19", at: "@-2h", type: "sync", title: "Seat-limit alert: 97/100 Growth & 40/40 AI Assistant seats used", body: "Product usage sync flagged Quarrystone Outfitters above the 90% seat-cap threshold and alerted AE Jordan Avery.", byId: null, contactIds: ["ct-lucia"], companyIds: ["co-quarry"], linkPath: "/reports/expansion-mrr", linkLabel: "Expansion MRR report" },
   { id: "ac-20", at: "@-1d", type: "email", title: "Email from Lucia Ferrante: Running out of seats", body: "The merchandising team tried to add eight people this week and hit the seat limit. The AI Assistant seats are used up too.", byId: null, contactIds: ["ct-lucia"], companyIds: ["co-quarry"] },
   { id: "ac-21", at: "@-12d", type: "sync", title: "Invoice INV-58831 issued", body: "Synced from billing: Warehouse connector, 2 connectors, $4,400.00. Due in 30 days.", byId: null, companyIds: ["co-quarry"] },
   { id: "ac-22", at: "@-18d", type: "call", title: "Call with Emeka Obi", body: "Confirmed the billing contact and the purchase order process for add-ons.", byId: "jordan", contactIds: ["ct-emeka"], companyIds: ["co-quarry"] },
@@ -296,6 +306,8 @@ const activities: Activity[] = [
   { id: "ac-30", at: "@-4d", type: "email", title: "Email from Hugo Lang: Alerts feedback and two questions", body: "The city teams like the alerts, and more people keep asking for access. Two questions on the fleet telemetry connector and scheduled reports.", byId: null, contactIds: ["ct-hugo"], companyIds: ["co-vireo"] },
   { id: "ac-31", at: "@-122d", type: "call", title: "Call with Lior Ben-David", body: "Left a voicemail about the mid-year check-in.", byId: "jordan", contactIds: ["ct-lior"], companyIds: ["co-vireo"] },
   { id: "ac-32", at: "@-200d", type: "deal", title: "Deal won", body: "Vireo Mobility: Starter plan moved to Closed Won.", byId: "jordan", contactIds: ["ct-lior"], companyIds: ["co-vireo"], dealIds: ["dl-vireo-starter"] },
+  // Alderwave Logistics: the PQL free-trial hero.
+  { id: "ac-35", at: "@-6d", type: "form", title: "Started 14-day free trial workspace", body: "Nadia Osei created Alderwave Logistics — Free Trial from the Snowflake integration docs (initial lead score: 42).", byId: null, contactIds: ["ct-nadia"], companyIds: ["co-alderwave"] },
 ];
 
 // Every other record gets a short, plausible history so no timeline is empty.
@@ -479,13 +491,40 @@ export const saasPack: Pack = {
       discount: { hint: "Line items: click Edit all line items, set Unit discount to 18% on each line, then Save. Optional: Payments section, set Payment terms to Net 60" },
     },
     "back-office": {
-      company: { hint: "Companies: click Quarrystone Outfitters. Synced billing fields and the Billing and usage card are on the record" },
+      company: { hint: "Companies: click Quarrystone Outfitters. Review the seat-limit alert, synced billing fields, and Billing and usage card" },
       orders: { title: "Expand a subscription", hint: "Subscriptions tab: click a subscription row" },
       balance: { title: "Check the invoices", hint: "Click the Invoices tab" },
-      stock: { title: "Add seats to an expansion quote", hint: "Seat usage tab: tick three items, then Add to expansion quote" },
+      stock: { title: "Add seats to an expansion quote", hint: "Seat usage tab: review 97/100 Growth & 40/40 AI seats, tick three items, then Add to expansion quote" },
+      report: { title: "Review Expansion MRR by account", hint: "Reports: slice Expansion MRR by plan tier (Growth vs. Enterprise), then click Complete review" },
     },
     "lead-capture": {
       form: { title: "Submit the demo request", hint: "Pick one of the three leads, then Request a demo" },
+    },
+    "customer-onboarding": {
+      "open-onboarding-ticket": {
+        title: "Open closed-won onboarding ticket",
+        hint: "Service Hub Tickets: closed-won deal workflow created ONB-6201 for Greywether Construction — click to open",
+      },
+      "offplatform-intake": {
+        title: "Customer confirms kickoff (off-platform)",
+        hint: "Off-platform customer inbox: Zainab Haddad accepts kickoff invite and submits SSO & Snowflake setup items",
+      },
+      "verify-checklist": {
+        title: "Complete onboarding checklist tasks",
+        hint: "Ticket workspace: inspect live Product Provisioning Status and check off all 4 onboarding checklist tasks",
+      },
+      "signoff-resolve": {
+        title: "Send go-live email & close ticket",
+        hint: "Ticket workspace: send go-live confirmation to Zainab and close ONB-6201 as Onboarded",
+      },
+      "post-csat": {
+        title: "Customer completes onboarding CSAT",
+        hint: "Off-platform CSAT survey triggered on closure: review 5/5 rating and click Continue to Analytics Report",
+      },
+      "analytics-report": {
+        title: "Review time-to-onboard report",
+        hint: "Reports: filter onboarding status and time to go-live by plan tier, then click Complete review",
+      },
     },
   },
   reports,

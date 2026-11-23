@@ -16,7 +16,7 @@ import { A, Avatar, Button, Card, colorFor, cx, Empty, Modal, Prop, statusTone, 
 import { IntakeDealPanel } from "../intake/lazy";
 import { IcpMatchCard, MarketingContactBanner, MarketingDealBanner } from "../marketing/lazy";
 import { DealQuotesCard } from "../quote/deal-quotes";
-import { CampaignAttributionCard, FollowupAutomationBanner } from "../social/lazy";
+import { CampaignAttributionCard, FollowupAutomationBanner, PqlContactBanner } from "../social/lazy";
 import { companyOf, contactName, ownerName, stageOf } from "./lists";
 
 const ACTIVITY_ICON: Record<ActivityType, IconName> = { note: "note", email: "email", call: "call", meeting: "meeting", task: "task", form: "form", quote: "quote", deal: "deal", workflow: "workflow", lifecycle: "lifecycle", sync: "sync", chat: "chat" };
@@ -380,6 +380,7 @@ export function ContactRecord({ id }: { id: string }) {
           ) : null}
           <CampaignAttributionCard contactId={id} onOpenTimeline={() => setTab("activities")} />
           <MarketingContactBanner contactId={id} />
+          <PqlContactBanner contactId={id} />
           <WhyThisScoreCard contact={contact} />
           <Card title="Data highlights">
             <dl className="grid grid-cols-3 gap-4">

@@ -1,5 +1,7 @@
 import type { Pack } from "../types";
+import { customerOnboardingConfig } from "./customer-onboarding";
 import { marketingStudio } from "./marketing-studio";
+import { pqlTrialConfig } from "./pql-trial";
 
 // Per-demo content for SaaS and software: hero records, packaging rules, presets, and prepared output.
 // The demo templates in src/demos read everything vertical-specific from here.
@@ -245,6 +247,17 @@ export const demos: Pack["demos"] = {
         origin: "Created from the Billing and usage card",
         dealType: "Expansion",
       },
+    },
+    usageAlert: {
+      badge: "Seat-limit alert",
+      headline: "Quarrystone Outfitters hit its AI Assistant cap (40/40) and is at 97/100 Growth seats",
+      detail: "Usage telemetry updated the HubSpot company record and alerted AE Jordan Avery. Build an expansion quote at contract pricing directly from Seat usage.",
+      ctaTab: "stock",
+      ctaLabel: "Review seat usage",
+    },
+    reportLink: {
+      reportId: "expansion-mrr",
+      label: "Expansion MRR by account",
     },
   },
 
@@ -510,4 +523,12 @@ export const demos: Pack["demos"] = {
 
   // ---------- Marketing Studio: ICP outreach ----------
   marketingStudio,
+
+  // ---------- PQL from free trials (S2) ----------
+  pqlTrial: pqlTrialConfig,
+
+  // ---------- Customer onboarding handoff (S6) ----------
+  tickets: {
+    "customer-onboarding": customerOnboardingConfig,
+  },
 };

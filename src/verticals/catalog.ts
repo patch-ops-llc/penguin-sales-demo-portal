@@ -15,7 +15,9 @@ export type DemoId =
   | "patient-reactivation"
   | "referral-intake"
   | "staffing-job-orders"
-  | "incident-comms";
+  | "incident-comms"
+  | "pql-trial-prospecting"
+  | "customer-onboarding";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -184,6 +186,25 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "service",
     tags: ["service", "incident", "outage", "rmm", "monitoring", "broadcast", "mttr", "msp", "status"],
   },
+  "pql-trial-prospecting": {
+    id: "pql-trial-prospecting",
+    title: "Product-qualified leads from free trials",
+    minutes: 5,
+    summary: "Free-trial workspace hits a product milestone, usage sync bumps lead score to PQL, Breeze Prospecting Agent builds the buying group and drafts outreach, prospect books a demo, a deal opens, and trial conversion reports update.",
+    takeaway: "Product usage milestones turn self-serve trial users into qualified buying-group pipeline in HubSpot, with Credits tied directly to trial-to-paid conversion.",
+    hub: "sales",
+    ai: true,
+    tags: ["pql", "free trial", "product usage", "breeze", "ai", "prospecting", "buying group", "credits", "conversion"],
+  },
+  "customer-onboarding": {
+    id: "customer-onboarding",
+    title: "Customer onboarding handoff",
+    minutes: 4,
+    summary: "Closed-won SaaS deal triggers a templated Service Hub onboarding ticket with checklist tasks, kickoff invite, provisioning sync, post-onboarding CSAT survey, and time-to-onboard reporting.",
+    takeaway: "Every closed-won customer hands off seamlessly from Sales to Customer Success with automated checklist tasks, kickoff outreach, CSAT, and time-to-onboard visibility.",
+    hub: "service",
+    tags: ["onboarding", "handoff", "service", "tickets", "checklist", "kickoff", "csat", "csm", "provisioning"],
+  },
 };
 
 export const VERTICALS: VerticalTile[] = [
@@ -201,7 +222,16 @@ export const VERTICALS: VerticalTile[] = [
     company: "Lumenstack",
     blurb: "B2B analytics platform sold by plan, seats, and add-ons.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "ai-prospecting", "marketing-studio"],
+    demos: [
+      "guided-quote",
+      "discount-approval",
+      "back-office",
+      "lead-capture",
+      "ai-prospecting",
+      "marketing-studio",
+      "pql-trial-prospecting",
+      "customer-onboarding",
+    ],
     tiles: {
       "guided-quote": {
         summary: "Pick plan, seats, add-ons, and term. Subscription lines generate, quote preview, send.",
@@ -212,8 +242,9 @@ export const VERTICALS: VerticalTile[] = [
         takeaway: "Deal desk control that does not slow the deal.",
       },
       "back-office": {
-        summary: "Open a customer, see subscriptions, invoices, and seat usage from billing and product usage, build an expansion quote from them.",
-        takeaway: "What are they on, what do they owe, are they out of seats: answered without leaving HubSpot.",
+        summary: "Seat-limit alert triggers on a customer nearing capacity; inspect subscriptions, invoices, and seat usage in HubSpot, build an expansion quote, and track Expansion MRR by account.",
+        takeaway: "What are they on, are they out of seats, and how much expansion MRR is in play: answered without leaving HubSpot.",
+        tags: ["seat limit", "expansion", "mrr", "upsell"],
       },
       "lead-capture": {
         summary: "Demo request submitted, company enriched and scored with reasons, routed by segment and territory, rep gets a task and an alert.",

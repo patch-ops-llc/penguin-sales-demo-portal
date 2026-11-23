@@ -5,7 +5,7 @@ import type { IntakeAction, IntakeState } from "./intake";
 import type { MarketingStudioAction, MarketingStudioState } from "./marketing-studio";
 import type { PatientReactivationAction, PatientReactivationState } from "./patient-reactivation";
 import type { GuidedQuoteState, QuotingAction } from "./quoting";
-import type { AiProspectingState, BackOfficeState, EmailToDealState, LeadCaptureState, SalesAction } from "./sales";
+import type { AiProspectingState, BackOfficeState, EmailToDealState, LeadCaptureState, PqlTrialState, SalesAction } from "./sales";
 import type { SocialAdsAction, SocialAdsState } from "./social-ads";
 import type { TicketsAction, TicketsState } from "./tickets";
 
@@ -43,6 +43,7 @@ export type World = {
   lc: LeadCaptureState;
   ed: EmailToDealState;
   ap: AiProspectingState;
+  pql: PqlTrialState;
   ca: CustomerAgentState;
   sa: SocialAdsState;
   ms: MarketingStudioState;

@@ -32,12 +32,13 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "customer-agent" || section === "service" || section === "service-app" || section === "service-dashboard") {
     tasks.push(preloadService());
   }
-  if (demo === "post-visit-feedback" || demo === "incident-comms" || section === "tickets" || section === "ticket-app") {
+  if (demo === "post-visit-feedback" || demo === "incident-comms" || demo === "customer-onboarding" || section === "tickets" || section === "ticket-app") {
     tasks.push(preloadTickets());
   }
   if (
     demo === "social-ads" ||
     demo === "patient-reactivation" ||
+    demo === "pql-trial-prospecting" ||
     section === "campaigns" ||
     section === "social" ||
     section === "insights" ||
@@ -90,7 +91,10 @@ function shouldPreloadAnalytics(pack: Pack, verticalId: string, location: string
 function shouldPreloadSocial(pack: Pack, verticalId: string, location: string): boolean {
   const parsed = parseLocation(location);
   const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
-  return Boolean(demo === "ai-prospecting" && pack.demos.aiProspecting.offPlatformMeeting);
+  return Boolean(
+    (demo === "ai-prospecting" && pack.demos.aiProspecting.offPlatformMeeting) ||
+      (demo === "pql-trial-prospecting" && pack.demos.pqlTrial),
+  );
 }
 
 type Loaded = { vertical: string; pack: Pack; saved: Saved | null; location: string };

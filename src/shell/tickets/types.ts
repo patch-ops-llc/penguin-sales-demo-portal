@@ -137,6 +137,14 @@ export type TicketSecondaryOffPlatform = {
   badge?: string;
   footnote?: string;
   ctaLabel: string;
+  /** Optional post-onboarding CSAT prompt displayed inside the secondary off-platform screen. */
+  csatSurvey?: {
+    question: string;
+    score: number;
+    scaleMax: number;
+    comment: string;
+    highlightTags: string[];
+  };
 };
 
 export type TicketQueueSeed = {

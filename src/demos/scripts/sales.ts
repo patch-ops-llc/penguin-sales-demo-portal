@@ -49,6 +49,15 @@ export const backOffice: DemoScript = {
       done: ({ w }) => w.quotes.some((q) => q.id === w.bo.quoteId && (q.status === "Sent" || q.status === "Accepted")),
       script: ({ w }, now) => (w.bo.quoteId ? [{ t: "quote.send", id: w.bo.quoteId, at: now }] : []),
     },
+    {
+      id: "report",
+      title: "Review Expansion MRR by account",
+      hint: "Reports: filter Expansion MRR by plan tier, then click Complete review",
+      when: (pack) => Boolean(pack.demos.backOffice.reportLink),
+      path: ({ pack }) => `/reports/${pack.demos.backOffice.reportLink?.reportId ?? "expansion-mrr"}`,
+      done: (c) => has(c, "bo.reportSeen"),
+      script: () => [flag("bo.reportSeen")],
+    },
   ],
 };
 
@@ -266,6 +275,89 @@ export const aiProspecting: DemoScript = {
       path: ({ pack }) => `/reports/${pack.demos.aiProspecting.reportId ?? "referral-outreach"}`,
       done: (c) => has(c, "ap.reportSeen"),
       script: () => [flag("ap.reportSeen")],
+    },
+  ],
+};
+
+export const pqlTrialProspecting: DemoScript = {
+  id: "pql-trial-prospecting",
+  steps: [
+    {
+      id: "trial-milestone",
+      title: "Trial hits usage milestone (off-platform)",
+      hint: "Off-platform trial workspace: 5 teammates invited & Snowflake connected — click Complete trial milestone",
+      path: () => "/offplatform/pql-trial",
+      after: ({ pack }) => `/contacts/${pack.demos.pqlTrial?.contactId ?? ""}`,
+      done: ({ w }) => w.pql.milestoneHit,
+      script: (_c, now) => [{ t: "pql.hitMilestone", at: now }],
+    },
+    {
+      id: "contact-pql",
+      title: "Verify PQL score on contact timeline",
+      hint: "Contact record: confirm lead score rose from 42 to 88 (PQL) on timeline, then open Prospecting Agent",
+      path: ({ pack }) => `/contacts/${pack.demos.pqlTrial?.contactId ?? ""}`,
+      after: () => "/prospecting",
+      done: (c) => has(c, "pql.contactSeen"),
+      script: () => [flag("pql.contactSeen")],
+    },
+    {
+      id: "pql-signal",
+      title: "Inspect PQL signal in Prospecting Agent",
+      hint: "Prospecting Agent: click Alderwave Logistics at the top of the list to inspect the usage milestone signal",
+      path: () => "/prospecting",
+      done: (c) => has(c, "pql.signal"),
+      script: ({ pack }) => [
+        { t: "ui", k: "prospecting.account", v: pack.demos.pqlTrial?.companyId ?? "" },
+        { t: "ui", k: "prospecting.tab", v: "signals" },
+        flag("pql.signal"),
+      ],
+    },
+    {
+      id: "pql-group",
+      title: "Review PQL buying group",
+      hint: "Prospecting Agent: click Buying group to see the champion, VP Engineering, and Finance buyer",
+      path: () => "/prospecting",
+      done: (c) => has(c, "pql.group"),
+      script: () => [{ t: "ui", k: "prospecting.tab", v: "group" }, flag("pql.group")],
+    },
+    {
+      id: "pql-draft",
+      title: "Draft trial-to-paid outreach",
+      hint: "Click Draft outreach for this group to generate tailored trial-to-paid emails",
+      path: () => "/prospecting",
+      done: ({ w }) => w.pql.drafted,
+      script: () => [{ t: "ui", k: "prospecting.tab", v: "outreach" }, { t: "ap.draft", pql: true }],
+    },
+    {
+      id: "pql-send",
+      title: "Approve and send outreach",
+      hint: "Review drafts and click Approve and send all 3",
+      path: () => "/prospecting",
+      done: ({ w }) => w.pql.sent,
+      script: (_c, now) => [{ t: "ap.send", at: now, pql: true }],
+    },
+    {
+      id: "pql-meeting",
+      title: "Prospect books meeting & deal opens",
+      hint: "Off-platform prospect inbox: pick a time slot and click Book meeting & open deal",
+      path: () => "/offplatform/prospect-meeting",
+      done: ({ w }) => w.pql.meetingBooked,
+      script: ({ pack }, now) => [
+        {
+          t: "ap.bookMeeting",
+          slotId: pack.demos.pqlTrial?.prospecting.offPlatformMeeting?.defaultSlotId ?? "slot-1",
+          at: now,
+          pql: true,
+        },
+      ],
+    },
+    {
+      id: "pql-report",
+      title: "Review trial-to-paid conversion report",
+      hint: "Reports: filter conversion by source and inspect Credits ROI, then click Complete review",
+      path: ({ pack }) => `/reports/${pack.demos.pqlTrial?.prospecting.reportId ?? "trial-to-paid"}`,
+      done: (c) => has(c, "pql.reportSeen"),
+      script: () => [flag("pql.reportSeen")],
     },
   ],
 };

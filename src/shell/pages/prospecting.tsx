@@ -15,17 +15,19 @@ const TYPE_MS = 1200;
 
 /** Breeze Prospecting Agent: flagged accounts, why now, the buying group, and outreach drafts to approve. */
 export function ProspectingPage() {
-  const { world, pack, dispatch } = useShell();
-  const config = pack.demos.aiProspecting;
+  const { world, pack, demo, dispatch } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const config = isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting;
+  const signals = isPql ? [pack.demos.pqlTrial!.signal, ...pack.signals] : pack.signals;
   const accountId = world.ui["prospecting.account"];
-  const signal = pack.signals.find((s) => s.companyId === accountId);
+  const signal = signals.find((s) => s.companyId === accountId);
   const company = accountId ? companyOf(world, accountId) : undefined;
   const isHero = accountId === config.companyId;
   const tab = (world.ui["prospecting.tab"] as TabId | undefined) ?? "signals";
 
-  useSeen("ap.signal", isHero);
-  useSeen("ap.whyNow", isHero && tab === "why");
-  useSeen("ap.group", isHero && tab === "group");
+  useSeen(isPql ? "pql.signal" : "ap.signal", isHero);
+  useSeen("ap.whyNow", !isPql && isHero && tab === "why");
+  useSeen(isPql ? "pql.group" : "ap.group", isHero && tab === "group");
 
   return (
     <div className="grid h-full grid-cols-[340px_minmax(0,1fr)]" data-testid="prospecting-page">
@@ -39,9 +41,9 @@ export function ProspectingPage() {
           </div>
           <p className="mt-1.5 text-[12.5px] text-ink-muted">Breeze watches your accounts and flags the ones showing buying signals.</p>
         </header>
-        <p className="px-4 pb-1 pt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">Flagged accounts · {pack.signals.length}</p>
+        <p className="px-4 pb-1 pt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted">Flagged accounts · {signals.length}</p>
         <ul>
-          {pack.signals.map((s) => {
+          {signals.map((s) => {
             const c = companyOf(world, s.companyId);
             return (
               <li key={s.id}>
@@ -150,8 +152,9 @@ function SignalCard({ signal }: { signal: ProspectSignal }) {
 }
 
 function HeroSignals({ signal }: { signal: ProspectSignal }) {
-  const { pack } = useShell();
-  const detail = pack.demos.aiProspecting.signalDetail;
+  const { pack, demo } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const detail = (isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting).signalDetail;
   // Without the detail, the flagged signal itself is the fed-in one.
   if (!detail) {
     return (
@@ -165,7 +168,7 @@ function HeroSignals({ signal }: { signal: ProspectSignal }) {
   const max = Math.max(...detail.fed.bars.map((bar) => bar.value), 1);
   return (
     <div className="grid gap-4 lg:grid-cols-2" data-testid="ap-signals">
-      <Ext id="erp-signal">
+      <Ext id={detail.fed.extId ?? "erp-signal"}>
         <Card title={detail.fed.title} right={<Tag tone="blue">{detail.fed.source}</Tag>} testId="ap-erp-signal">
           <p className="text-[13.5px]">{detail.fed.detail}</p>
           <div className="mt-4 space-y-2.5">
@@ -197,8 +200,9 @@ function HeroSignals({ signal }: { signal: ProspectSignal }) {
 }
 
 function WhyNow() {
-  const { pack, dispatch } = useShell();
-  const { whyNow } = pack.demos.aiProspecting;
+  const { pack, demo, dispatch } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const { whyNow } = isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting;
   return (
     <Card testId="ap-why">
       <div className="flex items-center gap-2">
@@ -227,13 +231,15 @@ function WhyNow() {
 }
 
 function BuyingGroup() {
-  const { pack, world, dispatch } = useShell();
-  const { buyingGroup } = pack.demos.aiProspecting;
+  const { pack, world, demo, dispatch } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const { buyingGroup } = isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting;
+  const apState = isPql ? world.pql : world.ap;
   return (
     <Card testId="ap-group" pad={false}>
       <ul className="divide-y divide-line-soft">
         {buyingGroup.map((m) => {
-          const contactId = m.contactId ?? (world.ap.sent ? `ct-${m.id}` : null);
+          const contactId = m.contactId ?? (apState.sent ? `ct-${m.id}` : null);
           return (
             <li key={m.id} className="flex items-center gap-3 px-5 py-3.5">
               <Avatar name={m.name} color={colorFor(m.email)} size={34} />
@@ -288,9 +294,10 @@ function Typed({ text, onDone }: { text: string; onDone: () => void }) {
 }
 
 function Outreach() {
-  const { pack, world, dispatch, navigate } = useShell();
-  const config = pack.demos.aiProspecting;
-  const { drafted, version, edits, sent, meetingBooked } = world.ap;
+  const { pack, world, demo, dispatch, navigate } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const config = isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting;
+  const { drafted, version, edits, sent, meetingBooked } = isPql ? world.pql : world.ap;
   const [memberId, setMemberId] = useState(config.buyingGroup[0].id);
   // Set by the Draft and Regenerate buttons, so the writing effect plays once and never on a return visit.
   const [typing, setTyping] = useState<string | null>(null);
@@ -300,6 +307,7 @@ function Outreach() {
   const body = edits[member.id] ?? draft.body;
   const typingKey = `${member.id}:${version}`;
   const found = config.buyingGroup.filter((m) => !m.contactId).length;
+  const pqlArg = isPql ? { pql: true as const } : {};
 
   if (!drafted) {
     return (
@@ -316,7 +324,7 @@ function Outreach() {
             data-testid="ap-draft"
             onClick={() => {
               setTyping(`${member.id}:${version}`);
-              dispatch([{ t: "ap.draft" }]);
+              dispatch([{ t: "ap.draft", ...pqlArg }]);
             }}
           >
             <Sparkle size={14} />
@@ -358,7 +366,7 @@ function Outreach() {
                 ) : null}
                 {config.reportId ? (
                   <Button variant="secondary" size="sm" data-testid="ap-open-report" onClick={() => navigate(`/reports/${config.reportId}`)}>
-                    {config.reportLabel ?? "View referral volume report"}
+                    {config.reportLabel ?? config.reportButtonLabel ?? "View referral volume report"}
                   </Button>
                 ) : null}
               </div>
@@ -407,7 +415,7 @@ function Outreach() {
                     onClick={() => {
                       if (i === version) return;
                       setTyping(`${member.id}:${i}`);
-                      dispatch([{ t: "ap.version", v: i }]);
+                      dispatch([{ t: "ap.version", v: i, ...pqlArg }]);
                     }}
                     className={cx("h-7 rounded-full border px-2.5 text-[12px] font-semibold", i === version ? "border-breeze bg-breeze-soft text-breeze" : "border-line text-ink hover:bg-[#f7f7f7]")}
                   >
@@ -422,7 +430,7 @@ function Outreach() {
                   onClick={() => {
                     const next = (version + 1) % tones.length;
                     setTyping(`${member.id}:${next}`);
-                    dispatch([{ t: "ap.version", v: next }]);
+                    dispatch([{ t: "ap.version", v: next, ...pqlArg }]);
                   }}
                 >
                   Regenerate
@@ -455,7 +463,7 @@ function Outreach() {
                 data-testid="ap-body"
                 value={body}
                 readOnly={sent}
-                onChange={(e) => dispatch([{ t: "ap.edit", memberId: member.id, text: e.target.value }])}
+                onChange={(e) => dispatch([{ t: "ap.edit", memberId: member.id, text: e.target.value, ...pqlArg }])}
                 className={cx("block min-h-[236px] w-full resize-y rounded-[6px] border border-line px-3 py-2.5 text-[13.5px] leading-relaxed outline-none focus:border-link", sent && "bg-[#fafafa] text-ink-muted")}
               />
             )}
@@ -463,7 +471,7 @@ function Outreach() {
 
           {!sent ? (
             <div className="mt-4 flex items-center gap-3">
-              <Button variant="primary" icon="send" data-testid="ap-send" onClick={() => dispatch([{ t: "ap.send", at: nowMs() }])}>
+              <Button variant="primary" icon="send" data-testid="ap-send" onClick={() => dispatch([{ t: "ap.send", at: nowMs(), ...pqlArg }])}>
                 Approve and send all {config.buyingGroup.length}
               </Button>
               <span className="text-[12.5px] text-ink-muted">You can edit any draft before it goes out.</span>

@@ -275,7 +275,7 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
             </div>
             {!run.intakeSubmitted ? (
               <div className="mt-3 flex justify-end">
-                <Button variant="secondary" size="sm" icon="external" onClick={() => navigate(`/ticket-app/${cfg.demoId}/intake`)}>
+                <Button variant="secondary" size="sm" icon="external" data-testid="ticket-open-intake" onClick={() => navigate(`/ticket-app/${cfg.demoId}/intake`)}>
                   Open off-platform customer portal
                 </Button>
               </div>
@@ -467,11 +467,32 @@ export function TicketRecordWorkspace({ cfg }: { cfg: TicketsDemoConfig }) {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[12.5px] text-ink-muted">
-                  Ready to review live metrics in HubSpot Reporting.
+                  {cfg.secondaryOffPlatform && !run.secondarySeen
+                    ? "Customer survey logged — review CSAT response or open HubSpot Reporting."
+                    : "Ready to review live metrics in HubSpot Reporting."}
                 </span>
-                <Button variant="primary" size="sm" icon="chart" onClick={() => navigate(`/reports/${cfg.reportId}`)} data-testid="ticket-open-report">
-                  {cfg.reportButtonLabel} <Icon name="arrowRight" size={14} />
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {cfg.secondaryOffPlatform ? (
+                    <Button
+                      variant={run.secondarySeen ? "secondary" : "primary"}
+                      size="sm"
+                      icon="external"
+                      onClick={() => navigate(`/ticket-app/${cfg.demoId}/outreach`)}
+                      data-testid="ticket-open-secondary"
+                    >
+                      {cfg.secondaryOffPlatform.badge ?? "View customer survey"} <Icon name="arrowRight" size={14} />
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant={cfg.secondaryOffPlatform && !run.secondarySeen ? "secondary" : "primary"}
+                    size="sm"
+                    icon="chart"
+                    onClick={() => navigate(`/reports/${cfg.reportId}`)}
+                    data-testid="ticket-open-report"
+                  >
+                    {cfg.reportButtonLabel} <Icon name="arrowRight" size={14} />
+                  </Button>
+                </div>
               </div>
             </div>
           )}

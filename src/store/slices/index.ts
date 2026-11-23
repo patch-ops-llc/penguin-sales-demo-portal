@@ -18,10 +18,12 @@ export {
   seedBackOffice,
   seedEmailToDeal,
   seedLeadCapture,
+  seedPqlTrial,
   type AiProspectingState,
   type BackOfficeState,
   type EmailToDealState,
   type LeadCaptureState,
+  type PqlTrialState,
   type SalesAction,
 } from "./sales";
 export { applySocialAds, isSocialAdsAction, seedSocialAds, type SocialAdsAction, type SocialAdsState } from "./social-ads";

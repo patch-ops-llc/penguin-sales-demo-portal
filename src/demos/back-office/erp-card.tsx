@@ -37,6 +37,30 @@ export function ErpCard({ company }: { company: Company }) {
             <span className="h-2 w-2 rounded-full bg-[#1a9e4b]" /> {fill(labels.live, { system: label, when: relative(config.syncedAt) })}
           </p>
         </header>
+        {config.usageAlert ? (
+          <div
+            className="mx-4 mt-2.5 flex flex-wrap items-center justify-between gap-2.5 rounded-[8px] border border-[#f5d08a] bg-[#fffaf0] px-3 py-2 text-[12.5px]"
+            data-testid="erp-usage-alert"
+          >
+            <div className="flex min-w-0 items-start gap-2">
+              <Tag tone="amber">{config.usageAlert.badge}</Tag>
+              <div className="min-w-0">
+                <p className="font-semibold text-[#7a4b00]">{config.usageAlert.headline}</p>
+                <p className="text-[12px] text-[#6b4e16]">{config.usageAlert.detail}</p>
+              </div>
+            </div>
+            {tab !== (config.usageAlert.ctaTab ?? "stock") ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                data-testid="erp-usage-alert-cta"
+                onClick={() => setTab(config.usageAlert!.ctaTab ?? "stock")}
+              >
+                {config.usageAlert.ctaLabel}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         <LineTabs
           className="mt-2 px-4"
           value={tab}
@@ -148,7 +172,8 @@ export function ErpCard({ company }: { company: Company }) {
 
         {tab === "stock" ? (
           <div data-testid="erp-stock">
-            <table className="w-full text-[13px]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
               <thead>
                 <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
                   <th className="w-9 py-2 pl-4" />
@@ -195,6 +220,7 @@ export function ErpCard({ company }: { company: Company }) {
                 })}
               </tbody>
             </table>
+            </div>
             <div className="flex items-center gap-3 px-4 py-3">
               {quote ? (
                 <>
@@ -222,6 +248,20 @@ export function ErpCard({ company }: { company: Company }) {
               )}
             </div>
           </div>
+        ) : null}
+        {config.reportLink ? (
+          <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line-soft bg-[#fafafa] px-4 py-2.5 text-[12.5px]">
+            <span className="text-ink-muted">Track expansion MRR across all seat-constrained accounts in native HubSpot Reporting.</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="chart"
+              data-testid="erp-report-link"
+              onClick={() => navigate(`/reports/${config.reportLink!.reportId}`)}
+            >
+              {config.reportLink.label} <Icon name="arrowRight" size={13} />
+            </Button>
+          </footer>
         ) : null}
       </section>
     </Ext>

@@ -20,6 +20,7 @@ const loadSocial = () =>
 const SocialRouteView = lazy(() => loadSocial().then((m) => ({ default: m.SocialRouteView })));
 const CampaignAttributionCardInner = lazy(() => loadSocial().then((m) => ({ default: m.CampaignAttributionCard })));
 const FollowupAutomationBannerInner = lazy(() => loadSocial().then((m) => ({ default: m.FollowupAutomationBanner })));
+const PqlContactBannerInner = lazy(() => loadSocial().then((m) => ({ default: m.PqlContactBanner })));
 
 export function preloadSocial(): Promise<unknown> {
   return loadSocial();
@@ -66,6 +67,22 @@ export function FollowupAutomationBanner({ contactId }: { contactId: string }) {
   return (
     <Suspense fallback={null}>
       <FollowupAutomationBannerInner contactId={contactId} />
+    </Suspense>
+  );
+}
+
+export function PqlContactBanner({ contactId }: { contactId: string }) {
+  const { pack, world, demo } = useShell();
+  if (demo !== "pql-trial-prospecting" || !pack.demos.pqlTrial || pack.demos.pqlTrial.contactId !== contactId || !world.pql.milestoneHit) {
+    return null;
+  }
+  if (cached) {
+    const Comp = cached.PqlContactBanner;
+    return <Comp contactId={contactId} />;
+  }
+  return (
+    <Suspense fallback={null}>
+      <PqlContactBannerInner contactId={contactId} />
     </Suspense>
   );
 }

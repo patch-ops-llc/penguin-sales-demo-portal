@@ -78,7 +78,7 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
       steps: [
         {
           id: "open-onboarding-ticket",
-          title: "Open closed-won onboarding ticket & checklist",
+          title: "Open closed-won onboarding ticket",
           hint: "Service Hub Tickets: closed-won workflow created the onboarding ticket — click to open",
           path: () => "/tickets",
           done: ({ w }) => getTicketRun(w, demoId).ticketOpened,
@@ -86,8 +86,8 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
         },
         {
           id: "offplatform-intake",
-          title: "Customer receives kickoff & uploads items (off-platform)",
-          hint: "Off-platform portal: review kickoff & requested documents, then submit",
+          title: "Customer confirms kickoff (off-platform)",
+          hint: "Off-platform portal: review kickoff & requested items, then submit",
           path: () => `/ticket-app/${demoId}/intake`,
           done: ({ w }) => getTicketRun(w, demoId).intakeSubmitted,
           script: (_c, now) => [{ t: "tk.submitIntake", demoId, at: now }],
@@ -106,7 +106,7 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
         },
         {
           id: "signoff-resolve",
-          title: "Send sign-off & close onboarding ticket",
+          title: "Send sign-off & close ticket",
           hint: "Ticket workspace: send confirmation and close the onboarding ticket",
           path: ticketPath,
           done: ({ w }) => getTicketRun(w, demoId).resolved,
@@ -114,6 +114,15 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
             { t: "tk.sendOutreach", demoId, at: now - 1_000 },
             { t: "tk.resolve", demoId, at: now },
           ],
+        },
+        {
+          id: "post-csat",
+          title: "Customer completes onboarding CSAT",
+          hint: "Off-platform CSAT survey triggered on ticket completion: review rating and continue to report",
+          when: (pack) => Boolean(pack.demos.tickets?.[demoId]?.secondaryOffPlatform),
+          path: () => `/ticket-app/${demoId}/outreach`,
+          done: ({ w }) => getTicketRun(w, demoId).secondarySeen,
+          script: () => [{ t: "tk.seenSecondary", demoId }],
         },
         { ...reportStep, title: "Review onboarding time & status report" },
       ],
@@ -213,3 +222,4 @@ export function createTicketsScript(demoId: DemoId, mode: TicketMode): DemoScrip
 
 export const postVisitFeedback = createTicketsScript("post-visit-feedback", "feedback");
 export const incidentComms = createTicketsScript("incident-comms", "incident");
+export const customerOnboarding = createTicketsScript("customer-onboarding", "checklist");

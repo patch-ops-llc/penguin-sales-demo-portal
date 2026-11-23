@@ -50,6 +50,7 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
   "back-office": [
     { id: "company-record", name: "Company record and properties", by: "native" },
     { id: "quote-editor", name: "Quote editor", by: "native" },
+    { id: "expansion-mrr-report", name: "Native Expansion MRR by account report", by: "native" },
     {
       id: "erp-synced-fields",
       name: "Synced billing fields",
@@ -60,7 +61,7 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       id: "erp-card",
       name: "Billing and usage card",
       by: "penguin",
-      note: "Subscriptions, invoices, and seat usage read live from billing and product usage when the record opens, plus Add to expansion quote at the contract price.",
+      note: "Subscriptions, invoices, seat-limit alerts, and seat usage read live from billing and product usage when the record opens, plus Add to expansion quote at the contract price.",
     },
   ],
   "lead-capture": [
@@ -114,6 +115,38 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       name: "HubSpot Credits-to-Pipeline Outcome Attribution",
       by: "penguin",
       note: "Connects HubSpot Credits consumed by Marketing Studio and Breeze actions directly to booked meetings, cost-per-meeting, and attributed pipeline.",
+    },
+  ],
+  "pql-trial-prospecting": [
+    { id: "pql-contact-timeline", name: "Contact timeline and native lead scoring promotion to PQL", by: "native" },
+    { id: "pql-prospecting-agent", name: "Breeze Prospecting Agent: buying signals and buying group discovery", by: "native" },
+    { id: "pql-outreach-approval", name: "Role-tailored trial-to-paid outreach drafts, rep approval, and send", by: "native" },
+    { id: "pql-meeting-deal", name: "HubSpot Meetings booking and automatic deal creation", by: "native" },
+    { id: "pql-conversion-report", name: "Native Trial-to-paid conversion by source Analytics report", by: "native" },
+    {
+      id: "product-usage-sync",
+      name: "Product Usage Event Sync",
+      by: "penguin",
+      note: "Streams free-trial workspace milestones (teammate invites and warehouse connections) from product telemetry into HubSpot contact timelines, lead scoring, and Breeze signals.",
+    },
+    {
+      id: "credits-outcome-bridge",
+      name: "Credits-to-Pipeline Outcome Attribution",
+      by: "penguin",
+      note: "Connects HubSpot Credits consumed by Breeze Prospecting Agent PQL enrichment and trial-to-paid outreach directly to booked meetings and conversion pipeline.",
+    },
+  ],
+  "customer-onboarding": [
+    { id: "onb-deal-workflow", name: "Closed-won deal-to-ticket automation and CSM assignment", by: "native" },
+    { id: "onb-service-pipeline", name: "Service Hub Customer Onboarding pipeline, stages, and SLA tracking", by: "native" },
+    { id: "onb-checklist-tasks", name: "Templated onboarding checklist tasks and kickoff email handoff", by: "native" },
+    { id: "onb-csat-survey", name: "Post-onboarding CSAT feedback survey triggered on completion", by: "native" },
+    { id: "onb-analytics-report", name: "Native Time to onboard & onboarding status Analytics report", by: "native" },
+    {
+      id: "product-provisioning-card",
+      name: "Product Provisioning Status Card",
+      by: "penguin",
+      note: "Reads live Lumenstack tenant provisioning, Okta SSO/SCIM sync, and data connector health directly inside the HubSpot Service Hub onboarding ticket.",
     },
   ],
 };

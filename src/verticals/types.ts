@@ -445,6 +445,16 @@ export type BackOfficeConfig = {
   quoteTitle: string;
   dealName: string;
   labels?: DeepPartial<BackOfficeLabels>;
+  /** Optional threshold alert banner (e.g. SaaS seat-limit alert when customer hits seat cap). */
+  usageAlert?: {
+    badge: string;
+    headline: string;
+    detail: string;
+    ctaTab?: "orders" | "balance" | "stock";
+    ctaLabel?: string;
+  };
+  /** Optional shared Analytics report linked from the back-office card (e.g. Expansion MRR by account). */
+  reportLink?: { reportId: string; label: string };
 };
 
 // ---------- Lead capture ----------
@@ -647,7 +657,15 @@ export type OutreachDraft = { tone: string; subject: string; body: string };
 
 /** The two signals on the hero account: the one fed in from the back office, and one HubSpot finds itself. */
 export type ProspectSignalDetail = {
-  fed: { title: string; source: string; detail: string; bars: { label: string; value: number; unit: string; now?: boolean }[]; footnote: string };
+  fed: {
+    /** Extension id for `<Ext>`. Defaults to `"erp-signal"`. */
+    extId?: string;
+    title: string;
+    source: string;
+    detail: string;
+    bars: { label: string; value: number; unit: string; now?: boolean }[];
+    footnote: string;
+  };
   native: { title: string; source: string; detail: string; footnote: string };
 };
 
@@ -670,15 +688,28 @@ export type ProspectOffPlatformMeeting = {
   /** Optional vertical wording overrides (Healthcare lunch-and-learn copy is the default). */
   channelLabel?: string;
   mailClientName?: string;
+  inboxHeader?: string;
   inboxBreadcrumb?: string;
   openButtonLabel?: string;
   bookedButtonLabel?: string;
   slotHeading?: string;
+  slotPrompt?: string;
   confirmButtonLabel?: string;
   confirmedHeadline?: string;
   bookingForLabel?: string;
-  /** Optional HubSpot deal opened automatically when the prospect confirms the meeting. */
+  reportButtonLabel?: string;
+  /** Optional HubSpot deal opened automatically when the prospect confirms the meeting (IT Services / simple form). */
   dealCreated?: { id: string; name: string; amount: number; stage: string };
+  /** When set, booking the meeting automatically opens a native HubSpot Deal with line items (SaaS PQL form). */
+  createsDeal?: {
+    id: string;
+    name: string;
+    amount: number;
+    stage: string;
+    closeInDays: number;
+    type?: string;
+    lineItems: { sku: string; qty: number }[];
+  };
 };
 
 export type AiProspectingConfig = {
@@ -689,12 +720,45 @@ export type AiProspectingConfig = {
   /** Three prepared versions per person, keyed by buying-group member id. */
   drafts: Record<string, OutreachDraft[]>;
   followUp: { title: string; dueInDays: number };
-  /** Optional off-platform inbox & meeting booking step (e.g. Healthcare lunch-and-learn or IT CIO review). */
+  /** Optional off-platform inbox & meeting booking step (Healthcare lunch-and-learn, IT CIO review, or SaaS PQL demo). */
   offPlatformMeeting?: ProspectOffPlatformMeeting;
   /** Optional shared Analytics report id opened at the end of the flow. */
   reportId?: string;
   /** Optional CTA label for the report button. */
   reportLabel?: string;
+  reportButtonLabel?: string;
+};
+
+/** SaaS #2 (`pql-trial-prospecting`): Free-trial product milestone -> PQL score bump -> Breeze Prospecting -> meeting & deal -> conversion report. */
+export type PqlTrialConfig = {
+  companyId: string;
+  contactId: string;
+  signal: ProspectSignal;
+  initialScore: number;
+  pqlScore: number;
+  initialLifecycle: string;
+  pqlLifecycle: string;
+  pqlLeadStatus: string;
+  trialApp: {
+    workspaceName: string;
+    workspaceUrl: string;
+    planLabel: string;
+    trialDayLabel: string;
+    headline: string;
+    intro: string;
+    milestones: { id: string; label: string; detail: string; status: "done" | "trigger"; metric: string }[];
+    ctaLabel: string;
+    syncCard: {
+      extId: string;
+      title: string;
+      badge: string;
+      subtitle: string;
+      eventName: string;
+      fields: { label: string; value: string }[];
+      footnote: string;
+    };
+  };
+  prospecting: AiProspectingConfig;
 };
 
 // ---------- Customer agent (fintech omnichannel) ----------
@@ -1267,6 +1331,7 @@ export type Pack = {
     socialAds?: SocialAdsConfig;
     marketingStudio?: MarketingStudioConfig;
     patientReactivation?: PatientReactivationConfig;
+    pqlTrial?: PqlTrialConfig;
     /** Parameterized Tickets workspace configs keyed by DemoId (supports feedback, checklist, sla, and incident modes). */
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
     intake?: Partial<Record<IntakeDemoId, IntakeFlowConfig>>;

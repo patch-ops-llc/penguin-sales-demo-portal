@@ -479,7 +479,7 @@ export function TicketOffPlatformOutreachPage({ cfg }: { cfg: TicketsDemoConfig 
 
   const confirmAndReturn = () => {
     dispatch({ t: "tk.seenSecondary", demoId: cfg.demoId });
-    navigate(`/tickets/${cfg.ticket.id}`);
+    navigate(sec.csatSurvey ? `/reports/${cfg.reportId}` : `/tickets/${cfg.ticket.id}`);
   };
 
   return (
@@ -502,6 +502,24 @@ export function TicketOffPlatformOutreachPage({ cfg }: { cfg: TicketsDemoConfig 
               <Prop label="From">{sec.fromName} ({sec.fromEmail})</Prop>
               <Prop label="To">{sec.toName} ({sec.toEmail})</Prop>
             </dl>
+            {sec.csatSurvey ? (
+              <div className="mt-4 rounded-[10px] border border-[#bfe3cd] bg-[#f2fbf5] p-4" data-testid="ticket-secondary-csat">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[13px] font-semibold text-[#0b5b2b]">{sec.csatSurvey.question}</p>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#0b7a3b] px-2.5 py-0.5 text-[12px] font-bold text-white tabular-nums">
+                    {sec.csatSurvey.score} / {sec.csatSurvey.scaleMax} CSAT
+                  </span>
+                </div>
+                <p className="mt-2 text-[13px] italic leading-relaxed text-[#0b5b2b]">
+                  &ldquo;{sec.csatSurvey.comment}&rdquo;
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {sec.csatSurvey.highlightTags.map((h) => (
+                    <Tag key={h} tone="green">{h}</Tag>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <p className="mt-4 whitespace-pre-line rounded-[8px] border border-line-soft bg-[#fafafa] p-4 text-[13.5px] leading-relaxed">
               {sec.body}
             </p>

@@ -3,39 +3,44 @@
 import { useState } from "react";
 import { nowMs } from "@/lib/format";
 import { useShell } from "@/store/store";
+import { money } from "../format";
 import { Icon } from "../icons";
-import { Avatar, Button, colorFor, cx, Tag } from "../ui";
+import { A, Avatar, Button, colorFor, cx, Tag } from "../ui";
 import { OffPlatformFrame } from "./off-platform";
 
 /**
- * Off-platform practice email inbox & lunch-and-learn scheduling screen for AI Prospecting (H3).
- * Native HubSpot outreach email delivery + native HubSpot Meetings link — ZERO Penguin markers.
+ * Off-platform prospect email inbox & meeting booking screen for AI Prospecting (H3)
+ * and PQL Trial Prospecting (S2).
+ * Native HubSpot outreach email delivery, native HubSpot Meetings link, and native Deal creation — ZERO Penguin markers.
  */
 export function ProspectMeetingOffPlatformPage() {
-  const { pack, world, dispatch, navigate } = useShell();
-  const config = pack.demos.aiProspecting;
+  const { pack, world, demo, dispatch, navigate } = useShell();
+  const isPql = demo === "pql-trial-prospecting" && Boolean(pack.demos.pqlTrial);
+  const config = isPql ? pack.demos.pqlTrial!.prospecting : pack.demos.aiProspecting;
+  const apState = isPql ? world.pql : world.ap;
   const meeting = config.offPlatformMeeting;
   const [selectedSlotId, setSelectedSlotId] = useState(meeting?.defaultSlotId ?? "slot-1");
 
   if (!meeting) return null;
 
-  const booked = world.ap.meetingBooked;
-  const activeSlotId = booked && world.ap.meetingSlotId ? world.ap.meetingSlotId : selectedSlotId;
+  const booked = apState.meetingBooked;
+  const activeSlotId = booked && apState.meetingSlotId ? apState.meetingSlotId : selectedSlotId;
   const activeSlot = meeting.slots.find((s) => s.id === activeSlotId) ?? meeting.slots[0];
   const primaryMember = config.buyingGroup.find((m) => m.name === meeting.recipientName) ?? config.buyingGroup[0];
-  const draft = config.drafts[primaryMember.id]?.[world.ap.version] ?? config.drafts[primaryMember.id]?.[0];
-  const emailBody = world.ap.edits[primaryMember.id] ?? draft?.body ?? "";
+  const draft = config.drafts[primaryMember.id]?.[apState.version] ?? config.drafts[primaryMember.id]?.[0];
+  const emailBody = apState.edits[primaryMember.id] ?? draft?.body ?? "";
   const emailSubject = draft?.subject ?? meeting.meetingTitle;
+  const createdDeal = apState.dealId ? world.deals.find((d) => d.id === apState.dealId) : undefined;
 
   const confirmBooking = () => {
-    dispatch({ t: "ap.bookMeeting", slotId: activeSlot.id, at: nowMs() });
+    dispatch({ t: "ap.bookMeeting", slotId: activeSlot.id, at: nowMs(), ...(isPql ? { pql: true } : {}) });
   };
 
-  const reportButtonLabel = config.reportLabel ?? "View referral volume report";
+  const reportButtonLabel = config.reportLabel ?? meeting.reportButtonLabel ?? "View referral volume report";
   const channelLabel = meeting.channelLabel ?? "Practice Email Inbox & Scheduling";
-  const mailClientName = meeting.mailClientName ?? "Practice Mail";
+  const mailClientName = meeting.mailClientName ?? meeting.inboxHeader ?? "Practice Mail";
   const inboxBreadcrumb = meeting.inboxBreadcrumb ?? "Inbox › Referral Liaison Outreach";
-  const slotHeading = meeting.slotHeading ?? "Select a lunch-and-learn time";
+  const slotHeading = meeting.slotHeading ?? meeting.slotPrompt ?? "Select a lunch-and-learn time";
   const confirmButtonLabel = meeting.confirmButtonLabel ?? "Confirm lunch-and-learn";
   const confirmedHeadline = meeting.confirmedHeadline ?? "Lunch-and-learn confirmed";
   const bookingForLabel = meeting.bookingForLabel ?? `${meeting.recipientName} & ${meeting.practiceName} providers`;
@@ -159,6 +164,16 @@ export function ProspectMeetingOffPlatformPage() {
                         <li className="flex items-start gap-2" data-testid="ap-deal-created-line">
                           <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
                           Deal opened: {meeting.dealCreated.name} (${meeting.dealCreated.amount.toLocaleString("en-US")})
+                        </li>
+                      ) : createdDeal ? (
+                        <li className="flex items-start gap-2" data-testid="ap-deal-created">
+                          <Icon name="check" size={14} className="mt-0.5 shrink-0 text-[#0b5b2b]" />
+                          <span>
+                            Deal opened: <strong>{createdDeal.name}</strong> ({money(createdDeal.amount)}) &middot;{" "}
+                            <A to={`/deals/${createdDeal.id}`} className="hs-link" data-testid="ap-view-created-deal">
+                              View deal
+                            </A>
+                          </span>
                         </li>
                       ) : (
                         <li className="flex items-start gap-2">

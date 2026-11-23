@@ -1,10 +1,14 @@
 import type { AnalyticsReportSpec } from "../analytics-types";
+import { customerOnboardingReport } from "./customer-onboarding";
+import { trialToPaidReport } from "./pql-trial";
 
 /**
  * Declarative report specs for Lumenstack (SaaS & software).
  * Rendered by the shared lazy-loaded Analytics module (`/reports/:reportId`).
  */
 export const reports: Record<string, AnalyticsReportSpec> = {
+  "trial-to-paid": trialToPaidReport,
+  "customer-onboarding": customerOnboardingReport,
   "signal-pipeline": {
     id: "signal-pipeline",
     title: "Signal-Sourced Pipeline & Credits ROI",
@@ -357,8 +361,9 @@ export const reports: Record<string, AnalyticsReportSpec> = {
     subtitle: "Native HubSpot Revenue reporting across seat upgrades, AI add-on attach, and mid-term plan expansions · Q4",
     badge: "Native HubSpot report",
     badgeTone: "blue",
-    demoId: "back-office",
+    demoIds: ["back-office", "discount-approval"],
     backLink: { to: "/companies/co-quarry", label: "Back to Quarrystone Outfitters" },
+    completeFlag: "bo.reportSeen",
     filter: {
       label: "Plan tier",
       defaultOptionId: "all",

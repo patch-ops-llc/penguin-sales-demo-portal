@@ -33,6 +33,11 @@ export type AiProspectingState = {
   sent: boolean;
   meetingBooked: boolean;
   meetingSlotId: string | null;
+  dealId: string | null;
+};
+
+export type PqlTrialState = AiProspectingState & {
+  milestoneHit: boolean;
 };
 
 export type SalesAction =
@@ -45,11 +50,12 @@ export type SalesAction =
   | { t: "ed.match"; threadId: string; lineId: string; sku: string }
   | { t: "ed.createDeal"; threadId: string; at: number }
   | { t: "ed.createQuote"; threadId: string; at: number }
-  | { t: "ap.draft" }
-  | { t: "ap.version"; v: number }
-  | { t: "ap.edit"; memberId: string; text: string }
-  | { t: "ap.send"; at: number }
-  | { t: "ap.bookMeeting"; slotId: string; at: number };
+  | { t: "pql.hitMilestone"; at: number }
+  | { t: "ap.draft"; pql?: boolean }
+  | { t: "ap.version"; v: number; pql?: boolean }
+  | { t: "ap.edit"; memberId: string; text: string; pql?: boolean }
+  | { t: "ap.send"; at: number; pql?: boolean }
+  | { t: "ap.bookMeeting"; slotId: string; at: number; pql?: boolean };
 
 export function seedBackOffice(): BackOfficeState {
   return { picked: [], quoteId: null, dealId: null };
@@ -64,11 +70,15 @@ export function seedEmailToDeal(): EmailToDealState {
 }
 
 export function seedAiProspecting(): AiProspectingState {
-  return { drafted: false, version: 0, edits: {}, sent: false, meetingBooked: false, meetingSlotId: null };
+  return { drafted: false, version: 0, edits: {}, sent: false, meetingBooked: false, meetingSlotId: null, dealId: null };
+}
+
+export function seedPqlTrial(): PqlTrialState {
+  return { milestoneHit: false, ...seedAiProspecting() };
 }
 
 export function isSalesAction(a: Action): a is SalesAction {
-  return a.t.startsWith("bo.") || a.t.startsWith("lc.") || a.t.startsWith("ed.") || a.t.startsWith("ap.");
+  return a.t.startsWith("bo.") || a.t.startsWith("lc.") || a.t.startsWith("ed.") || a.t.startsWith("ap.") || a.t.startsWith("pql.");
 }
 
 export function applySales(w: World, a: SalesAction, pack: Pack): void {
@@ -454,20 +464,70 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
       return;
     }
 
-    // ----- AI prospecting -----
-    case "ap.draft":
-      w.ap.drafted = true;
+    // ----- PQL Free Trial Milestone -----
+    case "pql.hitMilestone": {
+      const cfg = pack.demos.pqlTrial;
+      if (!cfg || w.pql.milestoneHit) return;
+      const at = iso(a.at);
+      w.pql.milestoneHit = true;
+      const contact = w.contacts.find((c) => c.id === cfg.contactId);
+      if (contact) {
+        contact.score = cfg.pqlScore;
+        contact.lifecycle = cfg.pqlLifecycle;
+        contact.leadStatus = cfg.pqlLeadStatus;
+        contact.lastActivityAt = at;
+        const extras = (contact.extra ?? []).filter((e) => e.label !== "Trial milestone" && e.label !== "PQL trigger");
+        contact.extra = [
+          ...extras,
+          { label: "Trial milestone", value: "5 teammates invited + Snowflake connected" },
+          { label: "PQL trigger", value: `${cfg.initialScore} -> ${cfg.pqlScore} (+${cfg.pqlScore - cfg.initialScore} pts)` },
+        ];
+      }
+      addActivity(w, {
+        at: iso(a.at - 2_000),
+        type: "sync",
+        title: `Product usage milestone synced: ${cfg.trialApp.syncCard.eventName}`,
+        body: `${cfg.trialApp.workspaceName} invited 5 teammates and connected Snowflake Production DW inside 14-day free trial.`,
+        byId: null,
+        contactIds: [cfg.contactId],
+        companyIds: [cfg.companyId],
+      });
+      addActivity(w, {
+        at,
+        type: "lifecycle",
+        title: `Lead score bumped from ${cfg.initialScore} to ${cfg.pqlScore} (PQL)`,
+        body: `HubSpot lead scoring promoted contact to ${cfg.pqlLeadStatus} and enrolled account in Breeze Prospecting Agent.`,
+        byId: null,
+        contactIds: [cfg.contactId],
+        companyIds: [cfg.companyId],
+        linkPath: "/prospecting",
+        linkLabel: "Open Prospecting Agent",
+      });
+      touch(w, at, { companyId: cfg.companyId, contactIds: [cfg.contactId] });
       return;
-    case "ap.version":
-      w.ap.version = ((a.v % 3) + 3) % 3;
-      w.ap.edits = {};
+    }
+
+    // ----- AI prospecting & PQL trial prospecting -----
+    case "ap.draft": {
+      const target = a.pql ? w.pql : w.ap;
+      target.drafted = true;
       return;
-    case "ap.edit":
-      w.ap.edits[a.memberId] = a.text;
+    }
+    case "ap.version": {
+      const target = a.pql ? w.pql : w.ap;
+      target.version = ((a.v % 3) + 3) % 3;
+      target.edits = {};
       return;
+    }
+    case "ap.edit": {
+      const target = a.pql ? w.pql : w.ap;
+      target.edits[a.memberId] = a.text;
+      return;
+    }
     case "ap.send": {
-      const config = pack.demos.aiProspecting;
-      if (!w.ap.drafted || w.ap.sent) return;
+      const config = a.pql ? pack.demos.pqlTrial?.prospecting : pack.demos.aiProspecting;
+      const target = a.pql ? w.pql : w.ap;
+      if (!config || !target.drafted || target.sent) return;
       const at = iso(a.at);
       const contactIds: string[] = [];
       // Send order matches the buying group; the timeline shows newest first.
@@ -476,55 +536,61 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
         if (!contactId) {
           const [firstName, ...rest] = member.name.split(" ");
           contactId = `ct-${member.id}`;
-          w.contacts.unshift({
-            id: contactId,
-            firstName,
-            lastName: rest.join(" "),
-            email: member.email,
-            phone: "",
-            title: member.title,
-            companyId: config.companyId,
-            ownerId: w.persona,
-            lifecycle: "Lead",
-            leadStatus: "Attempted to contact",
-            createdAt: at,
-            lastActivityAt: at,
-            source: "Prospecting agent",
-            isNew: true,
-          });
+          if (!w.contacts.some((c) => c.id === contactId)) {
+            w.contacts.unshift({
+              id: contactId,
+              firstName,
+              lastName: rest.join(" "),
+              email: member.email,
+              phone: "",
+              title: member.title,
+              companyId: config.companyId,
+              ownerId: w.persona,
+              lifecycle: "Lead",
+              leadStatus: "Attempted to contact",
+              createdAt: at,
+              lastActivityAt: at,
+              source: "Prospecting agent",
+              isNew: true,
+            });
+          }
         }
         contactIds.push(contactId);
-        const draft = config.drafts[member.id]?.[w.ap.version];
+        const draft = config.drafts[member.id]?.[target.version];
         addActivity(w, {
           at,
           type: "email",
           title: `Email to ${member.name}: ${draft?.subject ?? "Outreach"}`,
-          body: (w.ap.edits[member.id] ?? draft?.body ?? "").split("\n\n").slice(0, 2).join(" "),
+          body: (target.edits[member.id] ?? draft?.body ?? "").split("\n\n").slice(0, 2).join(" "),
           byId: w.persona,
           contactIds: [contactId],
           companyIds: [config.companyId],
         });
       }
-      w.tasks.unshift({
-        id: "tk-prospecting",
-        title: config.followUp.title,
-        type: "Call",
-        priority: "Medium",
-        dueAt: iso(a.at + config.followUp.dueInDays * DAY),
-        ownerId: w.persona,
-        status: "open",
-        companyId: config.companyId,
-        contactId: contactIds[0],
-        isNew: true,
-      });
+      const taskId = a.pql ? "tk-pql-prospecting" : "tk-prospecting";
+      if (!w.tasks.some((t) => t.id === taskId)) {
+        w.tasks.unshift({
+          id: taskId,
+          title: config.followUp.title,
+          type: "Call",
+          priority: "Medium",
+          dueAt: iso(a.at + config.followUp.dueInDays * DAY),
+          ownerId: w.persona,
+          status: "open",
+          companyId: config.companyId,
+          contactId: contactIds[0],
+          isNew: true,
+        });
+      }
       touch(w, at, { companyId: config.companyId, contactIds });
-      w.ap.sent = true;
+      target.sent = true;
       return;
     }
     case "ap.bookMeeting": {
-      const config = pack.demos.aiProspecting;
-      const meeting = config.offPlatformMeeting;
-      if (!meeting || w.ap.meetingBooked) return;
+      const config = a.pql ? pack.demos.pqlTrial?.prospecting : pack.demos.aiProspecting;
+      const target = a.pql ? w.pql : w.ap;
+      const meeting = config?.offPlatformMeeting;
+      if (!config || !meeting || target.meetingBooked) return;
       const slot = meeting.slots.find((s) => s.id === a.slotId) ?? meeting.slots[0];
       const at = iso(a.at);
       const contactIds = config.buyingGroup.map((m) => m.contactId ?? `ct-${m.id}`).filter((cid) => w.contacts.some((c) => c.id === cid));
@@ -547,6 +613,54 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
           source: "Breeze Prospecting Agent",
           isNew: true,
         });
+      } else if (meeting.createsDeal && !w.deals.some((d) => d.id === meeting.createsDeal!.id)) {
+        const spec = meeting.createsDeal;
+        const lineItems: LineItem[] = spec.lineItems
+          .map((item) => {
+            const p = pack.products.find((x) => x.sku === item.sku);
+            if (!p) return null;
+            return {
+              sku: p.sku,
+              name: p.name,
+              qty: item.qty,
+              unitPrice: p.price,
+              unitCost: p.cost,
+              leadDays: p.leadDays,
+              ...(p.timing ? { timing: p.timing } : {}),
+              ...(p.recurring ? { recurring: true } : {}),
+            };
+          })
+          .filter((x): x is LineItem => Boolean(x));
+        const deal: Deal = {
+          id: spec.id,
+          name: spec.name,
+          companyId: config.companyId,
+          contactIds,
+          ownerId: w.persona,
+          stage: spec.stage,
+          amount: spec.amount,
+          closeDate: iso(a.at + spec.closeInDays * DAY),
+          createdAt: at,
+          lastActivityAt: at,
+          type: spec.type ?? "New business",
+          lineItems,
+          source: "Free trial (PQL)",
+          isNew: true,
+        };
+        w.deals.unshift(deal);
+        createdDealId = deal.id;
+        addActivity(w, {
+          at,
+          type: "deal",
+          title: `Deal created: ${deal.name}`,
+          body: `Opened automatically after ${meeting.recipientName} booked ${meeting.meetingTitle}.`,
+          byId: w.persona,
+          contactIds,
+          companyIds: [config.companyId],
+          dealIds: [deal.id],
+          linkPath: `/deals/${deal.id}`,
+          linkLabel: "View deal",
+        });
       }
       addActivity(w, {
         at,
@@ -557,11 +671,12 @@ export function applySales(w: World, a: SalesAction, pack: Pack): void {
         contactIds,
         companyIds: [config.companyId],
         ...(createdDealId ? { dealIds: [createdDealId] } : {}),
-        ...(config.reportId ? { linkPath: `/reports/${config.reportId}`, linkLabel: config.reportLabel ?? "View referral report" } : {}),
+        ...(config.reportId ? { linkPath: `/reports/${config.reportId}`, linkLabel: config.reportLabel ?? meeting.reportButtonLabel ?? "View report" } : {}),
       });
       touch(w, at, { companyId: config.companyId, contactIds, dealId: createdDealId });
-      w.ap.meetingBooked = true;
-      w.ap.meetingSlotId = slot.id;
+      target.meetingBooked = true;
+      target.meetingSlotId = slot.id;
+      target.dealId = createdDealId;
       return;
     }
   }
