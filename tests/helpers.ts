@@ -9,6 +9,7 @@ export const VERTICAL_DEMOS: Record<string, readonly string[]> = {
   "financial-services": [...DEMOS, "customer-agent", "client-onboarding", "complaint-sla"],
   "professional-services": [...DEMOS, "customer-agent", "incident-comms", "contract-renewal"],
   healthcare: ["social-ads", "customer-agent", "ai-prospecting", "patient-reactivation", "post-visit-feedback", "referral-intake", "staffing-job-orders"],
+  aec: DEMOS,
 };
 
 /** Every live vertical and demo pair. */

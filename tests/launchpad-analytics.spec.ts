@@ -87,7 +87,7 @@ test("launchpad: Hub filter pills, AI / Breeze toggle, client-side search, flags
         count: cards.length,
       };
     });
-    expect(layout, `vertical picker at ${width}px`).toEqual({ overflowX: false, rows: 1, count: 5 });
+    expect(layout, `vertical picker at ${width}px`).toEqual({ overflowX: false, rows: 1, count: 6 });
   }
 
   expect(requests).toEqual([]);

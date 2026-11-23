@@ -119,10 +119,10 @@ export function GuidedSellingPanel() {
               <thead>
                 <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
                   <th className="py-1.5 font-semibold">Item</th>
-                  <th className="py-1.5 text-right font-semibold">Qty</th>
-                  <th className="py-1.5 text-right font-semibold">Unit price</th>
-                  <th className="py-1.5 text-right font-semibold">{labels.timing}</th>
-                  <th className="py-1.5 text-right font-semibold">Total</th>
+                  <th className="whitespace-nowrap py-1.5 pl-3 text-right font-semibold">Qty</th>
+                  <th className="whitespace-nowrap py-1.5 pl-3 text-right font-semibold">Unit price</th>
+                  <th className="whitespace-nowrap py-1.5 pl-3 text-right font-semibold">{labels.timing}</th>
+                  <th className="whitespace-nowrap py-1.5 pl-3 text-right font-semibold">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,10 +135,10 @@ export function GuidedSellingPanel() {
                         {l.description ? ` · ${l.description}` : ""}
                       </p>
                     </td>
-                    <td className="py-2 text-right tabular-nums">{l.qty}</td>
-                    <td className="py-2 text-right tabular-nums">{money(l.unitPrice)}</td>
-                    <td className="py-2 text-right tabular-nums">{timingOf(l)}</td>
-                    <td className="py-2 text-right font-semibold tabular-nums">{money(l.qty * l.unitPrice)}</td>
+                    <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">{l.qty}</td>
+                    <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">{money(l.unitPrice)}</td>
+                    <td className="whitespace-nowrap py-2 pl-3 text-right tabular-nums">{timingOf(l)}</td>
+                    <td className="whitespace-nowrap py-2 pl-3 text-right font-semibold tabular-nums">{money(l.qty * l.unitPrice)}</td>
                   </tr>
                 ))}
               </tbody>

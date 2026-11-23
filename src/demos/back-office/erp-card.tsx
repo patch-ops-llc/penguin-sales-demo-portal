@@ -108,11 +108,11 @@ export function ErpCard({ company }: { company: Company }) {
                           <tbody>
                             {order.lines.map((line) => (
                               <tr key={line.sku}>
-                                <td className="py-1 font-mono">{line.sku}</td>
-                                <td className="py-1">{line.name}</td>
-                                <td className="py-1 text-right tabular-nums">{line.qty} ×</td>
-                                <td className="py-1 text-right tabular-nums">{money(line.unitPrice)}</td>
-                                <td className="py-1 text-right font-semibold tabular-nums">{money(line.qty * line.unitPrice)}</td>
+                                <td className="whitespace-nowrap py-1 pr-3 font-mono">{line.sku}</td>
+                                <td className="py-1 pr-3">{line.name}</td>
+                                <td className="whitespace-nowrap py-1 pl-3 text-right tabular-nums">{line.qty} ×</td>
+                                <td className="whitespace-nowrap py-1 pl-3 text-right tabular-nums">{money(line.unitPrice)}</td>
+                                <td className="whitespace-nowrap py-1 pl-3 text-right font-semibold tabular-nums">{money(line.qty * line.unitPrice)}</td>
                               </tr>
                             ))}
                           </tbody>

@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { LIVE_VERTICALS } from "./catalog";
+import { aecPack } from "./aec/pack";
 import { financialServicesPack } from "./financial-services/pack";
 import { healthcarePack } from "./healthcare/pack";
 import { manufacturingPack } from "./manufacturing/pack";
@@ -18,6 +19,7 @@ const PACKS: Record<string, Pack> = {
   "financial-services": financialServicesPack,
   "professional-services": professionalServicesPack,
   healthcare: healthcarePack,
+  aec: aecPack,
 };
 
 const cache = new Map<string, { json: string; version: string }>();

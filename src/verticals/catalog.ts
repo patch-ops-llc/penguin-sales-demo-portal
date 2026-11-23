@@ -425,6 +425,52 @@ export const VERTICALS: VerticalTile[] = [
       },
     },
   },
+  {
+    id: "aec",
+    name: "AEC and construction",
+    company: "Meridian Civil & Builders",
+    blurb: "Commercial general contracting, civil infrastructure, and MEP build-outs.",
+    status: "live",
+    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    tiles: {
+      "guided-quote": {
+        title: "Guided commercial bid quote",
+        summary: "Pick project type, structural system, MEP scope, delivery method, and footprint. CSI division line items generate, bid quote preview, send.",
+        takeaway: "A precon manager turns discovery scope into an accurate CSI division estimate and branded commercial bid in under a minute.",
+        tags: ["aec", "construction", "csi", "bom", "gmp", "mep", "sitework", "structural"],
+      },
+      "discount-approval": {
+        title: "VE margin & discount approval",
+        summary: "A value-engineering discount over the limit or below the subcontractor cost floor routes to VP Estimating, one click approves, and the bid unlocks.",
+        takeaway: "Subcontractor margin guardrails enforced on every value-engineering revision without slowing bid day.",
+        tags: ["aec", "value engineering", "subcontractor", "cost floor", "margin", "estimating"],
+      },
+      "back-office": {
+        title: "Procore & Sage Intacct job costing",
+        summary: "Open an owner account to see live Procore commitments, change orders, Sage Intacct progress billings, retainage, and MSA unit rates, then build a change-order quote.",
+        takeaway: "Commitments, change orders, open retainage, and crew capacity answered inside HubSpot without switching to Procore or Sage.",
+        tags: ["aec", "procore", "sage intacct", "job costing", "commitments", "change order", "retainage"],
+      },
+      "lead-capture": {
+        title: "RFP & bid-invite intake",
+        summary: "Municipal or commercial RFP submitted on the web, enriched and bid-fit scored with reasons, routed by division and bond tier, estimator gets a task and Slack alert.",
+        takeaway: "High-value municipal and commercial RFPs reach the right division estimator in seconds with bond scale and deadline visibility.",
+        tags: ["aec", "rfp", "bid invite", "municipal", "estimating", "bonding"],
+      },
+      "email-to-deal": {
+        title: "Bid inquiry email to deal",
+        summary: "An owner-rep ITB or change-order email arrives with a PDF bid set, gets parsed into CSI divisions and bid dates, and becomes a deal with line items.",
+        takeaway: "ITBs stop being re-keyed from email PDFs. Estimators only confirm ambiguous legacy spec lines.",
+        tags: ["aec", "itb", "bid inquiry", "owner rep", "csi", "change order"],
+      },
+      "ai-prospecting": {
+        title: "Permit & RFP AI prospecting",
+        summary: "Municipal building-permit and RFP signals surface a developer, Breeze maps the owner and architect buying group, drafts outreach, and logs pipeline.",
+        takeaway: "Preconstruction teams reach project owners and architects when permits are filed—before the bid list locks.",
+        tags: ["aec", "permits", "municipal", "rfp", "architect", "owner", "breeze"],
+      },
+    },
+  },
 ];
 
 export function getVertical(id: string): VerticalTile | undefined {
