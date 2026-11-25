@@ -1,5 +1,6 @@
 import type { Pack } from "@/verticals/types";
 import {
+  applyAgent,
   applyBranchLaunch,
   applyCore,
   applyCustomerAgent,
@@ -11,6 +12,7 @@ import {
   applySales,
   applySocialAds,
   applyTickets,
+  isAgentAction,
   isBranchLaunchAction,
   isCustomerAgentAction,
   isIntakeAction,
@@ -21,6 +23,7 @@ import {
   isSalesAction,
   isSocialAdsAction,
   isTicketsAction,
+  seedAgent,
   seedAiProspecting,
   seedBackOffice,
   seedBranchLaunch,
@@ -45,6 +48,8 @@ export {
   quoteName,
   ruleOf,
   type Action,
+  type AgentAction,
+  type AgentState,
   type AiProspectingState,
   type ApprovalRuleEdit,
   type BackOfficeState,
@@ -105,6 +110,7 @@ export function seedWorld(pack: Pack): World {
     bl: seedBranchLaunch(),
     intake: seedIntake(pack),
     renewals: seedRenewals(pack),
+    ag: seedAgent(),
     approvalRule: {},
     seq: 0,
   };
@@ -122,6 +128,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isBranchLaunchAction(a)) return applyBranchLaunch(w, a, pack);
   if (isIntakeAction(a)) return applyIntake(w, a, pack);
   if (isRenewalsAction(a)) return applyRenewals(w, a, pack);
+  if (isAgentAction(a)) return applyAgent(w, a);
   return applyCore(w, a, pack);
 }
 

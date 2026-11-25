@@ -8,6 +8,7 @@ import { parseLocation, useLocation } from "@/store/router";
 import { ShellProvider, useShell } from "@/store/store";
 import { getVertical, isDemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
+import { AgentDockLazy, preloadAgent } from "./agent/lazy";
 import { Chrome } from "./chrome";
 import { DemoBar } from "./demo-bar";
 import { EndCard } from "./end-card";
@@ -70,6 +71,9 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   }
   if (demo === "back-office") {
     tasks.push(preloadErpCard());
+  }
+  if (demo === "agent-guided-quote") {
+    tasks.push(preloadAgent());
   }
   if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || section === "intake") {
     tasks.push(preloadIntake());
@@ -153,17 +157,24 @@ function loadPack(vertical: string, version: string): Promise<Pack> {
 }
 
 function Frame() {
-  const { route, highlight, endCardOpen } = useShell();
+  const { route, highlight, endCardOpen, demo } = useShell();
   const outside = isOutsideHubSpot(route.segments);
+  // Agent-run demos keep the Penguin agent panel beside every screen, HubSpot's own or full-screen.
+  const agent = demo === "agent-guided-quote";
   return (
     <div className={cx("flex h-screen min-w-[1180px] flex-col overflow-hidden", highlight && "px-highlight")} data-testid="shell" data-path={route.path}>
-      {outside ? (
-        <Routes />
-      ) : (
-        <Chrome>
-          <Routes />
-        </Chrome>
-      )}
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {outside ? (
+            <Routes />
+          ) : (
+            <Chrome>
+              <Routes />
+            </Chrome>
+          )}
+        </div>
+        {agent ? <AgentDockLazy /> : null}
+      </div>
       {highlight ? <div className="px-dim" aria-hidden="true" /> : null}
       <DemoBar />
       {endCardOpen ? <EndCard /> : null}

@@ -2,9 +2,9 @@ import { expect, type Page } from "@playwright/test";
 
 export const DEMOS = ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"] as const;
 
-/** The demos each live vertical has. SaaS has no Email to deal and adds Marketing Studio + Renewals; IT Services adds Customer agent + Contract renewal. */
+/** The demos each live vertical has. Manufacturing adds the agent-run guided quote. SaaS has no Email to deal and adds Marketing Studio + Renewals; IT Services adds Customer agent + Contract renewal. */
 export const VERTICAL_DEMOS: Record<string, readonly string[]> = {
-  manufacturing: DEMOS,
+  manufacturing: [...DEMOS, "agent-guided-quote"],
   saas: [...DEMOS.filter((demo) => demo !== "email-to-deal"), "marketing-studio", "pql-trial-prospecting", "customer-onboarding", "premium-to-subscription", "renewal-churn-risk"],
   "financial-services": [...DEMOS, "customer-agent", "client-onboarding", "complaint-sla", "loan-application-pipeline", "branch-launch-campaign"],
   "professional-services": [...DEMOS, "customer-agent", "incident-comms", "contract-renewal"],

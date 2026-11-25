@@ -301,7 +301,7 @@ export async function POST(request: Request) {
           email: user.email,
           sessionId: user.sessionId,
           vertical,
-          demo: demo.baseDemo,
+          demo: demo.id,
           ip: meta.ip,
           userAgent: meta.userAgent,
           meta: {

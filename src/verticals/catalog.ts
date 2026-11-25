@@ -24,7 +24,8 @@ export type DemoId =
   | "client-onboarding"
   | "complaint-sla"
   | "loan-application-pipeline"
-  | "branch-launch-campaign";
+  | "branch-launch-campaign"
+  | "agent-guided-quote";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -68,6 +69,16 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "sales",
     flagship: true,
     tags: ["cpq", "quote", "pricing", "line items", "proposal"],
+  },
+  "agent-guided-quote": {
+    id: "agent-guided-quote",
+    title: "Guided quote, run by Claude",
+    minutes: 4,
+    summary: "The rep briefs an AI agent in a side panel; it reads the deal, answers discovery through HubSpot tool calls, prices the quote, and asks before sending.",
+    takeaway: "HubSpot as the headless CRM: the agent is the head, HubSpot keeps the data, the rules, and the record of every action.",
+    hub: "sales",
+    ai: true,
+    tags: ["agent", "claude", "openai", "headless", "mcp", "tool calling", "cpq", "quote"],
   },
   "discount-approval": {
     id: "discount-approval",
@@ -284,7 +295,7 @@ export const VERTICALS: VerticalTile[] = [
     company: "Halvorsen Motion",
     blurb: "Linear actuators and servo drives, sold direct to OEMs and through distributors.",
     status: "live",
-    demos: ["guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
+    demos: ["guided-quote", "agent-guided-quote", "discount-approval", "back-office", "lead-capture", "email-to-deal", "ai-prospecting"],
   },
   {
     id: "saas",

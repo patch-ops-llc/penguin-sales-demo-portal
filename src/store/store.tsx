@@ -14,6 +14,8 @@ type State = { changes: Action[]; runs: Partial<Record<DemoId, Run>> };
 export type Shell = {
   pack: Pack;
   world: World;
+  /** The action log the world is replayed from. The agent route is sent this so it can rebuild the same world. */
+  changes: Action[];
   vertical: string;
   demo: DemoId;
   script: DemoScript;
@@ -170,12 +172,22 @@ export function ShellProvider({
     setEndCardOpen(false);
     const target = Math.min(index, current.marks.length - 1) - 1;
     if (target < 0) return;
-    const length = current.marks[target];
+    let length = current.marks[target];
+    if (length >= s.changes.length) {
+      // Several steps finished in one burst (an agent turn can do that), so the marks collapsed onto the
+      // same point. Walk back to the longest prefix of the log that is still on the target step.
+      for (let l = s.changes.length - 1; l >= 0; l--) {
+        if (currentStep(sc, { w: replay(seed, s.changes.slice(0, l), pack), pack }) <= target) {
+          length = l;
+          break;
+        }
+      }
+    }
     const changes = s.changes.slice(0, length);
     const before = { w: replay(seed, changes, pack), pack };
     // Other demos' marks may point past the shortened list.
     const runs = Object.fromEntries(Object.entries(s.runs).map(([id, r]) => [id, { ...r!, marks: r!.marks.map((m) => Math.min(m, length)) }])) as State["runs"];
-    runs[d] = { ...current, marks: current.marks.slice(0, target + 1), completed: false };
+    runs[d] = { ...current, marks: current.marks.slice(0, target + 1).map((m) => Math.min(m, length)), completed: false };
     setState({ changes, runs });
     navigate((target > 0 ? sc.steps[target - 1].after?.(before) : undefined) ?? sc.steps[target].path(before));
   }, [pack, seed, navigate]);
@@ -222,6 +234,7 @@ export function ShellProvider({
   const shell: Shell = {
     pack,
     world,
+    changes: state.changes,
     vertical: verticalId,
     demo,
     script,

@@ -29,6 +29,23 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Discovery questions and compatibility rules that turn a few answers into the right line items, with lead times from the ERP.",
     },
   ],
+  "agent-guided-quote": [
+    { id: "deal-record", name: "Deal record, line items, and quote (the system of record)", by: "native" },
+    { id: "quote-editor", name: "Quote editor, templates, and the published quote page", by: "native" },
+    { id: "guided-selling", name: "Guided selling rules (shared with the clicked demo)", by: "penguin", note: "Discovery questions and compatibility rules that turn a few answers into the right line items, with lead times from the ERP." },
+    {
+      id: "agent-workspace",
+      name: "Agent workspace",
+      by: "penguin",
+      note: "A chat panel inside HubSpot where the rep briefs Claude (or another model). The model is the head; HubSpot stays the body.",
+    },
+    {
+      id: "agent-tool-bridge",
+      name: "Tool bridge: every model action is a HubSpot action",
+      by: "penguin",
+      note: "Each tool call the model makes lands as the same HubSpot action a rep's click would: logged, reversible, governed by the portal's rules. Sending waits for the rep.",
+    },
+  ],
   "discount-approval": [
     { id: "quote-editor", name: "Quote editor and discount fields", by: "native" },
     { id: "quote-approval-status", name: "Quote approval rules, set in Settings: conditions, approvers, request, lock, and approve", by: "native" },
