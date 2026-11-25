@@ -8,6 +8,7 @@ import { parseLocation, useLocation } from "@/store/router";
 import { ShellProvider, useShell } from "@/store/store";
 import { getVertical, isDemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
+import { baseDemoOf, isAgentDemo } from "@/demos/agent/ids";
 import { AgentDockLazy, preloadAgent } from "./agent/lazy";
 import { Chrome } from "./chrome";
 import { DemoBar } from "./demo-bar";
@@ -41,6 +42,7 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
     demo === "customer-onboarding" ||
     demo === "client-onboarding" ||
     demo === "complaint-sla" ||
+    demo === "agent-complaint-sla" ||
     section === "tickets" ||
     section === "ticket-app"
   ) {
@@ -72,10 +74,10 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   if (demo === "back-office") {
     tasks.push(preloadErpCard());
   }
-  if (demo === "agent-guided-quote") {
+  if (isAgentDemo(demo)) {
     tasks.push(preloadAgent());
   }
-  if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || section === "intake") {
+  if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || demo === "agent-loan-pipeline" || section === "intake") {
     tasks.push(preloadIntake());
   }
   if (
@@ -113,7 +115,8 @@ function shouldPreloadTickets(pack: Pack, verticalId: string, location: string):
   if (parsed.segments[0] === "tickets" || parsed.segments[0] === "ticket-app") return true;
   const demo = parsed.demo ?? getVertical(verticalId)?.demos[0];
   if (!demo || !isDemoId(demo)) return false;
-  return Boolean(tickets[demo]);
+  const base = baseDemoOf(demo);
+  return Boolean(tickets[demo] ?? (isDemoId(base) ? tickets[base] : undefined));
 }
 
 function shouldPreloadAnalytics(pack: Pack, verticalId: string, location: string): boolean {
@@ -160,7 +163,7 @@ function Frame() {
   const { route, highlight, endCardOpen, demo } = useShell();
   const outside = isOutsideHubSpot(route.segments);
   // Agent-run demos keep the Penguin agent panel beside every screen, HubSpot's own or full-screen.
-  const agent = demo === "agent-guided-quote";
+  const agent = isAgentDemo(demo);
   return (
     <div className={cx("flex h-screen min-w-[1180px] flex-col overflow-hidden", highlight && "px-highlight")} data-testid="shell" data-path={route.path}>
       <div className="flex min-h-0 flex-1">

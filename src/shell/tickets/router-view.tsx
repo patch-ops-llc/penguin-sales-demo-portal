@@ -1,5 +1,6 @@
 "use client";
 
+import { baseDemoOf } from "@/demos/agent/ids";
 import { useShell } from "@/store/store";
 import type { DemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
@@ -29,6 +30,9 @@ function resolveConfig(pack: Pack, activeDemo: DemoId, section: "tickets" | "tic
     if (byTicketId) return byTicketId;
   }
   if (map[activeDemo]) return map[activeDemo];
+  // An agent-run demo shows the ticket pipeline of the clicked demo it drives.
+  const base = baseDemoOf(activeDemo) as DemoId;
+  if (map[base]) return map[base];
   return configs[0];
 }
 

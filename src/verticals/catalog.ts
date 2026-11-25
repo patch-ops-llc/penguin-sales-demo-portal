@@ -25,7 +25,9 @@ export type DemoId =
   | "complaint-sla"
   | "loan-application-pipeline"
   | "branch-launch-campaign"
-  | "agent-guided-quote";
+  | "agent-guided-quote"
+  | "agent-complaint-sla"
+  | "agent-loan-pipeline";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -277,6 +279,26 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "sales",
     tags: ["fintech", "loan", "application", "pipeline", "underwriting", "documents", "los", "sequence"],
   },
+  "agent-complaint-sla": {
+    id: "agent-complaint-sla",
+    title: "Complaint to SLA ticket, run by an agent",
+    minutes: 4,
+    summary: "The rep briefs an AI agent (OpenAI by default, Claude selectable); it ingests the complaint, opens the SLA ticket, escalates under the overdue rule, and asks before the resolution letter goes out.",
+    takeaway: "HubSpot as the headless CRM for service: the agent works the complaint, Service Hub keeps the ticket, the SLA, the audit trail, and the report.",
+    hub: "service",
+    ai: true,
+    tags: ["agent", "openai", "claude", "headless", "tool calling", "complaint", "sla", "tickets", "service"],
+  },
+  "agent-loan-pipeline": {
+    id: "agent-loan-pipeline",
+    title: "Loan application pipeline, run by Claude",
+    minutes: 4,
+    summary: "The rep briefs an AI agent; it opens the application in the origination pipeline, confirms the LOS checklist, asks before the borrower reminder goes out, then records the uploads and the funded deal.",
+    takeaway: "HubSpot as the headless CRM for origination: the agent moves the application, HubSpot keeps the deal, the sequence, the LOS card, and the conversion report.",
+    hub: "sales",
+    ai: true,
+    tags: ["agent", "claude", "openai", "headless", "tool calling", "loan", "pipeline", "underwriting", "documents"],
+  },
   "branch-launch-campaign": {
     id: "branch-launch-campaign",
     title: "Regional branch launch campaign",
@@ -351,7 +373,9 @@ export const VERTICALS: VerticalTile[] = [
       "customer-agent",
       "client-onboarding",
       "complaint-sla",
+      "agent-complaint-sla",
       "loan-application-pipeline",
+      "agent-loan-pipeline",
       "branch-launch-campaign",
     ],
     tiles: {

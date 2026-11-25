@@ -87,7 +87,7 @@ export function answerScripted(ctx: Ctx, approve: boolean, now: number, demoId: 
   if (approve) {
     out.push(...playTurn(w, ctx.pack, now, demoId));
   } else {
-    const held: AgentMessage = { role: "assistant", text: "Understood. The quote stays in draft on the deal. Tell me when you want it sent.", toolCalls: [] };
+    const held: AgentMessage = { role: "assistant", text: demo.declineText, toolCalls: [] };
     out.push({ t: "agent.message", message: held });
   }
   return out;
@@ -96,13 +96,34 @@ export function answerScripted(ctx: Ctx, approve: boolean, now: number, demoId: 
 /**
  * Where the screen should be after a tool ran, so the rep watches the agent work in the real
  * HubSpot screens: the Guided quote tab while it answers questions, the deal while it creates
- * the quote, the quote page once it is sent. Presentation only; the tools themselves know nothing of screens.
+ * the quote, the quote page once it is sent; the complaint email, then the ticket; the loan
+ * portal, then the loan deal. Presentation only; the tools themselves know nothing of screens.
+ * Tool names are unique across demos, so one map covers them all.
  */
 export function focusFor(tool: string, pack: Pack, quoteId: string | null): { path: string; actions: Action[] } {
   const dealId = pack.demos.guidedQuote.dealId;
   const deal = `/deals/${dealId}`;
   const tab = (v: string): Action => ({ t: "ui", k: `tab.${dealId}`, v });
+  const ticket = `/tickets/${pack.demos.tickets?.["complaint-sla"]?.ticket.id ?? ""}`;
+  const loanDeal = `/deals/${pack.demos.intake?.["loan-application-pipeline"]?.createdRecords.dealId ?? ""}`;
   switch (tool) {
+    case "get_complaint":
+      return { path: "/ticket-app/complaint-sla/intake", actions: [] };
+    case "ingest_complaint":
+    case "open_ticket":
+    case "escalate_ticket":
+    case "send_resolution_letter":
+    case "resolve_ticket":
+      return { path: ticket, actions: [] };
+    case "get_loan_application":
+      return { path: "/intake/loan-application-pipeline/submit", actions: [] };
+    case "submit_loan_application":
+    case "set_missing_docs":
+    case "confirm_los_checklist":
+    case "start_doc_reminder_sequence":
+    case "complete_document_packet":
+    case "verify_funded_deal":
+      return { path: loanDeal, actions: [] };
     case "get_guided_quote_state":
     case "guided_quote_select":
     case "guided_quote_set_quantity":

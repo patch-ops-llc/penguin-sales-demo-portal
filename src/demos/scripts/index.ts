@@ -1,6 +1,6 @@
 import type { DemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
-import { agentGuidedQuote } from "./agent";
+import { agentComplaintSla, agentGuidedQuote, agentLoanPipeline } from "./agent";
 import { branchLaunchCampaign } from "./branch-launch";
 import { customerAgent, customerAgentScriptFor } from "./customer-agent";
 import { loanApplicationPipeline, referralIntake, staffingJobOrders } from "./intake";
@@ -42,6 +42,8 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "loan-application-pipeline": loanApplicationPipeline,
   "branch-launch-campaign": branchLaunchCampaign,
   "agent-guided-quote": agentGuidedQuote,
+  "agent-complaint-sla": agentComplaintSla,
+  "agent-loan-pipeline": agentLoanPipeline,
 };
 
 /** Resolves a demo script for one pack, picking the vertical customer-agent variant and filtering steps whose `when(pack)` is false. */

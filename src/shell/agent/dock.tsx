@@ -15,7 +15,6 @@ import { cx } from "../ui";
 import { fetchAgentStatus, streamTurn, TurnRefused, type AgentStatus } from "./client";
 
 const PROVIDER_ORDER: AgentProviderId[] = ["anthropic", "openai", "xai", "mock"];
-const DEMO_ID = "agent-guided-quote";
 
 type Draft = { text: string; calls: ToolCall[]; done: Record<string, "ok" | "error"> };
 const EMPTY_DRAFT: Draft = { text: "", calls: [], done: {} };
@@ -50,8 +49,48 @@ function describeCall(call: ToolCall, result: unknown): string {
       return r.declined ? "Send declined by the rep" : "Sent the quote to the buyer";
     case "log_activity":
       return `Logged a ${String(a.kind)}`;
+    case "get_complaint":
+      return "Read the complaint and the SLA policy";
+    case "ingest_complaint":
+      return "Opened the ticket and sent the 24h acknowledgement";
+    case "open_ticket":
+      return "Opened the ticket record";
+    case "escalate_ticket":
+      return "Escalated under the SLA rule";
+    case "send_resolution_letter":
+      return r.declined ? "Letter held by the rep" : "Sent the resolution letter";
+    case "resolve_ticket":
+      return "Closed the ticket with the root cause";
+    case "get_loan_application":
+      return "Read the application and the LOS packet";
+    case "submit_loan_application":
+      return "Opened the loan deal in the pipeline";
+    case "set_missing_docs":
+      return Array.isArray(a.itemIds) ? `Flagged ${a.itemIds.length} missing documents` : "Flagged the missing documents";
+    case "confirm_los_checklist":
+      return "Confirmed the LOS checklist";
+    case "start_doc_reminder_sequence":
+      return r.declined ? "Reminder held by the rep" : "Started the reminder sequence";
+    case "complete_document_packet":
+      return "Recorded the borrower's uploads";
+    case "verify_funded_deal":
+      return "Verified the funded deal";
     default:
       return call.name.replace(/_/g, " ");
+  }
+}
+
+/** What the approval card says the agent is about to do. */
+function describeConfirm(call: ToolCall): string {
+  switch (call.name) {
+    case "send_quote":
+      return "send the quote to the buyer";
+    case "send_resolution_letter":
+      return "send the formal resolution letter to the complainant";
+    case "start_doc_reminder_sequence":
+      return "email the borrower and start the reminder sequence";
+    default:
+      return describeCall(call, undefined).toLowerCase();
   }
 }
 
@@ -88,8 +127,8 @@ function ToolChip({ call, state, result }: { call: ToolCall; state: "ok" | "erro
  * the scripted transcript through the same tool bridge.
  */
 export function AgentDock() {
-  const { pack, world, changes, vertical, dispatch, navigate } = useShell();
-  const demo = getAgentDemo(DEMO_ID);
+  const { pack, world, changes, vertical, demo: demoId, dispatch, navigate } = useShell();
+  const demo = getAgentDemo(demoId);
   const [status, setStatus] = useState<AgentStatus | null | "loading">("loading");
   const [picked, setPicked] = useState<AgentProviderId | null>(null);
   const [input, setInput] = useState("");
@@ -118,8 +157,11 @@ export function AgentDock() {
 
   const available = useMemo(() => {
     const ids = status && status !== "loading" ? status.providers.map((p) => p.id) : [];
-    return PROVIDER_ORDER.filter((id) => ids.includes(id));
-  }, [status]);
+    // The demo's default provider leads when it is on; the rest keep the house order.
+    const order = demo ? [demo.defaultProvider, ...PROVIDER_ORDER.filter((id) => id !== demo.defaultProvider)] : PROVIDER_ORDER;
+    return order.filter((id) => ids.includes(id));
+  }, [status, demo]);
+  const sampleLength = useMemo(() => demo?.sample(pack).length ?? 0, [demo, pack]);
   const provider: AgentProviderId | null = world.ag.provider && available.includes(world.ag.provider) ? world.ag.provider : picked && available.includes(picked) ? picked : (available[0] ?? null);
   const providerInfo = status && status !== "loading" ? status.providers.find((p) => p.id === provider) : undefined;
   const scripted = status !== "loading" && (provider === null || world.ag.fallback !== null);
@@ -144,13 +186,14 @@ export function AgentDock() {
       const { world: w } = latest.current;
       const ctx = { w, pack };
       const now = Date.now();
-      const actions = approve === null ? scriptedTurn(ctx, now) : answerScripted(ctx, approve, now);
+      if (!demo) return;
+      const actions = approve === null ? scriptedTurn(ctx, now, demo.id) : answerScripted(ctx, approve, now, demo.id);
       if (actions.length === 0) return;
       dispatch(actions);
       const path = focusPathOf(actions, pack, w);
       if (path) navigate(path);
     },
-    [pack, dispatch, navigate],
+    [pack, demo, dispatch, navigate],
   );
 
   const fallBack = useCallback(
@@ -158,10 +201,10 @@ export function AgentDock() {
       setNotice(reason);
       if (latest.current.world.ag.fallback === null) {
         dispatch({ t: "agent.fallback", reason });
-        track({ type: "agent_fallback", vertical, demo: DEMO_ID });
+        track({ type: "agent_fallback", vertical, demo: demoId });
       }
     },
-    [dispatch, vertical],
+    [dispatch, vertical, demoId],
   );
 
   const runLive = useCallback(
@@ -181,7 +224,7 @@ export function AgentDock() {
       // Once a quote goes out, the screen stays on it for the rest of the turn.
       let hold = false;
       try {
-        for await (const e of streamTurn({ provider: live, demo: DEMO_ID, vertical, messages: history, actions, approve, signal: controller.signal })) {
+        for await (const e of streamTurn({ provider: live, demo: demoId, vertical, messages: history, actions, approve, signal: controller.signal })) {
           switch (e.event) {
             case "text_delta":
               setDraft((d) => ({ ...d, text: d.text + e.data.text }));
@@ -223,7 +266,7 @@ export function AgentDock() {
         setDraft(EMPTY_DRAFT);
       }
     },
-    [pack, vertical, dispatch, navigate, fallBack],
+    [pack, vertical, demoId, dispatch, navigate, fallBack],
   );
 
   const send = useCallback(
@@ -268,7 +311,7 @@ export function AgentDock() {
     );
   }
 
-  const contact = pack.contacts.find((c) => c.id === pack.demos.guidedQuote.contactId);
+  const recipient = demo.recipient(pack);
 
   return (
     <aside className="flex w-[380px] shrink-0 flex-col border-l border-[#3b2a7a] bg-white text-ink" style={{ fontFamily: "var(--font-penguin)" }} data-testid="agent-dock" aria-label="Agent workspace">
@@ -333,9 +376,7 @@ export function AgentDock() {
         {messages.length === 0 && !busy ? (
           <div className="rounded-[10px] border border-dashed border-line p-3 text-[12.5px] leading-snug text-ink-muted" data-testid="agent-intro">
             <p className="font-semibold text-ink">{demo.title}</p>
-            <p className="mt-1">
-              Brief the agent and watch it work the deal through HubSpot&apos;s own actions. It reads the record, answers the discovery questions, prices the quote from the rate card, and asks before anything goes to {contact ? contact.firstName : "the buyer"}.
-            </p>
+            <p className="mt-1">{demo.intro(pack)}</p>
             {scripted ? <p className="mt-2 text-[12px]">{status === null ? "The agent service is unavailable." : "No live model is configured on this portal."} The scripted transcript plays the same tool calls.</p> : null}
           </div>
         ) : null}
@@ -398,8 +439,8 @@ export function AgentDock() {
               <Icon name="lock" size={14} /> Waiting for your approval
             </p>
             <p className="mt-1 text-[12.5px] leading-snug text-ink">
-              The agent wants to {pending.map((c) => (c.name === "send_quote" ? "send the quote to the buyer" : describeCall(c, undefined).toLowerCase())).join(" and ")}
-              {contact ? ` (${contact.firstName} ${contact.lastName})` : ""}. Nothing goes out until you say so.
+              The agent wants to {pending.map((c) => describeConfirm(c)).join(" and ")}
+              {recipient ? ` (${recipient})` : ""}. Nothing goes out until you say so.
             </p>
             <div className="mt-2.5 flex gap-2">
               <button type="button" onClick={() => decide(true)} className="inline-flex h-8 items-center gap-1.5 rounded-[6px] bg-penguin px-3 text-[12.5px] font-semibold text-white hover:bg-penguin-strong" data-testid="agent-approve">
@@ -435,7 +476,7 @@ export function AgentDock() {
           <button
             type="button"
             onClick={() => send(null)}
-            disabled={busy || turns >= 5 || pending.length > 0}
+            disabled={busy || turns >= sampleLength || pending.length > 0}
             className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[6px] bg-penguin text-[13px] font-semibold text-white hover:bg-penguin-strong disabled:bg-[#e6e6e6] disabled:text-[#8a8a8a]"
             data-testid="agent-play"
           >

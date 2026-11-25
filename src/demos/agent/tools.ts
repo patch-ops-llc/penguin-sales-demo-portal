@@ -1,10 +1,11 @@
 import { disabledOptions, isComplete } from "@/demos/guided-quote/rules";
-import type { SampleTurn, ToolCall, ToolDef } from "@/lib/agent/types";
+import type { SampleTurn, ToolCall } from "@/lib/agent/types";
 import { approvalReasons, quoteTotals } from "@/store/quote-math";
 import { ruleOf } from "@/store/slices/helpers";
-import type { Action, World } from "@/store/slices/types";
-import { mutate } from "@/store/world";
+import type { World } from "@/store/slices/types";
 import type { Pack, Quote } from "@/verticals/types";
+import { apply, num, str, type ToolContext, type ToolOutcome, type ToolSpec } from "./bridge";
+import { COMPLAINT_TOOLS, LOAN_TOOLS } from "./fintech-tools";
 
 /**
  * The agent's view of the simulated portal. Every tool is a thin wrapper over the store: reads
@@ -13,13 +14,7 @@ import type { Pack, Quote } from "@/verticals/types";
  * so Reset, Back, replay, and the Penguin markers behave exactly as they do for a clicked demo.
  */
 
-export type ToolContext = { w: World; pack: Pack; now: number };
-export type ToolOutcome = { actions: Action[]; result: unknown; error?: string };
-
-type Handler = (args: Record<string, unknown>, ctx: ToolContext) => ToolOutcome;
-
-const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() && Number.isFinite(Number(v)) ? Number(v) : null);
+export type { ToolContext, ToolOutcome } from "./bridge";
 
 function quoteView(q: Quote, w: World, pack: Pack) {
   const totals = quoteTotals(q);
@@ -65,13 +60,9 @@ function guidedQuoteState(w: World, pack: Pack) {
 
 const guidedQuote = (w: World) => (w.gq.quoteId ? w.quotes.find((q) => q.id === w.gq.quoteId) ?? null : null);
 
-const TOOLS: { def: ToolDef; run: Handler }[] = [
+const GUIDED_QUOTE_TOOLS: ToolSpec[] = [
   {
-    def: {
-      name: "get_deal",
-      description: "Read the deal this run is about: company, contacts, stage, amount, and recent activity. Call this first.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-    },
+    name: "get_deal",
     run: (_args, { w, pack }) => {
       const config = pack.demos.guidedQuote;
       const deal = w.deals.find((d) => d.id === config.dealId);
@@ -100,19 +91,11 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "get_guided_quote_state",
-      description: "Read the Guided quote card: the discovery questions with their option ids, which options the current answers rule out, the quantity and need-by choices, what has been answered so far, and any generated lines.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-    },
+    name: "get_guided_quote_state",
     run: (_args, { w, pack }) => ({ actions: [], result: guidedQuoteState(w, pack) }),
   },
   {
-    def: {
-      name: "list_products",
-      description: "List the products in the catalog with SKU, list price, unit cost, and lead time.",
-      parameters: { type: "object", properties: { query: { type: "string", description: "Optional text to match against SKU or name." } }, additionalProperties: false },
-    },
+    name: "list_products",
     run: (args, { pack }) => {
       const query = str(args.query).toLowerCase();
       const products = pack.products
@@ -123,16 +106,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "guided_quote_select",
-      description: "Answer one discovery question on the Guided quote card by field id and option id (from get_guided_quote_state). Answering clears any generated lines.",
-      parameters: {
-        type: "object",
-        properties: { field: { type: "string", description: "Field id." }, option: { type: "string", description: "Option id for that field." } },
-        required: ["field", "option"],
-        additionalProperties: false,
-      },
-    },
+    name: "guided_quote_select",
     run: (args, { w, pack }) => {
       const config = pack.demos.guidedQuote;
       const field = config.fields.find((f) => f.id === str(args.field));
@@ -145,11 +119,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "guided_quote_set_quantity",
-      description: "Set the quantity on the Guided quote card. Must be one of the quantity options.",
-      parameters: { type: "object", properties: { quantity: { type: "integer" } }, required: ["quantity"], additionalProperties: false },
-    },
+    name: "guided_quote_set_quantity",
     run: (args, { w, pack }) => {
       const config = pack.demos.guidedQuote;
       const quantity = num(args.quantity);
@@ -160,11 +130,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "guided_quote_set_need_by",
-      description: "Set when the buyer needs the goods, by need-by option id.",
-      parameters: { type: "object", properties: { needBy: { type: "string", description: "Need-by option id." } }, required: ["needBy"], additionalProperties: false },
-    },
+    name: "guided_quote_set_need_by",
     run: (args, { w, pack }) => {
       const config = pack.demos.guidedQuote;
       const option = config.needBy.options.find((o) => o.id === str(args.needBy));
@@ -173,11 +139,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "guided_quote_generate",
-      description: "Run the rate card: turn the completed answers into line items with prices and lead times. Requires every question, the quantity, and the need-by to be answered.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-    },
+    name: "guided_quote_generate",
     run: (_args, { w, pack }) => {
       const config = pack.demos.guidedQuote;
       if (!isComplete(config, w.gq.sel, w.gq.quantity, w.gq.needBy)) {
@@ -198,11 +160,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "create_quote",
-      description: "Create the HubSpot quote on the deal from the generated lines. Call once, after guided_quote_generate.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-    },
+    name: "create_quote",
     run: (_args, { w, pack, now }) => {
       if (w.gq.quoteId) return { actions: [], result: null, error: `A quote already exists for this run (${w.gq.quoteId}).` };
       if (w.gq.lines.length === 0) return { actions: [], result: null, error: "Generate the lines first." };
@@ -213,22 +171,14 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "get_quote",
-      description: "Read the quote created in this run: status, totals, margin, and whether it needs approval before it can be sent.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-    },
+    name: "get_quote",
     run: (_args, { w, pack }) => {
       const q = guidedQuote(w);
       return q ? { actions: [], result: quoteView(q, w, pack) } : { actions: [], result: null, error: "No quote has been created in this run yet." };
     },
   },
   {
-    def: {
-      name: "apply_discount",
-      description: "Set the quote-level discount in percent (0 to 100). A discount over the approval rule's limit, or one that takes a line under its floor price, will need approval.",
-      parameters: { type: "object", properties: { percent: { type: "number" } }, required: ["percent"], additionalProperties: false },
-    },
+    name: "apply_discount",
     run: (args, { w, pack }) => {
       const q = guidedQuote(w);
       if (!q) return { actions: [], result: null, error: "Create the quote first." };
@@ -239,11 +189,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "request_approval",
-      description: "Send the quote to the approver named by the approval rule. Only possible when get_quote reports needsApproval reasons.",
-      parameters: { type: "object", properties: { note: { type: "string", description: "A short note for the approver." } }, additionalProperties: false },
-    },
+    name: "request_approval",
     run: (args, { w, pack, now }) => {
       const q = guidedQuote(w);
       if (!q) return { actions: [], result: null, error: "Create the quote first." };
@@ -253,12 +199,8 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "send_quote",
-      description: "Publish the quote and send it to the buyer. The rep confirms this step before it runs.",
-      parameters: { type: "object", properties: {}, additionalProperties: false },
-      confirm: true,
-    },
+    name: "send_quote",
+    confirm: true,
     run: (_args, { w, pack, now }) => {
       const q = guidedQuote(w);
       if (!q) return { actions: [], result: null, error: "Create the quote first." };
@@ -270,16 +212,7 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
     },
   },
   {
-    def: {
-      name: "log_activity",
-      description: "Log a note, call, or meeting on the deal's timeline.",
-      parameters: {
-        type: "object",
-        properties: { kind: { type: "string", enum: ["note", "call", "meeting"] }, text: { type: "string" } },
-        required: ["kind", "text"],
-        additionalProperties: false,
-      },
-    },
+    name: "log_activity",
     run: (args, { w, pack, now }) => {
       const config = pack.demos.guidedQuote;
       const deal = w.deals.find((d) => d.id === config.dealId);
@@ -293,25 +226,19 @@ const TOOLS: { def: ToolDef; run: Handler }[] = [
   },
 ];
 
-/** Applies the actions to the server's copy of the world, then reads the result from the new state. */
-function apply(actions: Action[], w: World, pack: Pack, read: () => unknown): ToolOutcome {
-  for (const a of actions) mutate(w, a, pack);
-  return { actions, result: read() };
-}
+/** Every tool set the portal knows; each demo allowlists its own subset. Tool names are unique across sets. */
+const TOOLS: ToolSpec[] = [...GUIDED_QUOTE_TOOLS, ...COMPLAINT_TOOLS, ...LOAN_TOOLS];
 
-const BY_NAME = new Map(TOOLS.map((t) => [t.def.name, t]));
+const BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 
-export function toolDefs(allow?: readonly string[]): ToolDef[] {
-  return TOOLS.filter((t) => !allow || allow.includes(t.def.name)).map((t) => t.def);
-}
-
-export function toolDef(name: string): ToolDef | undefined {
-  return BY_NAME.get(name)?.def;
+/** Every tool name the bridge knows, in declaration order. */
+export function toolNames(): string[] {
+  return TOOLS.map((t) => t.name);
 }
 
 /** Tools the rep must confirm before they run. */
 export function confirmTools(): string[] {
-  return TOOLS.filter((t) => t.def.confirm).map((t) => t.def.name);
+  return TOOLS.filter((t) => t.confirm).map((t) => t.name);
 }
 
 export function runTool(call: ToolCall, ctx: ToolContext, allow?: readonly string[]): ToolOutcome {

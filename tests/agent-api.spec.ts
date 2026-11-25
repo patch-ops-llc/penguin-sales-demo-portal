@@ -1,5 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { replay, seedWorld } from "../src/store/world";
+import { getTicketRun } from "../src/store/slices/tickets";
+import { financialServicesPack } from "../src/verticals/financial-services/pack";
 import { manufacturingPack } from "../src/verticals/manufacturing/pack";
 import { signIn } from "./helpers";
 
@@ -40,13 +42,13 @@ async function turn(request: APIRequestContext, body: Record<string, unknown>) {
 }
 
 /** Plays a whole run the way the browser will: send, apply actions, append messages, answer confirmations. */
-async function playRun(request: APIRequestContext, approve: boolean) {
+async function playRun(request: APIRequestContext, approve: boolean, which: typeof DEMO = DEMO) {
   const messages: Message[] = [];
   const actions: Action[] = [];
   const all: SseEvent[] = [];
   let pendingApproval: Record<string, boolean> | undefined;
   for (let i = 0; i < 6; i++) {
-    const { response, events } = await turn(request, { messages, actions, approve: pendingApproval });
+    const { response, events } = await turn(request, { ...which, messages, actions, approve: pendingApproval });
     expect(response.status(), await response.text().catch(() => "")).toBe(200);
     expect(response.headers()["content-type"]).toContain("text/event-stream");
     pendingApproval = undefined;
@@ -112,6 +114,11 @@ test("bad requests are refused with a scripted fallback hint", async () => {
   expect(unknownDemo.status()).toBe(400);
   expect((await unknownDemo.json()).error).toBe("unknown_demo");
 
+  // A vertical only runs its own agent demos: Manufacturing has no complaint pipeline for the agent to work.
+  const wrongVertical = await api.post("/api/agent/turn", { data: { provider: "mock", demo: "agent-complaint-sla", vertical: "manufacturing" } });
+  expect(wrongVertical.status()).toBe(400);
+  expect((await wrongVertical.json()).error).toBe("unknown_demo");
+
   const badTranscript = await api.post("/api/agent/turn", { data: { provider: "mock", ...DEMO, messages: [{ role: "wizard" }] } });
   expect(badTranscript.status()).toBe(400);
 
@@ -163,6 +170,48 @@ test("the mock provider drives a guided quote from discovery to a sent quote thr
   const deal = world.deals.find((d) => d.id === manufacturingPack.demos.guidedQuote.dealId);
   expect(deal?.stage).toBe("quote-sent");
   expect(world.activities.some((a) => a.title.startsWith("Quote") && a.title.endsWith("sent"))).toBe(true);
+});
+
+test("the mock provider works a Fintech complaint from intake to a closed SLA ticket through the tickets slice", async () => {
+  test.skip(!mockOn, "AGENT_MOCK=1 is not set on the portal under test.");
+  const run = await playRun(api, true, { demo: "agent-complaint-sla", vertical: "financial-services" });
+  const names = (kind: string) => run.events.filter((e) => e.event === kind);
+  expect(names("tool_call").map((e) => (e.data.call as { name: string }).name)).toEqual(["get_complaint", "ingest_complaint", "open_ticket", "escalate_ticket", "send_resolution_letter", "resolve_ticket"]);
+  expect(names("confirm").length).toBe(1);
+  expect(names("error")).toEqual([]);
+  for (const e of names("tool_result")) expect(e.data).not.toHaveProperty("error");
+  // The very actions the clicked complaint-sla demo dispatches, nothing else.
+  expect(run.actions.map((a) => a.t)).toEqual(["tk.submitIntake", "tk.openTicket", "tk.escalate", "tk.sendOutreach", "tk.resolve"]);
+  expect(run.actions.every((a) => a.demoId === "complaint-sla")).toBe(true);
+  const world = replay(seedWorld(financialServicesPack), run.actions as never[], financialServicesPack);
+  const ticket = getTicketRun(world, "complaint-sla");
+  expect(ticket).toMatchObject({ intakeSubmitted: true, escalated: true, outreachSent: true, resolved: true, stageId: "resolved-archived" });
+  expect(ticket.timeline.some((t) => t.kind === "escalation")).toBe(true);
+});
+
+test("the mock provider takes a Fintech loan application to a funded deal through the intake slice", async () => {
+  test.skip(!mockOn, "AGENT_MOCK=1 is not set on the portal under test.");
+  const run = await playRun(api, true, { demo: "agent-loan-pipeline", vertical: "financial-services" });
+  const names = (kind: string) => run.events.filter((e) => e.event === kind);
+  expect(names("tool_call").map((e) => (e.data.call as { name: string }).name)).toEqual([
+    "get_loan_application",
+    "submit_loan_application",
+    "set_missing_docs",
+    "confirm_los_checklist",
+    "start_doc_reminder_sequence",
+    "complete_document_packet",
+    "verify_funded_deal",
+  ]);
+  expect(names("confirm").length).toBe(1);
+  for (const e of names("tool_result")) expect(e.data).not.toHaveProperty("error");
+  expect(run.actions.map((a) => a.t)).toEqual(["intake.submit", "intake.review", "intake.sendOutreach", "intake.completeFollowup", "intake.reviewCompletion"]);
+  expect(run.actions.every((a) => a.demoId === "loan-application-pipeline")).toBe(true);
+  const world = replay(seedWorld(financialServicesPack), run.actions as never[], financialServicesPack);
+  const st = world.intake["loan-application-pipeline"];
+  expect(st).toMatchObject({ submitted: true, reviewed: true, outreachSent: true, followupCompleted: true, completionReviewed: true });
+  const deal = world.deals.find((d) => d.id === st.dealId);
+  expect(deal?.stage).toBe("approved-funded");
+  expect(deal?.amount).toBe(640_000);
 });
 
 test("a declined confirmation leaves the quote unsent and tells the model so", async () => {

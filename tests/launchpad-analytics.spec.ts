@@ -27,33 +27,37 @@ test("launchpad: Hub filter pills, AI / Breeze toggle, client-side search, flags
   await expect(page.getByTestId("demo-customer-agent").getByTestId("badge-flagship")).toBeVisible();
   await expect(page.getByTestId("demo-customer-agent").getByTestId("badge-ai")).toBeVisible();
 
-  // Hub filter: Service & CS shows Customer agent, Client onboarding, and Complaint SLA
+  // Hub filter: Service & CS shows Customer agent, Client onboarding, Complaint SLA, and the agent-run complaint
   await page.getByTestId("hub-filter-service").click();
   await expect(page.getByTestId("hub-filter-service")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(3);
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(4);
   await expect(page.getByTestId("demo-customer-agent")).toBeVisible();
   await expect(page.getByTestId("demo-client-onboarding")).toBeVisible();
   await expect(page.getByTestId("demo-complaint-sla")).toBeVisible();
+  await expect(page.getByTestId("demo-agent-complaint-sla")).toBeVisible();
 
-  // Hub filter: Sales & CPQ shows 4 demos
+  // Hub filter: Sales & CPQ shows 5 demos
   await page.getByTestId("hub-filter-sales").click();
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(4);
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(5);
   await expect(page.getByTestId("demo-guided-quote")).toBeVisible();
   await expect(page.getByTestId("demo-discount-approval")).toBeVisible();
   await expect(page.getByTestId("demo-ai-prospecting")).toBeVisible();
   await expect(page.getByTestId("demo-loan-application-pipeline")).toBeVisible();
+  await expect(page.getByTestId("demo-agent-loan-pipeline")).toBeVisible();
 
-  // AI / Breeze toggle combined with Sales & CPQ shows only AI prospecting
+  // AI / Breeze toggle combined with Sales & CPQ shows AI prospecting and the agent-run loan pipeline
   await page.getByTestId("filter-ai-toggle").click();
   await expect(page.getByTestId("filter-ai-toggle")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(1);
-  await expect(page.getByTestId("demo-ai-prospecting")).toBeVisible();
-
-  // Back to All hubs with AI / Breeze still toggled -> Customer agent + AI prospecting
-  await page.getByTestId("hub-filter-all").click();
   await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(2);
+  await expect(page.getByTestId("demo-ai-prospecting")).toBeVisible();
+  await expect(page.getByTestId("demo-agent-loan-pipeline")).toBeVisible();
+
+  // Back to All hubs with AI / Breeze still toggled -> Customer agent, AI prospecting, and the two agent-run demos
+  await page.getByTestId("hub-filter-all").click();
+  await expect(page.locator('[data-testid^="demo-"]')).toHaveCount(4);
   await expect(page.getByTestId("demo-customer-agent")).toBeVisible();
   await expect(page.getByTestId("demo-ai-prospecting")).toBeVisible();
+  await expect(page.getByTestId("demo-agent-complaint-sla")).toBeVisible();
 
   // Turn off AI toggle and test client-side search across tags & summaries
   await page.getByTestId("filter-ai-toggle").click();

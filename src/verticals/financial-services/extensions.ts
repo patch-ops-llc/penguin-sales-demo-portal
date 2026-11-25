@@ -127,6 +127,30 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Reads live underwriting packet completeness, bureau pre-checks, and missing-document status from Fernhill's Commercial LOS directly inside the HubSpot Deal.",
     },
   ],
+  "agent-loan-pipeline": [
+    { id: "loan-application-form", name: "Online commercial loan application form with explicit consent capture", by: "native" },
+    { id: "loan-origination-pipeline", name: "Commercial Loan Origination pipeline, stage routing, and underwriter assignment", by: "native" },
+    { id: "missing-doc-sequence", name: "Automated borrower missing-document reminder sequence with auto-unenrollment", by: "native" },
+    { id: "loan-conversion-report", name: "Application-to-Funded Conversion & Pipeline analytics report", by: "native" },
+    {
+      id: "los-document-completeness",
+      name: "LOS & Document Completeness Card (shared with the clicked demo)",
+      by: "penguin",
+      note: "Reads live underwriting packet completeness and missing-document status from Fernhill's Commercial LOS inside the HubSpot Deal. The agent reads and writes it through the same actions.",
+    },
+    {
+      id: "agent-workspace",
+      name: "Agent workspace",
+      by: "penguin",
+      note: "A chat panel inside HubSpot where the rep briefs Claude or OpenAI. The model is the head; HubSpot stays the body.",
+    },
+    {
+      id: "agent-tool-bridge",
+      name: "Tool bridge: every model action is a HubSpot action",
+      by: "penguin",
+      note: "Each tool call lands as the same HubSpot action a rep's click would: the deal, the LOS checklist, the sequence, the funded stage. Emailing the borrower waits for the rep.",
+    },
+  ],
   "branch-launch-campaign": [
     { id: "geo-segment", name: "Dynamic geo-targeted commercial segment (<= 25 mi radius)", by: "native" },
     { id: "marketing-studio", name: "HubSpot Marketing Studio email, local paid ads, and social calendar", by: "native" },
@@ -181,6 +205,31 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       name: "Regulatory Complaint Register Export & Audit Feed",
       by: "penguin",
       note: "Custom compliance archive bridge that exports immutable complaint timestamps, root-cause codes, escalation records, and resolution letters to Fernhill's exam-ready regulatory register.",
+    },
+  ],
+  "agent-complaint-sla": [
+    { id: "complaint-intake-ticket", name: "Dedicated complaint email intake & Service Hub categorization", by: "native" },
+    { id: "auto-24h-acknowledgement", name: "Automated 24-hour regulatory written acknowledgement email", by: "native" },
+    { id: "priority-sla-escalation", name: "Priority SLA countdown timer & overdue manager escalation workflow", by: "native" },
+    { id: "resolution-letter-audit", name: "Formal written resolution letter & HubSpot ticket audit timeline", by: "native" },
+    { id: "complaint-sla-analytics", name: "Complaints by Type, Resolution Time & SLA Compliance native report", by: "native" },
+    {
+      id: "complaint-register-export",
+      name: "Regulatory Complaint Register Export & Audit Feed (shared with the clicked demo)",
+      by: "penguin",
+      note: "Custom compliance archive bridge that mirrors complaint timestamps, root-cause codes, escalation records, and resolution letters to Fernhill's regulatory register. The agent's actions land in it the same way.",
+    },
+    {
+      id: "agent-workspace",
+      name: "Agent workspace",
+      by: "penguin",
+      note: "A chat panel inside HubSpot where the rep briefs OpenAI or Claude. The model is the head; Service Hub stays the body.",
+    },
+    {
+      id: "agent-tool-bridge",
+      name: "Tool bridge: every model action is a HubSpot action",
+      by: "penguin",
+      note: "Each tool call lands as the same Service Hub action a rep's click would: the ticket, the acknowledgement, the escalation, the letter, the close. Sending the letter waits for the rep.",
     },
   ],
 };

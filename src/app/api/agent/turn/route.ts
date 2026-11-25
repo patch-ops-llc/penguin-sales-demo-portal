@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAgentDemo, type AgentDemo } from "@/demos/agent/catalog";
-import { runTool, toolDef, toolDefs } from "@/demos/agent/tools";
+import { runTool } from "@/demos/agent/tools";
 import { estimateCostUsd } from "@/lib/agent/cost";
 import { checkDailyBudget, checkRunCap, checkUserRate, recordSpend } from "@/lib/agent/limits";
 import { systemPrompt } from "@/lib/agent/prompt";
+import { toolDef, toolDefs } from "@/lib/agent/tool-docs";
 import { enabledProviders, isProviderId, modelFor, providerFor } from "@/lib/agent/providers";
 import { safeErrorText, sseRecord } from "@/lib/agent/sse";
 import type { AgentMessage, AgentProviderId, Opaque, ToolCall, ToolResult, Usage } from "@/lib/agent/types";
@@ -116,6 +117,7 @@ async function parseBody(request: Request): Promise<Body | { error: string; mess
   if (!demo) return { status: 400, error: "unknown_demo", message: "Unknown agent demo." };
   const vertical = typeof raw.vertical === "string" && getVertical(raw.vertical) ? raw.vertical : null;
   if (!vertical) return { status: 400, error: "unknown_vertical", message: "Unknown vertical." };
+  if (!getVertical(vertical)?.demos.includes(demo.id)) return { status: 400, error: "unknown_demo", message: "This vertical does not run that agent demo." };
   const messages = parseMessages(raw.messages ?? []);
   if (!messages) return { status: 400, error: "invalid_request", message: "The transcript is malformed." };
   const actionsRaw = raw.actions ?? [];
