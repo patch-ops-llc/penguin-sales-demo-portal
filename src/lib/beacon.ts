@@ -2,7 +2,7 @@
 // a failed send is dropped silently so logging can never delay or break a demo.
 
 export type BeaconEvent = {
-  type: "launchpad_opened" | "vertical_opened" | "demo_started" | "step_reached" | "demo_completed" | "demo_reset" | "demo_switched" | "highlight_used";
+  type: "launchpad_opened" | "vertical_opened" | "demo_started" | "step_reached" | "demo_completed" | "demo_reset" | "demo_switched" | "highlight_used" | "agent_fallback";
   vertical?: string;
   demo?: string;
   step?: number;

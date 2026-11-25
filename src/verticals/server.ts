@@ -36,6 +36,11 @@ function load(vertical: string): { json: string; version: string } | null {
   return entry;
 }
 
+/** The pack object itself, for server code that runs the store (the agent route). */
+export function getPack(vertical: string): Pack | null {
+  return PACKS[vertical] ?? null;
+}
+
 export function packVersion(vertical: string): string | null {
   return load(vertical)?.version ?? null;
 }
