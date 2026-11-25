@@ -28,7 +28,14 @@ type Action = { t: string } & Record<string, unknown>;
 const DEMO = { demo: "agent-guided-quote", vertical: "manufacturing" };
 
 async function turn(request: APIRequestContext, body: Record<string, unknown>) {
-  const response = await request.post("/api/agent/turn", { data: { provider: "mock", ...DEMO, messages: [], actions: [], ...body } });
+  const data = { provider: "mock", ...DEMO, messages: [], actions: [], ...body };
+  let response = await request.post("/api/agent/turn", { data });
+  // A run less than a minute after the previous one meets the per-user window the last test fills on purpose.
+  if (response.status() === 429 && (await response.json()).error === "rate_limited") {
+    test.setTimeout(150_000);
+    await new Promise((r) => setTimeout(r, 61_000));
+    response = await request.post("/api/agent/turn", { data });
+  }
   return { response, events: response.ok() ? parseSse(await response.text()) : [] };
 }
 
