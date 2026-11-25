@@ -14,6 +14,7 @@ export const DEMO_EVENTS = [
   "demo_reset",
   "demo_switched",
   "highlight_used",
+  "agent_fallback",
 ] as const;
 
 export const EVENT_LABELS: Record<string, string> = {
@@ -32,6 +33,8 @@ export const EVENT_LABELS: Record<string, string> = {
   demo_reset: "Reset demo",
   demo_switched: "Switched demo",
   highlight_used: "Highlighted Penguin extensions",
+  agent_turn: "Agent turn",
+  agent_fallback: "Agent fell back to scripted",
 };
 
 export type LogInput = {
