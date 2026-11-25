@@ -2,6 +2,7 @@ import type { Pack } from "../types";
 import { customerOnboardingConfig } from "./customer-onboarding";
 import { marketingStudio } from "./marketing-studio";
 import { pqlTrialConfig } from "./pql-trial";
+import { saasFlows } from "./flows";
 import { saasRenewals } from "./renewals";
 
 // Per-demo content for SaaS and software: hero records, packaging rules, presets, and prepared output.
@@ -535,4 +536,5 @@ export const demos: Pack["demos"] = {
 
   // ---------- Renewals & Subscriptions (SaaS #3 & SaaS #4) ----------
   renewals: saasRenewals,
+  flows: saasFlows,
 };

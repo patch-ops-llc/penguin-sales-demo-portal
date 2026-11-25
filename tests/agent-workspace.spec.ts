@@ -20,10 +20,12 @@ function watchRequests(page: Page): string[] {
   return requests;
 }
 
-async function waitOutRateLimit(page: Page) {
-  // The API spec's last test fills this user's per-minute window on purpose; a run that follows it closely waits it out.
-  const probe = await page.request.post("/api/agent/turn", { data: { provider: "mock", demo: DEMO, vertical: "manufacturing", messages: [{ role: "user", text: "ping" }], actions: [] } });
-  if (probe.status() === 429 && (await probe.json()).error === "rate_limited") {
+async function waitOutRateLimit(page: Page, turns = 4) {
+  // The API spec's last test fills this user's per-minute window on purpose, and the live tests in
+  // this and the other agent specs spend from the same window: wait until this test's turns fit.
+  const status = await page.request.get("/api/agent/status");
+  const { limits } = (await status.json()) as { limits: { turnsLeftThisMinute?: number } };
+  if ((limits.turnsLeftThisMinute ?? turns) < turns) {
     test.setTimeout(180_000);
     await page.waitForTimeout(61_000);
   }

@@ -10,6 +10,7 @@ import { getVertical, isDemoId } from "@/verticals/catalog";
 import type { Pack } from "@/verticals/types";
 import { AgentDockLazy, preloadAgent } from "./agent/lazy";
 import { Chrome } from "./chrome";
+import { preloadClaude } from "./claude/lazy";
 import { DemoBar } from "./demo-bar";
 import { EndCard } from "./end-card";
 import { preloadAnalytics } from "./analytics/lazy";
@@ -74,6 +75,9 @@ function preloadForInitialEntry(verticalId: string, location: string): Promise<u
   }
   if (demo === "agent-guided-quote") {
     tasks.push(preloadAgent());
+  }
+  if (demo === "agent-campaign" || demo === "agent-deal-follow-up" || demo === "agent-renewal" || section === "claude" || section === "beat" || section === "support" || section === "dashboards") {
+    tasks.push(preloadClaude());
   }
   if (demo === "referral-intake" || demo === "staffing-job-orders" || demo === "loan-application-pipeline" || section === "intake") {
     tasks.push(preloadIntake());

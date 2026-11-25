@@ -38,7 +38,14 @@ export type AgentEvent =
   | { type: "error"; message: string };
 
 /** One prepared assistant turn for sample mode: what the scripted assistant says and which tools it calls. */
-export type SampleTurn = { text: string; toolCalls?: { name: string; args: Record<string, unknown> }[] };
+export type SampleTurn = {
+  /** The message that opens this turn, when the person starts it. Omitted when the turn continues after an approval. */
+  user?: string;
+  text: string;
+  toolCalls?: { name: string; args: Record<string, unknown> }[];
+  /** What the assistant says once this turn's tools have run (flows only). */
+  done?: string;
+};
 
 export type CompleteRequest = {
   model: string;

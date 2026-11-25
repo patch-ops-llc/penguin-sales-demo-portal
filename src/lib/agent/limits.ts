@@ -24,6 +24,12 @@ export function checkUserRate(userId: string, now = Date.now()): LimitCheck {
   return { ok: true };
 }
 
+/** How many turns this user can still start in the current window, for the status route. Does not record a turn. */
+export function userTurnsLeft(userId: string, now = Date.now()): number {
+  const times = (recentTurns.get(userId) ?? []).filter((t) => now - t < 60_000);
+  return Math.max(0, env.agentUserTurnsPerMinute - times.length);
+}
+
 /** A single demo run may not loop forever: the number of model turns already in the history is the counter. */
 export function checkRunCap(messages: AgentMessage[]): LimitCheck {
   const limit = env.agentSessionMaxTurns;

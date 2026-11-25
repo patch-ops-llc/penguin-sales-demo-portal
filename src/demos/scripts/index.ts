@@ -3,6 +3,7 @@ import type { Pack } from "@/verticals/types";
 import { agentGuidedQuote } from "./agent";
 import { branchLaunchCampaign } from "./branch-launch";
 import { customerAgent, customerAgentScriptFor } from "./customer-agent";
+import { agentCampaign, agentDealFollowUp, agentRenewal } from "./flows";
 import { loanApplicationPipeline, referralIntake, staffingJobOrders } from "./intake";
 import { marketingStudio } from "./marketing-studio";
 import { patientReactivation } from "./patient-reactivation";
@@ -13,6 +14,7 @@ import { socialAds } from "./social-ads";
 import { clientOnboarding, complaintSla, customerOnboarding, incidentComms, postVisitFeedback } from "./tickets";
 import type { DemoScript } from "./types";
 
+export { playBeat } from "./flows";
 export { renewalsReportFlag } from "./renewals";
 export { createTicketsScript, ticketReportFlag } from "./tickets";
 export { currentStep, hintOf, requiredSteps, stepText, type DemoScript, type Step, type StepCtx } from "./types";
@@ -42,6 +44,9 @@ export const SCRIPTS: Record<DemoId, DemoScript> = {
   "loan-application-pipeline": loanApplicationPipeline,
   "branch-launch-campaign": branchLaunchCampaign,
   "agent-guided-quote": agentGuidedQuote,
+  "agent-campaign": agentCampaign,
+  "agent-deal-follow-up": agentDealFollowUp,
+  "agent-renewal": agentRenewal,
 };
 
 /** Resolves a demo script for one pack, picking the vertical customer-agent variant and filtering steps whose `when(pack)` is false. */

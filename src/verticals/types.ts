@@ -1,3 +1,4 @@
+import type { FlowsConfig } from "@/shell/claude/types";
 import type { IntakeDemoId, IntakeFlowConfig } from "@/shell/intake/types";
 import type { RenewalFlowConfig, RenewalsDemoId } from "@/shell/renewals/types";
 import type { BranchLaunchConfig, PatientReactivationConfig, SocialAdsConfig } from "@/shell/social/types";
@@ -146,6 +147,8 @@ export type Deal = {
   /** Optional custom pipeline label and stages for multi-pipeline verticals (e.g. Specialty Referral Intake). */
   pipelineName?: string;
   pipelineStages?: DealStage[];
+  /** The agreed next action on the deal, as HubSpot's "Next step" property. */
+  nextStep?: string;
   isNew?: boolean;
 };
 
@@ -1345,5 +1348,7 @@ export type Pack = {
     tickets?: Partial<Record<DemoId, TicketsDemoConfig>>;
     intake?: Partial<Record<IntakeDemoId, IntakeFlowConfig>>;
     renewals?: Partial<Record<RenewalsDemoId, RenewalFlowConfig>>;
+    /** Headless flows: demos that start in Claude and cut to HubSpot to show the record that changed. */
+    flows?: FlowsConfig;
   };
 };

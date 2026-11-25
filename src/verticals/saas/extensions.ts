@@ -12,6 +12,20 @@ import type { Extension } from "../types";
  * Only what Penguin would have to build is marked (product plan, section 1.5). Ids of Penguin
  * elements match the <Ext id="..."> wrappers in the screens, which are shared by every vertical.
  */
+const AGENT_SURFACE: Extension = {
+  id: "agent-workspace",
+  name: "Claude as the surface",
+  by: "penguin",
+  note: "The whole screen is a Claude conversation. The person asks, approves, and types; HubSpot is never opened to do the work, only to show the record that changed.",
+};
+
+const AGENT_BRIDGE: Extension = {
+  id: "agent-tool-bridge",
+  name: "Tool bridge: every model action is a HubSpot action",
+  by: "penguin",
+  note: "Each tool call lands as the same HubSpot action a click would: logged, reversible, governed by the portal's rules. Every write shows its change and waits for approval.",
+};
+
 export const extensions: Partial<Record<DemoId, Extension[]>> = {
   "guided-quote": [
     { id: "deal-record", name: "Deal record and pipeline", by: "native" },
@@ -173,4 +187,26 @@ export const extensions: Partial<Record<DemoId, Extension[]>> = {
       note: "Blends live Lumenstack seat-usage telemetry and open HubSpot Service Hub tickets into an explainable renewal risk score right on the company record.",
     },
   ],
+  "agent-campaign": [
+    { id: "campaign-record", name: "Marketing campaign, active list (segment), email, landing page, and social drafts", by: "native" },
+    { id: "campaign-attribution", name: "Campaign attribution and contact timeline: click and form submission on the record", by: "native" },
+    { id: "marketing-dashboard", name: "Marketing dashboard and saved report", by: "native" },
+    AGENT_SURFACE,
+    AGENT_BRIDGE,
+  ],
+  "agent-deal-follow-up": [
+    { id: "deal-record", name: "Deal record, stage, close date, next step, tasks, and timeline (the system of record)", by: "native" },
+    { id: "connected-inbox", name: "Connected inbox: sent email and the reply logged on the deal", by: "native" },
+    { id: "sales-dashboard", name: "Sales dashboard and saved pipeline report", by: "native" },
+    AGENT_SURFACE,
+    AGENT_BRIDGE,
+  ],
+  "agent-renewal": [
+    { id: "company-record", name: "Company record, renewal deal, notes, tasks, and timeline", by: "native" },
+    { id: "service-hub-ticket", name: "Service Hub ticket: created, replied, waiting, closed, with its timeline", by: "native" },
+    { id: "service-dashboard", name: "Customer success dashboard and saved renewal risk report", by: "native" },
+    AGENT_SURFACE,
+    AGENT_BRIDGE,
+  ],
 };
+

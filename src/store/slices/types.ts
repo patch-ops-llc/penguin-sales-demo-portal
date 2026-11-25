@@ -3,6 +3,7 @@ import type { AgentAction, AgentState } from "./agent";
 import type { BranchLaunchAction, BranchLaunchState } from "./branch-launch";
 import type { CoreAction } from "./core";
 import type { CustomerAgentAction, CustomerAgentState } from "./customer-agent";
+import type { FlowsAction, FlowsState } from "./flows";
 import type { IntakeAction, IntakeState } from "./intake";
 import type { MarketingStudioAction, MarketingStudioState } from "./marketing-studio";
 import type { PatientReactivationAction, PatientReactivationState } from "./patient-reactivation";
@@ -57,6 +58,8 @@ export type World = {
   renewals: RenewalsState;
   /** The agent-run demos: transcript and provider for the current run. */
   ag: AgentState;
+  /** Headless flows: segments, campaigns, support tickets, and saved reports made from Claude. */
+  hf: FlowsState;
   /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
   approvalRule: ApprovalRuleEdit;
   seq: number;
@@ -65,6 +68,7 @@ export type World = {
 export type Action =
   | CoreAction
   | AgentAction
+  | FlowsAction
   | QuotingAction
   | SalesAction
   | CustomerAgentAction
