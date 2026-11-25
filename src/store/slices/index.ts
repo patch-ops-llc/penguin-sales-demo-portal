@@ -1,4 +1,4 @@
-export { agentTurns, applyAgent, isAgentAction, pendingConfirmation, seedAgent, type AgentAction, type AgentState } from "./agent";
+export { agentTurns, applyAgent, askedTurns, isAgentAction, pendingConfirmation, seedAgent, type AgentAction, type AgentState } from "./agent";
 export {
   applyBranchLaunch,
   isBranchLaunchAction,
@@ -8,6 +8,7 @@ export {
 } from "./branch-launch";
 export { applyCore, type CoreAction } from "./core";
 export { applyCustomerAgent, isCustomerAgentAction, seedCustomerAgent, type CustomerAgentAction, type CustomerAgentState } from "./customer-agent";
+export { applyFlows, isFlowsAction, seedFlows, type FlowsAction, type FlowsState } from "./flows";
 export { nextDealQuoteId, quoteName, ruleOf } from "./helpers";
 export { applyIntake, isIntakeAction, seedIntake, type IntakeAction, type IntakeDemoState, type IntakeState } from "./intake";
 export { applyMarketingStudio, isMarketingStudioAction, seedMarketingStudio, type MarketingStudioAction, type MarketingStudioState } from "./marketing-studio";

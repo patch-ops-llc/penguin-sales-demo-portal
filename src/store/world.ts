@@ -4,6 +4,7 @@ import {
   applyBranchLaunch,
   applyCore,
   applyCustomerAgent,
+  applyFlows,
   applyIntake,
   applyMarketingStudio,
   applyPatientReactivation,
@@ -15,6 +16,7 @@ import {
   isAgentAction,
   isBranchLaunchAction,
   isCustomerAgentAction,
+  isFlowsAction,
   isIntakeAction,
   isMarketingStudioAction,
   isPatientReactivationAction,
@@ -28,6 +30,7 @@ import {
   seedBackOffice,
   seedBranchLaunch,
   seedCustomerAgent,
+  seedFlows,
   seedEmailToDeal,
   seedGuidedQuote,
   seedIntake,
@@ -111,6 +114,7 @@ export function seedWorld(pack: Pack): World {
     intake: seedIntake(pack),
     renewals: seedRenewals(pack),
     ag: seedAgent(),
+    hf: seedFlows(),
     approvalRule: {},
     seq: 0,
   };
@@ -121,6 +125,7 @@ export function mutate(w: World, a: Action, pack: Pack): void {
   if (isQuotingAction(a)) return applyQuoting(w, a, pack);
   if (isSalesAction(a)) return applySales(w, a, pack);
   if (isCustomerAgentAction(a)) return applyCustomerAgent(w, a, pack);
+  if (isFlowsAction(a)) return applyFlows(w, a, pack);
   if (isSocialAdsAction(a)) return applySocialAds(w, a, pack);
   if (isMarketingStudioAction(a)) return applyMarketingStudio(w, a, pack);
   if (isTicketsAction(a)) return applyTickets(w, a, pack);

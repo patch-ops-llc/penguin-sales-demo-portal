@@ -25,7 +25,10 @@ export type DemoId =
   | "complaint-sla"
   | "loan-application-pipeline"
   | "branch-launch-campaign"
-  | "agent-guided-quote";
+  | "agent-guided-quote"
+  | "agent-campaign"
+  | "agent-deal-follow-up"
+  | "agent-renewal";
 
 export type DemoHub = "marketing" | "sales" | "service" | "ops";
 
@@ -79,6 +82,36 @@ export const DEMOS: Record<DemoId, DemoTile> = {
     hub: "sales",
     ai: true,
     tags: ["agent", "claude", "openai", "headless", "mcp", "tool calling", "cpq", "quote"],
+  },
+  "agent-campaign": {
+    id: "agent-campaign",
+    title: "Campaign built and launched from Claude",
+    minutes: 4,
+    summary: "A marketer asks Claude what worked, then builds the segment, the campaign, the email, the landing page, and the social posts from the conversation. HubSpot keeps every record and the report.",
+    takeaway: "Headless marketing: Claude is the surface, HubSpot is the system of record, and every write waits for approval.",
+    hub: "marketing",
+    ai: true,
+    tags: ["agent", "claude", "headless", "campaign", "segment", "email", "landing page", "attribution"],
+  },
+  "agent-deal-follow-up": {
+    id: "agent-deal-follow-up",
+    title: "Deal follow-up run from Claude",
+    minutes: 4,
+    summary: "A rep starts the day in Claude: what to focus on, a brief on the deal, a follow-up email logged with a task, the deal moved and dated after the reply, and the pipeline report saved.",
+    takeaway: "Headless sales: the rep never opens a record to work it, yet the deal, the timeline, and the dashboard are all current in HubSpot.",
+    hub: "sales",
+    ai: true,
+    tags: ["agent", "claude", "headless", "deal", "follow-up", "tasks", "pipeline"],
+  },
+  "agent-renewal": {
+    id: "agent-renewal",
+    title: "At-risk renewal handled from Claude",
+    minutes: 5,
+    summary: "A CSM asks Claude which renewals are at risk, reaches out, turns the customer's reply into a Service Hub ticket, resolves it from past tickets, closes it, and saves the renewal risk report.",
+    takeaway: "Headless customer success: one conversation spans CRM and Service Hub, and every step lands as a HubSpot record.",
+    hub: "service",
+    ai: true,
+    tags: ["agent", "claude", "headless", "renewal", "churn", "ticket", "service hub"],
   },
   "discount-approval": {
     id: "discount-approval",
@@ -314,6 +347,9 @@ export const VERTICALS: VerticalTile[] = [
       "customer-onboarding",
       "premium-to-subscription",
       "renewal-churn-risk",
+      "agent-campaign",
+      "agent-deal-follow-up",
+      "agent-renewal",
     ],
     tiles: {
       "guided-quote": {

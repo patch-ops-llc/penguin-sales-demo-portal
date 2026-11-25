@@ -8,7 +8,7 @@ import { WhyThisScoreCard } from "@/demos/lead-capture/score-card";
 import { quoteStatusLabel, quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
 import { fill, labelsOf } from "@/verticals/labels";
-import { isServiceDeskConfig, type Activity, type ActivityType } from "@/verticals/types";
+import { isServiceDeskConfig, type Activity, type ActivityType, type Task } from "@/verticals/types";
 import { Ext } from "../ext";
 import { date, dateTime, money, num, relative } from "../format";
 import { Icon, type IconName } from "../icons";
@@ -223,6 +223,27 @@ function Assoc({ title, count, children }: { title: string; count: number; child
   return (
     <Card title={`${title} (${count})`}>
       {count === 0 ? <p className="text-[12.5px] text-ink-muted">None associated with this record.</p> : <div className="space-y-2.5">{children}</div>}
+    </Card>
+  );
+}
+
+/** Open tasks on a record. Shown only once a task exists, so untouched records read as they did. */
+function TasksCard({ match }: { match: (t: Task) => boolean }) {
+  const { world } = useShell();
+  const tasks = world.tasks.filter((t) => t.status === "open" && match(t));
+  if (tasks.length === 0) return null;
+  return (
+    <Card title={`Tasks (${tasks.length})`} testId="record-tasks">
+      <div className="space-y-2.5">
+        {tasks.map((t) => (
+          <div key={t.id} className="rounded-[8px] border border-line-soft px-3 py-2" data-testid={`record-task-${t.id}`}>
+            <p className="text-[13px] font-semibold">{t.title}</p>
+            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+              {t.type} · {t.priority} · Due {date(t.dueAt)}
+            </p>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
@@ -487,6 +508,7 @@ export function CompanyRecord({ id }: { id: string }) {
               <AssocRow key={q.id} to={`/quotes/${q.id}`} title={`${q.number}: ${q.title}`} lines={[`${quoteStatusLabel(q.status)} · ${money(quoteTotals(q).total)}`]} />
             ))}
           </Assoc>
+          <TasksCard match={(t) => t.companyId === id} />
         </>
       }
     >
@@ -570,6 +592,7 @@ export function DealRecord({ id }: { id: string }) {
           <Prop label="Deal owner">{ownerName(pack, deal.ownerId)}</Prop>
           <Prop label="Amount">{money(deal.amount)}</Prop>
           <Prop label="Close date">{date(deal.closeDate)}</Prop>
+          {deal.nextStep ? <Prop label="Next step">{deal.nextStep}</Prop> : null}
           <Prop label="Pipeline">{deal.pipelineName ?? labelsOf(pack).pack.pipeline}</Prop>
           <Prop label="Deal stage">{stage?.label}</Prop>
           <Prop label="Deal type">{deal.type}</Prop>
@@ -596,6 +619,7 @@ export function DealRecord({ id }: { id: string }) {
           <Assoc title="Companies" count={company ? 1 : 0}>
             {company ? <AssocRow to={`/companies/${company.id}`} title={company.name} lines={[company.domain]} /> : null}
           </Assoc>
+          <TasksCard match={(t) => t.dealId === id} />
           <DealQuotesCard deal={deal} quotes={quotes}>
             {canQuoteFromEmail ? (
               <Button

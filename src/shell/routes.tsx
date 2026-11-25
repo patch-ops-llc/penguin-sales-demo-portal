@@ -2,6 +2,7 @@
 
 import { useShell } from "@/store/store";
 import { AnalyticsRoutes } from "./analytics/lazy";
+import { ClaudeRoutes } from "./claude/lazy";
 import { IntakeRoutes } from "./intake/lazy";
 import { LazyMarketingView } from "./marketing/lazy";
 import { LazyApprovalWorkflowPage, LazySettingsPage } from "./pages/approval-settings-lazy";
@@ -31,6 +32,8 @@ export function isOutsideHubSpot(segments: string[]): boolean {
     segments[0] === "service-app" ||
     segments[0] === "ticket-app" ||
     segments[0] === "offplatform" ||
+    segments[0] === "claude" ||
+    segments[0] === "beat" ||
     segments[0] === "intake" ||
     segments[0] === "renewals-app" ||
     (segments[0] === "marketing" && segments[1] === "off-platform")
@@ -38,7 +41,7 @@ export function isOutsideHubSpot(segments: string[]): boolean {
 }
 
 export function Routes() {
-  const { route } = useShell();
+  const { route, world } = useShell();
   const [section, id, sub] = route.segments;
   // Keying by record id gives each record a fresh screen, as a page load would.
   switch (section) {
@@ -77,7 +80,14 @@ export function Routes() {
       return <TicketsRoutes section={section} id={id} sub={sub} />;
     case "settings":
       return <LazySettingsPage />;
+    case "claude":
+    case "beat":
+    case "support":
+    case "dashboards":
+      return <ClaudeRoutes section={section} id={id} />;
     case "campaigns":
+      if (id && world.hf.campaigns.some((c) => c.id === id)) return <ClaudeRoutes section="campaigns" id={id} />;
+      return <SocialRoutes section={section} id={id} />;
     case "social":
     case "insights":
     case "offplatform":

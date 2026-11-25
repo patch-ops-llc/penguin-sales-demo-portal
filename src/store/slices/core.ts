@@ -1,4 +1,4 @@
-import type { Pack } from "@/verticals/types";
+import type { Pack, Task } from "@/verticals/types";
 import { addActivity, iso, touch } from "./helpers";
 import { APPROVERS_REQUIRED, type ApprovalRuleEdit, type World } from "./types";
 
@@ -9,7 +9,9 @@ export type CoreAction =
   | { t: "approval.rule"; edit: ApprovalRuleEdit | null }
   | { t: "notif.read"; id: string }
   | { t: "task.toggle"; id: string }
-  | { t: "log"; kind: "note" | "email" | "call" | "meeting" | "task"; text: string; contactIds: string[]; companyIds: string[]; dealIds: string[]; at: number };
+  | { t: "task.create"; task: Omit<Task, "status" | "isNew"> }
+  | { t: "deal.update"; id: string; stage?: string; closeDate?: string; nextStep?: string; at: number }
+  | { t: "log"; kind: "note" | "email" | "call" | "meeting" | "task"; text: string; title?: string; byId?: string | null; contactIds: string[]; companyIds: string[]; dealIds: string[]; at: number };
 
 export function applyCore(w: World, a: CoreAction, pack: Pack): void {
   switch (a.t) {
@@ -53,10 +55,39 @@ export function applyCore(w: World, a: CoreAction, pack: Pack): void {
       if (task) task.status = task.status === "open" ? "done" : "open";
       return;
     }
+    case "task.create": {
+      if (w.tasks.some((x) => x.id === a.task.id)) return;
+      w.tasks.unshift({ ...a.task, status: "open", isNew: true });
+      return;
+    }
+    case "deal.update": {
+      const deal = w.deals.find((d) => d.id === a.id);
+      if (!deal) return;
+      const at = iso(a.at);
+      const stages = deal.pipelineStages ?? pack.stages;
+      const changes: string[] = [];
+      if (a.stage && a.stage !== deal.stage && stages.some((s) => s.id === a.stage)) {
+        changes.push(`Stage: ${stages.find((s) => s.id === deal.stage)?.label ?? deal.stage} → ${stages.find((s) => s.id === a.stage)?.label ?? a.stage}`);
+        deal.stage = a.stage;
+      }
+      if (a.closeDate && a.closeDate !== deal.closeDate) {
+        changes.push(`Close date: ${deal.closeDate.slice(0, 10)} → ${a.closeDate.slice(0, 10)}`);
+        deal.closeDate = a.closeDate;
+      }
+      if (a.nextStep !== undefined && a.nextStep !== deal.nextStep) {
+        changes.push(`Next step: ${a.nextStep}`);
+        deal.nextStep = a.nextStep;
+      }
+      if (changes.length === 0) return;
+      deal.lastActivityAt = at;
+      addActivity(w, { at, type: "deal", title: "Deal updated", body: changes.join(" · "), byId: w.persona, contactIds: deal.contactIds, companyIds: [deal.companyId], dealIds: [deal.id] });
+      touch(w, at, { companyId: deal.companyId, contactIds: deal.contactIds, dealId: deal.id });
+      return;
+    }
     case "log": {
       const labels = { note: "Note", email: "Email logged", call: "Call logged", meeting: "Meeting logged", task: "Task created" };
       const at = iso(a.at);
-      addActivity(w, { at, type: a.kind, title: labels[a.kind], body: a.text, byId: w.persona, contactIds: a.contactIds, companyIds: a.companyIds, dealIds: a.dealIds });
+      addActivity(w, { at, type: a.kind, title: a.title ?? labels[a.kind], body: a.text, byId: a.byId === undefined ? w.persona : a.byId, contactIds: a.contactIds, companyIds: a.companyIds, dealIds: a.dealIds });
       touch(w, at, { companyId: a.companyIds[0], contactIds: a.contactIds, dealId: a.dealIds[0] });
       return;
     }

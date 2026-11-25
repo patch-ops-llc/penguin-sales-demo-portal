@@ -1,8 +1,8 @@
 import type { AgentMessage, ToolCall, ToolResult } from "@/lib/agent/types";
-import { agentTurns, pendingConfirmation } from "@/store/slices/agent";
+import { pendingConfirmation } from "@/store/slices/agent";
 import type { Action, World } from "@/store/slices/types";
 import type { Pack } from "@/verticals/types";
-import { getAgentDemo, type AgentDemoId } from "./catalog";
+import { getAgentDemo, isFlowSample, sampleIndex, type AgentDemoId } from "./catalog";
 import { confirmTools, runTool } from "./tools";
 
 /**
@@ -51,18 +51,35 @@ export function focusPathOf(actions: Action[], pack: Pack, w: Pick<World, "gq">)
   return last ? focusFor(last, pack, quoteId).path : null;
 }
 
+function say(w: World, out: Action[], text: string): void {
+  const message: AgentMessage = { role: "assistant", text, toolCalls: [] };
+  w.ag.messages.push(message);
+  out.push({ t: "agent.message", message });
+}
+
 function playTurn(w: World, pack: Pack, now: number, demoId: AgentDemoId): Action[] {
   const demo = getAgentDemo(demoId);
   if (!demo) return [];
-  const k = agentTurns(w);
-  const step = demo.sample(pack)[k];
+  const sample = demo.sample(pack);
+  const flow = isFlowSample(sample);
+  const k = sampleIndex(sample, w.ag.messages);
+  const step = sample[k];
   if (!step) return [];
+  const out: Action[] = [];
+  if (flow) {
+    // A flow turn opens with the person's own message, so the transcript reads as typed.
+    const user: AgentMessage = { role: "user", text: step.user ?? "" };
+    w.ag.messages.push(user);
+    out.push({ t: "agent.message", message: user });
+  }
   const calls: ToolCall[] = (step.toolCalls ?? []).map((c, i) => ({ id: `scripted-${k}-${i + 1}`, name: c.name, args: c.args }));
   const assistant: AgentMessage = { role: "assistant", text: step.text, toolCalls: calls };
   w.ag.messages.push(assistant);
-  const out: Action[] = [{ t: "agent.message", message: assistant }];
+  out.push({ t: "agent.message", message: assistant });
   if (calls.some((c) => confirmTools().includes(c.name))) return out;
-  return [...out, ...execute(calls, w, pack, now, null, demo.tools)];
+  if (calls.length > 0) out.push(...execute(calls, w, pack, now, null, demo.tools));
+  if (flow && step.done && calls.length > 0) say(w, out, step.done);
+  return out;
 }
 
 /** One scripted turn from the current state. Ends early when the turn asks the rep to confirm something. */
@@ -77,6 +94,8 @@ export function scriptedTurn(ctx: Ctx, now: number, demoId: AgentDemoId = "agent
 export function answerScripted(ctx: Ctx, approve: boolean, now: number, demoId: AgentDemoId = "agent-guided-quote"): Action[] {
   const demo = getAgentDemo(demoId);
   if (!demo) return [];
+  const sample = demo.sample(ctx.pack);
+  const flow = isFlowSample(sample);
   const w = structuredClone(ctx.w);
   const out: Action[] = [];
   if (pendingConfirmation(w, confirmTools()).length === 0) out.push(...playTurn(w, ctx.pack, now, demoId));
@@ -84,11 +103,14 @@ export function answerScripted(ctx: Ctx, approve: boolean, now: number, demoId: 
   if (!last || last.role !== "assistant" || last.toolCalls.length === 0) return out;
   const decisions = Object.fromEntries(last.toolCalls.map((c) => [c.id, approve]));
   out.push(...execute(last.toolCalls, w, ctx.pack, now, decisions, demo.tools));
-  if (approve) {
+  if (flow) {
+    // The flow waits for the person's next message; it only closes the turn it was asked to run.
+    const step = sample[sampleIndex(sample, w.ag.messages) - 1];
+    say(w, out, approve ? step?.done ?? "Done. The change is in HubSpot." : "Understood. Nothing was changed in HubSpot. Tell me what to adjust.");
+  } else if (approve) {
     out.push(...playTurn(w, ctx.pack, now, demoId));
   } else {
-    const held: AgentMessage = { role: "assistant", text: "Understood. The quote stays in draft on the deal. Tell me when you want it sent.", toolCalls: [] };
-    out.push({ t: "agent.message", message: held });
+    say(w, out, "Understood. The quote stays in draft on the deal. Tell me when you want it sent.");
   }
   return out;
 }

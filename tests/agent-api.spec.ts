@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { replay, seedWorld } from "../src/store/world";
 import { manufacturingPack } from "../src/verticals/manufacturing/pack";
+import { saasPack } from "../src/verticals/saas/pack";
 import { signIn } from "./helpers";
 
 /**
@@ -175,6 +176,56 @@ test("a declined confirmation leaves the quote unsent and tells the model so", a
   expect(run.actions.map((a) => a.t)).not.toContain("quote.send");
   const world = replay(seedWorld(manufacturingPack), run.actions as never[], manufacturingPack);
   expect(world.quotes.find((q) => q.id === world.gq.quoteId)?.status).toBe("Draft");
+});
+
+test("the mock provider runs a headless flow turn by turn: reads answer, writes wait for approval, then land as store actions", async () => {
+  test.skip(!mockOn, "AGENT_MOCK=1 is not set on the portal under test.");
+  const flow = { demo: "agent-deal-follow-up", vertical: "saas" };
+  const sample = saasPack.demos.flows!.flows["agent-deal-follow-up"]!.turns;
+  const messages: Message[] = [];
+  const actions: Action[] = [];
+  const play = async (text: string | null, approve?: Record<string, boolean>) => {
+    if (text) messages.push({ role: "user", text });
+    const { response, events } = await turn(api, { ...flow, messages, actions, approve });
+    expect(response.status(), await response.text().catch(() => "")).toBe(200);
+    for (const e of events) {
+      if (e.event === "message") messages.push(e.data.message as Message);
+      if (e.event === "tool_result") actions.push(...(e.data.actions as Action[]));
+    }
+    return events;
+  };
+
+  // Two reads: each turn answers from a tool result and ends without asking anything.
+  let events = await play(sample[0].user!);
+  expect(events.map((e) => e.event)).toContain("tool_result");
+  expect(events.find((e) => e.event === "done")?.data.reason).toBe("end");
+  expect(events.filter((e) => e.event === "tool_call").map((e) => (e.data.call as { name: string }).name)).toEqual(["get_focus_list"]);
+  events = await play(sample[1].user!);
+  expect(events.filter((e) => e.event === "tool_call").map((e) => (e.data.call as { name: string }).name)).toEqual(["get_deal_brief"]);
+  expect(actions).toEqual([]);
+
+  // A write turn stops at confirm with nothing applied; approval lands both writes and closes the turn.
+  events = await play(sample[2].user!);
+  const confirm = events.find((e) => e.event === "confirm");
+  expect(confirm).toBeTruthy();
+  expect(events.find((e) => e.event === "done")?.data.reason).toBe("confirm");
+  expect(actions).toEqual([]);
+  const calls = confirm!.data.calls as { id: string; name: string }[];
+  expect(calls.map((c) => c.name)).toEqual(["log_email", "create_task"]);
+  events = await play(null, Object.fromEntries(calls.map((c) => [c.id, true])));
+  expect(events.find((e) => e.event === "done")?.data.reason).toBe("end");
+  expect(events.filter((e) => e.event === "error")).toEqual([]);
+  const types = actions.map((a) => a.t);
+  expect(types).toEqual(expect.arrayContaining(["log", "task.create"]));
+  // The closing line is the turn's own, not the next question in the script.
+  const last = messages[messages.length - 1] as { role: string; text: string; toolCalls: unknown[] };
+  expect(last.role).toBe("assistant");
+  expect(last.toolCalls).toEqual([]);
+  expect(last.text).toContain("Sent and logged");
+
+  const world = replay(seedWorld(saasPack), actions as never[], saasPack);
+  expect(world.tasks.some((t) => t.isNew && t.dealId === "dl-marlowe" && t.ownerId === "jordan")).toBe(true);
+  expect(world.activities.some((a) => a.type === "email" && a.dealIds?.includes("dl-marlowe") && a.title.startsWith("Email to Priscilla Vance"))).toBe(true);
 });
 
 test("a real provider answers a first turn (opt-in: AGENT_E2E_REAL=1, spends real money)", async () => {

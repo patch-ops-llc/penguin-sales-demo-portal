@@ -45,6 +45,11 @@ export function agentTurns(w: Pick<World, "ag">): number {
   return w.ag.messages.filter((m) => m.role === "assistant").length;
 }
 
+/** Number of messages the person has sent: the index of the next flow turn. */
+export function askedTurns(w: Pick<World, "ag">): number {
+  return w.ag.messages.filter((m) => m.role === "user").length;
+}
+
 /** Tool calls the model made that still wait on the rep's answer: the last message is the model's and no results followed. */
 export function pendingConfirmation(w: Pick<World, "ag">, confirmTools: readonly string[]): ToolCall[] {
   const last = w.ag.messages[w.ag.messages.length - 1];
