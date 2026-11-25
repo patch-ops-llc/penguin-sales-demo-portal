@@ -309,6 +309,11 @@ export function toolDef(name: string): ToolDef | undefined {
   return BY_NAME.get(name)?.def;
 }
 
+/** Tools the rep must confirm before they run. */
+export function confirmTools(): string[] {
+  return TOOLS.filter((t) => t.def.confirm).map((t) => t.def.name);
+}
+
 export function runTool(call: ToolCall, ctx: ToolContext, allow?: readonly string[]): ToolOutcome {
   const tool = BY_NAME.get(call.name);
   if (!tool || (allow && !allow.includes(call.name))) return { actions: [], result: null, error: `Unknown tool "${call.name}".` };

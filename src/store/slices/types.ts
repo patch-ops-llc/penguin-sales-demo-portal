@@ -1,4 +1,5 @@
 import type { Activity, ApprovalFilterId, Company, Contact, Deal, InboxThread, Notification, Quote, Task } from "@/verticals/types";
+import type { AgentAction, AgentState } from "./agent";
 import type { BranchLaunchAction, BranchLaunchState } from "./branch-launch";
 import type { CoreAction } from "./core";
 import type { CustomerAgentAction, CustomerAgentState } from "./customer-agent";
@@ -54,6 +55,8 @@ export type World = {
   bl: BranchLaunchState;
   intake: IntakeState;
   renewals: RenewalsState;
+  /** The agent-run demos: transcript and provider for the current run. */
+  ag: AgentState;
   /** What the rep has changed in the quote approval rule. Parts left unset are the pack's. */
   approvalRule: ApprovalRuleEdit;
   seq: number;
@@ -61,6 +64,7 @@ export type World = {
 
 export type Action =
   | CoreAction
+  | AgentAction
   | QuotingAction
   | SalesAction
   | CustomerAgentAction
